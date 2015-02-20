@@ -920,9 +920,85 @@ class Readliner:
             self.remainder = b"".join(data)
             raise
 
+
 class OfflineTest(TestCase):
+    def test_all(self):
+        # Documented objects defined in the module should be in __all__
+        expected = {"responses"}  # White-list documented dict() object
+        # HTTPMessage, parse_headers(), and the HTTP status code constants are
+        # intentionally omitted for simplicity
+        blacklist = {"HTTPMessage", "parse_headers"}
+        for name in dir(client):
+            if name in blacklist:
+                continue
+            module_object = getattr(client, name)
+            if getattr(module_object, "__module__", None) == "http.client":
+                expected.add(name)
+        self.assertCountEqual(client.__all__, expected)
+
     def test_responses(self):
         self.assertEqual(client.responses[client.NOT_FOUND], "Not Found")
+
+    def test_client_constants(self):
+        # Make sure we don't break backward compatibility with 3.4
+        expected = [
+            'CONTINUE',
+            'SWITCHING_PROTOCOLS',
+            'PROCESSING',
+            'OK',
+            'CREATED',
+            'ACCEPTED',
+            'NON_AUTHORITATIVE_INFORMATION',
+            'NO_CONTENT',
+            'RESET_CONTENT',
+            'PARTIAL_CONTENT',
+            'MULTI_STATUS',
+            'IM_USED',
+            'MULTIPLE_CHOICES',
+            'MOVED_PERMANENTLY',
+            'FOUND',
+            'SEE_OTHER',
+            'NOT_MODIFIED',
+            'USE_PROXY',
+            'TEMPORARY_REDIRECT',
+            'BAD_REQUEST',
+            'UNAUTHORIZED',
+            'PAYMENT_REQUIRED',
+            'FORBIDDEN',
+            'NOT_FOUND',
+            'METHOD_NOT_ALLOWED',
+            'NOT_ACCEPTABLE',
+            'PROXY_AUTHENTICATION_REQUIRED',
+            'REQUEST_TIMEOUT',
+            'CONFLICT',
+            'GONE',
+            'LENGTH_REQUIRED',
+            'PRECONDITION_FAILED',
+            'REQUEST_ENTITY_TOO_LARGE',
+            'REQUEST_URI_TOO_LONG',
+            'UNSUPPORTED_MEDIA_TYPE',
+            'REQUESTED_RANGE_NOT_SATISFIABLE',
+            'EXPECTATION_FAILED',
+            'UNPROCESSABLE_ENTITY',
+            'LOCKED',
+            'FAILED_DEPENDENCY',
+            'UPGRADE_REQUIRED',
+            'PRECONDITION_REQUIRED',
+            'TOO_MANY_REQUESTS',
+            'REQUEST_HEADER_FIELDS_TOO_LARGE',
+            'INTERNAL_SERVER_ERROR',
+            'NOT_IMPLEMENTED',
+            'BAD_GATEWAY',
+            'SERVICE_UNAVAILABLE',
+            'GATEWAY_TIMEOUT',
+            'HTTP_VERSION_NOT_SUPPORTED',
+            'INSUFFICIENT_STORAGE',
+            'NOT_EXTENDED',
+            'NETWORK_AUTHENTICATION_REQUIRED',
+        ]
+        for const in expected:
+            with self.subTest(constant=const):
+                self.assertTrue(hasattr(client, const))
 
 
 class SourceAddressTest(TestCase):
