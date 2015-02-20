@@ -15,6 +15,7 @@ MS_WIN64 - Code specific to the MS Win64 API
 MS_WIN32 - Code specific to the MS Win32 (and Win64) API (obsolete, this covers all supported APIs)
 MS_WINDOWS - Code specific to Windows, but all versions.
 MS_WINCE - Code specific to Windows CE
+MS_WINRT - Code specific to Windows Store Apps
 Py_ENABLE_SHARED - Code if the Python core is built as a DLL.
 
 Also note that neither "_M_IX86" or "_MSC_VER" should be used for
@@ -75,19 +76,42 @@ WIN32 is still required for the locale module.
 #define LONG_BIT	32
 #define WORD_BIT 32
 
+#ifdef _M_ARM
+#define MS_ARM
+#else
 #define MS_WIN32 /* only support win32 and greater. */
-#define MS_WINDOWS
-#ifndef PYTHONPATH
-#	define PYTHONPATH L".\\DLLs;.\\lib"
 #endif
-#define NT_THREADS
-#define WITH_THREAD
+#define MS_WINDOWS
+#ifdef WINAPI_FAMILY
+#   include <winapifamily.h>
+#   if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)
+#       define MS_WINRT
+#   endif
+#endif
+#ifndef PYTHONPATH
+#   ifdef MS_WINRT
+#       define PYTHONPATH L".\\lib;.\\lib.zip;.\\pythoncore;.\\pythoncore\\lib.zip"
+#   else
+#	    define PYTHONPATH L".\\DLLs;.\\lib"
+#   endif
+#endif
+#ifdef MS_WINRT
+#define _PY_EMULATED_WIN_CV 0
+#endif
 #ifndef NETSCAPE_PI
 #define USE_SOCKET
 #endif
 
+#ifdef MS_WINRT
+#define WINRT_THREADS
+#define WITH_THREAD
+#else
+#define NT_THREADS
+#define WITH_THREAD
+#endif
+
 /* CE6 doesn't have strdup() but _strdup(). Assume the same for earlier versions. */
-#if defined(MS_WINCE)
+#if defined(MS_WINCE) || defined(MS_WINRT)
 #  include <stdlib.h>
 #  define strdup _strdup
 #endif
@@ -96,6 +120,15 @@ WIN32 is still required for the locale module.
 /* Windows CE does not support environment variables */
 #define getenv(v) (NULL)
 #define environ (NULL)
+#endif
+
+#if defined(MS_WINRT)
+/* Windows Store apps do not have environment variables */
+#define getenv(v) (NULL)
+#undef environ
+#define environ (NULL)
+/* getpid is not available, but GetCurrentProcessId is */
+#define getpid GetCurrentProcessId
 #endif
 
 /* Compiler specific defines */
@@ -135,6 +168,9 @@ WIN32 is still required for the locale module.
    	#if defined(MS_WIN32) && !defined(MS_WIN64)
    Some modules are disabled on Itanium processors, therefore we
    have MS_WINI64 set for those targets, otherwise MS_WINX64
+
+   MS_ARM is defined for ARM processors, and MS_WIN32 and MS_WIN64
+   are not defined.
 */
 #ifdef _WIN64
 #define MS_WIN64
@@ -157,8 +193,15 @@ WIN32 is still required for the locale module.
 
 /* set the version macros for the windows headers */
 /* Python 3.4+ requires Windows XP or greater */
+#if defined(MS_WINRT)
+/* WinRT requires Windows 8 or later */
+#define Py_WINVER 0x0602 /* _WIN32_WINNT_WIN8 */
+#define Py_NTDDI NTDDI_WIN8
+#else
+/* Python 3.4+ requires Windows XP or greater */
 #define Py_WINVER 0x0501 /* _WIN32_WINNT_WINXP */
 #define Py_NTDDI NTDDI_WINXP
+#endif
 
 /* We only set these values when building Python - we don't want to force
    these values on extensions, as that will affect the prototypes and
@@ -192,7 +235,7 @@ typedef _W64 int ssize_t;
 #endif
 #define HAVE_SSIZE_T 1
 
-#if defined(MS_WIN32) && !defined(MS_WIN64)
+#if (defined(MS_WIN32) || defined(MS_ARM)) && !defined(MS_WIN64)
 #if defined(_M_IX86)
 #define COMPILER _Py_PASTE_VERSION("32 bit (Intel)")
 #define PYD_PLATFORM_TAG "win32"
@@ -233,6 +276,12 @@ typedef int pid_t;
 #if _MSC_VER >= 1200
 /* This file only exists in VC 6.0 or higher */
 #include <basetsd.h>
+#endif
+
+/* ARM platform does not provide stdio.h */
+#ifdef MS_ARM
+#define NO_STDIO_H
+#define DONT_HAVE_STDIO_H
 #endif
 
 #endif /* _MSC_VER */
@@ -331,7 +380,7 @@ Py_NO_ENABLE_SHARED to find out.  Also support MS_NO_COREDLL for b/w compat */
    then this is true. The uses of HAVE_LARGEFILE_SUPPORT imply that Win64
    should define this. */
 #	define HAVE_LARGEFILE_SUPPORT
-#elif defined(MS_WIN32)
+#elif defined(MS_WIN32) || defined(MS_ARM)
 #	define PLATFORM "win32"
 #	define HAVE_LARGEFILE_SUPPORT
 #	define SIZEOF_VOID_P 4
@@ -347,12 +396,17 @@ Py_NO_ENABLE_SHARED to find out.  Also support MS_NO_COREDLL for b/w compat */
 #	endif
 #endif
 
+#if defined(MS_WINRT)
+#   undef PLATFORM
+#   define PLATFORM "winrt"
+#endif
+
 #ifdef _DEBUG
 #	define Py_DEBUG
 #endif
 
 
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
 
 #define SIZEOF_SHORT 2
 #define SIZEOF_INT 4
@@ -375,7 +429,7 @@ Py_NO_ENABLE_SHARED to find out.  Also support MS_NO_COREDLL for b/w compat */
 #endif  /* _MSC_VER > 1300  */
 #endif  /* _MSC_VER */
 
-#endif
+#endif  /* MS_WIN32 || MS_ARM */
 
 /* define signed and unsigned exact-width 32-bit and 64-bit types, used in the
    implementation of Python integers. */
@@ -440,12 +494,12 @@ Py_NO_ENABLE_SHARED to find out.  Also support MS_NO_COREDLL for b/w compat */
 /* #define const  */
 
 /* Define to 1 if you have the <conio.h> header file. */
-#ifndef MS_WINCE
+#if !defined(MS_WINCE) && !defined(MS_WINRT)
 #define HAVE_CONIO_H 1
 #endif
 
 /* Define to 1 if you have the <direct.h> header file. */
-#ifndef MS_WINCE
+#if !defined(MS_WINCE) && !defined(MS_WINRT)
 #define HAVE_DIRECT_H 1
 #endif
 
@@ -520,7 +574,7 @@ Py_NO_ENABLE_SHARED to find out.  Also support MS_NO_COREDLL for b/w compat */
 /* #define HAVE_ALTZONE */
 
 /* Define if you have the putenv function.  */
-#ifndef MS_WINCE
+#if !defined(MS_WINCE) && !defined(MS_WINRT)
 #define HAVE_PUTENV
 #endif
 
@@ -651,7 +705,7 @@ Py_NO_ENABLE_SHARED to find out.  Also support MS_NO_COREDLL for b/w compat */
 #endif
 
 /* Define to 1 if you have the <process.h> header file. */
-#ifndef MS_WINCE
+#if !defined(MS_WINCE) && !defined(MS_WINRT)
 #define HAVE_PROCESS_H 1
 #endif
 

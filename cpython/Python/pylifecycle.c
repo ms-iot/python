@@ -214,9 +214,13 @@ static char*
 get_locale_encoding(void)
 {
 #ifdef MS_WINDOWS
+#ifdef MS_WINRT
+    return get_codec_name("cp65001");
+#else
     char codepage[100];
     PyOS_snprintf(codepage, sizeof(codepage), "cp%d", GetACP());
     return get_codec_name(codepage);
+#endif
 #elif defined(HAVE_LANGINFO_H) && defined(CODESET)
     char* codeset = nl_langinfo(CODESET);
     if (!codeset || codeset[0] == '\0') {
@@ -1283,7 +1287,7 @@ Py_FatalError(const char *msg)
         OutputDebugStringW(buffer);
         OutputDebugStringW(L"\n");
     }
-#ifdef _DEBUG
+#if defined(_DEBUG) && !defined(MS_WINRT)
     DebugBreak();
 #endif
 #endif /* MS_WINDOWS */

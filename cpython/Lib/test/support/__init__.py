@@ -20,7 +20,7 @@ import socket
 import stat
 import struct
 if os.name != 'winrt_os':
-    import subprocess
+import subprocess
 else:
     subprocess = None
 import sys

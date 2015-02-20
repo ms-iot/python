@@ -1830,7 +1830,7 @@ get_target_path(HANDLE hdl, wchar_t **target_path)
     if(!buf_size)
         return FALSE;
 
-    buf = PyMem_New(wchar_t, buf_size+1);
+    buf = (wchar_t *)PyMem_Malloc((buf_size+1)*sizeof(wchar_t));
     if (!buf) {
         SetLastError(ERROR_OUTOFMEMORY);
         return FALSE;
@@ -4758,7 +4758,7 @@ _listdir_windows_no_opendir(path_t *path, PyObject *list)
             len = wcslen(path->wide);
         }
         /* The +5 is so we can append "\\*.*\0" */
-        wnamebuf = PyMem_New(wchar_t, len + 5);
+        wnamebuf = PyMem_Malloc((len + 5) * sizeof(wchar_t));
         if (!wnamebuf) {
             PyErr_NoMemory();
             goto exit;
@@ -5102,7 +5102,7 @@ posix__getfullpathname(PyObject *self, PyObject *args)
                                   Py_ARRAY_LENGTH(woutbuf),
                                   woutbuf, &wtemp);
         if (result > Py_ARRAY_LENGTH(woutbuf)) {
-            woutbufp = PyMem_New(wchar_t, result);
+            woutbufp = PyMem_Malloc(result * sizeof(wchar_t));
             if (!woutbufp)
                 return PyErr_NoMemory();
             result = GetFullPathNameW(wpath, result, woutbufp, &wtemp);
@@ -5216,7 +5216,7 @@ os__getfinalpathname_impl(PyModuleDef *module, PyObject *path)
     if(!buf_size)
         return win32_error_object("GetFinalPathNameByHandle", path);
 
-    target_path = PyMem_New(wchar_t, buf_size+1);
+    target_path = (wchar_t *)PyMem_Malloc((buf_size+1)*sizeof(wchar_t));
     if(!target_path)
         return PyErr_NoMemory();
 
@@ -5334,7 +5334,7 @@ os__getvolumepathname_impl(PyModuleDef *module, PyObject *path)
         return NULL;
     }
 
-    mountpath = PyMem_New(wchar_t, buflen);
+    mountpath = (wchar_t *)PyMem_Malloc(buflen * sizeof(wchar_t));
     if (mountpath == NULL)
         return PyErr_NoMemory();
 
@@ -8768,9 +8768,9 @@ posix_getgrouplist(PyObject *self, PyObject *args)
 #endif
 
 #ifdef __APPLE__
-    groups = PyMem_New(int, ngroups);
+    groups = PyMem_Malloc(ngroups * sizeof(int));
 #else
-    groups = PyMem_New(gid_t, ngroups);
+    groups = PyMem_Malloc(ngroups * sizeof(gid_t));
 #endif
     if (groups == NULL)
         return PyErr_NoMemory();
@@ -8870,7 +8870,7 @@ os_getgroups_impl(PyModuleDef *module)
         /* groups will fit in existing array */
         alt_grouplist = grouplist;
     } else {
-        alt_grouplist = PyMem_New(gid_t, n);
+        alt_grouplist = PyMem_Malloc(n * sizeof(gid_t));
         if (alt_grouplist == NULL) {
             errno = EINVAL;
             return posix_error();
@@ -8896,7 +8896,7 @@ os_getgroups_impl(PyModuleDef *module)
                 /* Avoid malloc(0) */
                 alt_grouplist = grouplist;
             } else {
-                alt_grouplist = PyMem_New(gid_t, n);
+                alt_grouplist = PyMem_Malloc(n * sizeof(gid_t));
                 if (alt_grouplist == NULL) {
                     errno = EINVAL;
                     return posix_error();

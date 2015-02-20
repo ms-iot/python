@@ -7,7 +7,7 @@
 #include <mach/mach_time.h>   /* mach_absolute_time(), mach_timebase_info() */
 #endif
 
-#ifdef MS_WINDOWS
+#if defined(MS_WINDOWS) && !defined(MS_WINRT)
 static OSVERSIONINFOEX winver;
 #endif
 
@@ -31,11 +31,13 @@ pygettimeofday(_PyTime_timeval *tp, _Py_clock_info_t *info, int raise)
     tp->tv_sec = microseconds / 1000000;
     tp->tv_usec = microseconds % 1000000;
     if (info) {
+#ifndef MS_WINRT
         DWORD timeAdjustment, timeIncrement;
         BOOL isTimeAdjustmentDisabled, ok;
-
+#endif
         info->implementation = "GetSystemTimeAsFileTime()";
         info->monotonic = 0;
+#ifndef MS_WINRT
         ok = GetSystemTimeAdjustment(&timeAdjustment, &timeIncrement,
                                      &isTimeAdjustmentDisabled);
         if (!ok) {
@@ -43,6 +45,9 @@ pygettimeofday(_PyTime_timeval *tp, _Py_clock_info_t *info, int raise)
             return -1;
         }
         info->resolution = timeIncrement * 1e-7;
+#else
+        info->resolution = 0;
+#endif
         info->adjustable = 1;
     }
 
@@ -124,23 +129,26 @@ pymonotonic(_PyTime_timeval *tp, _Py_clock_info_t *info, int raise)
     static _PyTime_timeval last = {0, -1};
 #endif
 #if defined(MS_WINDOWS)
+#ifndef MS_WINRT
     static ULONGLONG (*GetTickCount64) (void) = NULL;
     static ULONGLONG (CALLBACK *Py_GetTickCount64)(void);
+#endif
     static int has_gettickcount64 = -1;
     ULONGLONG result;
 
     assert(info == NULL || raise);
 
+#ifdef MS_WINRT
+    has_gettickcount64 = 1;
+    result = GetTickCount64();
+#else
     if (has_gettickcount64 == -1) {
         /* GetTickCount64() was added to Windows Vista */
-        has_gettickcount64 = (winver.dwMajorVersion >= 6);
-        if (has_gettickcount64) {
-            HINSTANCE hKernel32;
-            hKernel32 = GetModuleHandleW(L"KERNEL32");
-            *(FARPROC*)&Py_GetTickCount64 = GetProcAddress(hKernel32,
-                                                           "GetTickCount64");
-            assert(Py_GetTickCount64 != NULL);
-        }
+        HINSTANCE hKernel32;
+        hKernel32 = GetModuleHandleW(L"KERNEL32");
+        *(FARPROC*)&Py_GetTickCount64 = GetProcAddress(hKernel32,
+                                                       "GetTickCount64");
+        has_gettickcount64 = (Py_GetTickCount64 != NULL);
     }
 
     if (has_gettickcount64) {
@@ -159,18 +167,22 @@ pymonotonic(_PyTime_timeval *tp, _Py_clock_info_t *info, int raise)
         result = (ULONGLONG)n_overflow << 32;
         result += ticks;
     }
+#endif
 
     tp->tv_sec = result / 1000;
     tp->tv_usec = (result % 1000) * 1000;
 
     if (info) {
+#ifndef MS_WINRT
         DWORD timeAdjustment, timeIncrement;
         BOOL isTimeAdjustmentDisabled, ok;
+#endif
         if (has_gettickcount64)
             info->implementation = "GetTickCount64()";
         else
             info->implementation = "GetTickCount()";
         info->monotonic = 1;
+#ifndef MS_WINRT
         ok = GetSystemTimeAdjustment(&timeAdjustment, &timeIncrement,
                                      &isTimeAdjustmentDisabled);
         if (!ok) {
@@ -178,6 +190,9 @@ pymonotonic(_PyTime_timeval *tp, _Py_clock_info_t *info, int raise)
             return -1;
         }
         info->resolution = timeIncrement * 1e-7;
+#else
+        info->resolution = 0;
+#endif
         info->adjustable = 0;
     }
 
@@ -409,7 +424,7 @@ _PyTime_Init(void)
 {
     _PyTime_timeval tv;
 
-#ifdef MS_WINDOWS
+#if defined(MS_WINDOWS) && !defined(MS_WINRT)
     winver.dwOSVersionInfoSize = sizeof(winver);
     if (!GetVersionEx((OSVERSIONINFO*)&winver)) {
         PyErr_SetFromWindowsErr(0);

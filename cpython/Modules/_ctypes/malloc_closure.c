@@ -65,9 +65,9 @@ static void more_core(void)
 	item = (ITEM *)malloc(count * sizeof(ITEM));
 #else
     item = (ITEM *)VirtualAlloc(NULL,
-                                count * sizeof(ITEM),
-                                MEM_COMMIT,
-                                PAGE_EXECUTE_READWRITE);
+                                           count * sizeof(ITEM),
+                                           MEM_COMMIT,
+                                           PAGE_EXECUTE_READWRITE);
 #endif
     if (item == NULL)
         return;

@@ -86,7 +86,10 @@ static size_t _pythread_stacksize = 0;
 #include "thread_pthread.h"
 #endif
 
-#ifdef NT_THREADS
+#ifdef WINRT_THREADS
+#define PYTHREAD_NAME "winrt"
+#include "thread_nt.h"
+#elif defined(NT_THREADS)
 #define PYTHREAD_NAME "nt"
 #include "thread_nt.h"
 #endif

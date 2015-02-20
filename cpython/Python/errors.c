@@ -446,6 +446,13 @@ PyErr_SetFromErrnoWithFilenameObjects(PyObject *exc, PyObject *filenameObject, P
 #ifdef MS_WINDOWS
     WCHAR *s_buf = NULL;
 #endif /* Unix/Windows */
+#ifdef MS_WINRT
+    const int s_buf_len = 512;
+    WCHAR s_buf_local[512];
+    s_buf = s_buf_local;
+#else
+    const int s_buf_len = 0;
+#endif
 
 #ifdef EINTR
     if (i == EINTR && PyErr_CheckSignals())
@@ -476,7 +483,9 @@ PyErr_SetFromErrnoWithFilenameObjects(PyObject *exc, PyObject *filenameObject, P
         }
         else {
             int len = FormatMessageW(
+#ifndef MS_WINRT
                 FORMAT_MESSAGE_ALLOCATE_BUFFER |
+#endif
                 FORMAT_MESSAGE_FROM_SYSTEM |
                 FORMAT_MESSAGE_IGNORE_INSERTS,
                 NULL,                   /* no message source */
@@ -485,7 +494,7 @@ PyErr_SetFromErrnoWithFilenameObjects(PyObject *exc, PyObject *filenameObject, P
                            SUBLANG_DEFAULT),
                            /* Default language */
                 (LPWSTR) &s_buf,
-                0,                      /* size not used */
+                s_buf_len,              /* size not used */
                 NULL);                  /* no args */
             if (len==0) {
                 /* Only ever seen this in out-of-mem
@@ -504,7 +513,7 @@ PyErr_SetFromErrnoWithFilenameObjects(PyObject *exc, PyObject *filenameObject, P
 
     if (message == NULL)
     {
-#ifdef MS_WINDOWS
+#if defined(MS_WINDOWS) && !defined(MS_WINRT)
         LocalFree(s_buf);
 #endif
         return NULL;
@@ -529,7 +538,7 @@ PyErr_SetFromErrnoWithFilenameObjects(PyObject *exc, PyObject *filenameObject, P
             Py_DECREF(v);
         }
     }
-#ifdef MS_WINDOWS
+#if defined(MS_WINDOWS) && !defined(MS_WINRT)
     LocalFree(s_buf);
 #endif
     return NULL;
@@ -581,14 +590,23 @@ PyObject *PyErr_SetExcFromWindowsErrWithFilenameObjects(
     PyObject *filenameObject2)
 {
     int len;
+#ifdef MS_WINRT
+    const int s_buf_len = 0;
     WCHAR *s_buf = NULL; /* Free via LocalFree */
+#else
+    const int s_buf_len = 512;
+    WCHAR s_buf_actual[512];
+    WCHAR *s_buf = s_buf_actual; /* Don't free via LocalFree */
+#endif
     PyObject *message;
     PyObject *args, *v;
     DWORD err = (DWORD)ierr;
     if (err==0) err = GetLastError();
     len = FormatMessageW(
         /* Error API error */
+#ifndef MS_WINRT
         FORMAT_MESSAGE_ALLOCATE_BUFFER |
+#endif
         FORMAT_MESSAGE_FROM_SYSTEM |
         FORMAT_MESSAGE_IGNORE_INSERTS,
         NULL,           /* no message source */
@@ -596,7 +614,7 @@ PyObject *PyErr_SetExcFromWindowsErrWithFilenameObjects(
         MAKELANGID(LANG_NEUTRAL,
         SUBLANG_DEFAULT), /* Default language */
         (LPWSTR) &s_buf,
-        0,              /* size not used */
+        s_buf_len,
         NULL);          /* no args */
     if (len==0) {
         /* Only seen this in out of mem situations */
@@ -611,7 +629,9 @@ PyObject *PyErr_SetExcFromWindowsErrWithFilenameObjects(
 
     if (message == NULL)
     {
+#ifndef MS_WINRT
         LocalFree(s_buf);
+#endif
         return NULL;
     }
 
@@ -634,7 +654,9 @@ PyObject *PyErr_SetExcFromWindowsErrWithFilenameObjects(
             Py_DECREF(v);
         }
     }
+#ifndef MS_WINRT
     LocalFree(s_buf);
+#endif
     return NULL;
 }
 

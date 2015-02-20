@@ -109,7 +109,7 @@ PyCOND_TIMEDWAIT(PyCOND_T *cond, PyMUTEX_T *mut, PY_LONG_LONG us)
         return 0;
 }
 
-#elif defined(NT_THREADS)
+#elif defined(NT_THREADS) || defined(WINRT_THREADS)
 /*
  * Windows (XP, 2003 server and later, as well as (hopefully) CE) support
  *
@@ -365,7 +365,8 @@ PyCOND_WAIT(PyCOND_T *cv, PyMUTEX_T *cs)
 Py_LOCAL_INLINE(int)
 PyCOND_TIMEDWAIT(PyCOND_T *cv, PyMUTEX_T *cs, PY_LONG_LONG us)
 {
-    return SleepConditionVariableSRW(cv, cs, (DWORD)(us/1000), 0) ? 2 : -1;
+    int ret = SleepConditionVariableSRW(cv, cs, (DWORD)(us/1000), 0) ? 2 : ((GetLastError() == ERROR_TIMEOUT) ? 1 : -1);
+	return ret;
 }
 
 Py_LOCAL_INLINE(int)

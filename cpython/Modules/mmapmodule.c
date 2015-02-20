@@ -541,10 +541,10 @@ mmap_resize_method(mmap_object *self,
             self->tagname);
         if (self->map_handle != NULL) {
             self->data = (char *)MapViewOfFile(self->map_handle,
-                FILE_MAP_WRITE,
-                off_hi,
-                off_lo,
-                new_size);
+                                                FILE_MAP_WRITE,
+                                                off_hi,
+                                                off_lo,
+                                                new_size);
             if (self->data != NULL) {
                 self->size = new_size;
                 Py_INCREF(Py_None);

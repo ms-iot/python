@@ -43,11 +43,13 @@ _Py_device_encoding(int fd)
         Py_RETURN_NONE;
     }
 #if defined(MS_WINDOWS)
+#ifndef MS_WINRT
     if (fd == 0)
         cp = GetConsoleCP();
     else if (fd == 1 || fd == 2)
         cp = GetConsoleOutputCP();
     else
+#endif
         cp = 0;
     /* GetConsoleCP() and GetConsoleOutputCP() return 0 if the application
        has no console */
@@ -220,11 +222,8 @@ decode_ascii_surrogateescape(const char *arg, size_t *size)
     wchar_t *res;
     unsigned char *in;
     wchar_t *out;
-    size_t argsize = strlen(arg) + 1;
 
-    if (argsize > PY_SSIZE_T_MAX/sizeof(wchar_t))
-        return NULL;
-    res = PyMem_RawMalloc(argsize*sizeof(wchar_t));
+    res = PyMem_RawMalloc((strlen(arg)+1)*sizeof(wchar_t));
     if (!res)
         return NULL;
 
@@ -308,15 +307,10 @@ Py_DecodeLocale(const char* arg, size_t *size)
     argsize = mbstowcs(NULL, arg, 0);
 #endif
     if (argsize != (size_t)-1) {
-        if (argsize == PY_SSIZE_T_MAX)
-            goto oom;
-        argsize += 1;
-        if (argsize > PY_SSIZE_T_MAX/sizeof(wchar_t))
-            goto oom;
-        res = (wchar_t *)PyMem_RawMalloc(argsize*sizeof(wchar_t));
+        res = (wchar_t *)PyMem_RawMalloc((argsize+1)*sizeof(wchar_t));
         if (!res)
             goto oom;
-        count = mbstowcs(res, arg, argsize);
+        count = mbstowcs(res, arg, argsize+1);
         if (count != (size_t)-1) {
             wchar_t *tmp;
             /* Only use the result if it contains no
@@ -339,8 +333,6 @@ Py_DecodeLocale(const char* arg, size_t *size)
     /* Overallocate; as multi-byte characters are in the argument, the
        actual output could use less memory. */
     argsize = strlen(arg) + 1;
-    if (argsize > PY_SSIZE_T_MAX/sizeof(wchar_t))
-        goto oom;
     res = (wchar_t*)PyMem_RawMalloc(argsize*sizeof(wchar_t));
     if (!res)
         goto oom;
@@ -584,6 +576,9 @@ static int
 get_inheritable(int fd, int raise)
 {
 #ifdef MS_WINDOWS
+#ifdef MS_WINRT
+    return 0;
+#else
     HANDLE handle;
     DWORD flags;
 
@@ -607,6 +602,7 @@ get_inheritable(int fd, int raise)
     }
 
     return (flags & HANDLE_FLAG_INHERIT);
+#endif
 #else
     int flags;
 
@@ -633,8 +629,10 @@ static int
 set_inheritable(int fd, int inheritable, int raise, int *atomic_flag_works)
 {
 #ifdef MS_WINDOWS
+#ifndef MS_WINRT
     HANDLE handle;
     DWORD flags;
+#endif
 #else
 #if defined(HAVE_SYS_IOCTL_H) && defined(FIOCLEX) && defined(FIONCLEX)
     static int ioctl_works = -1;
@@ -662,6 +660,9 @@ set_inheritable(int fd, int inheritable, int raise, int *atomic_flag_works)
     }
 
 #ifdef MS_WINDOWS
+#ifdef MS_WINRT
+    return 0;
+#else
     if (!_PyVerify_fd(fd)) {
         if (raise)
             PyErr_SetFromErrno(PyExc_OSError);
@@ -685,7 +686,7 @@ set_inheritable(int fd, int inheritable, int raise, int *atomic_flag_works)
         return -1;
     }
     return 0;
-
+#endif
 #else
 
 #if defined(HAVE_SYS_IOCTL_H) && defined(FIOCLEX) && defined(FIONCLEX)
@@ -986,7 +987,9 @@ _Py_wrealpath(const wchar_t *path,
 wchar_t*
 _Py_wgetcwd(wchar_t *buf, size_t size)
 {
-#ifdef MS_WINDOWS
+#ifdef MS_WINRT
+    return L"";
+#elif defined(MS_WINDOWS)
     int isize = (int)Py_MIN(size, INT_MAX);
     return _wgetcwd(buf, isize);
 #else
@@ -1034,8 +1037,12 @@ _Py_dup(int fd)
         return -1;
     }
 
+#ifdef MS_WINRT
+    ftype = FILE_TYPE_UNKNOWN;
+#else
     /* get the file type, ignore the error if it failed */
     ftype = GetFileType(handle);
+#endif
 
     Py_BEGIN_ALLOW_THREADS
     fd = dup(fd);

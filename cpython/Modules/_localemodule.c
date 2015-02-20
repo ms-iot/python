@@ -290,13 +290,13 @@ PyLocale_getdefaultlocale(PyObject* self)
     PyOS_snprintf(encoding, sizeof(encoding), "cp%d", GetACP());
 
     if (GetLocaleInfoA(LOCALE_USER_DEFAULT,
-                       LOCALE_SISO639LANGNAME,
-                       locale, sizeof(locale))) {
+                      LOCALE_SISO639LANGNAME,
+                      locale, sizeof(locale))) {
         Py_ssize_t i = strlen(locale);
         locale[i++] = '_';
         if (GetLocaleInfoA(LOCALE_USER_DEFAULT,
-                           LOCALE_SISO3166CTRYNAME,
-                           locale+i, (int)(sizeof(locale)-i)))
+                          LOCALE_SISO3166CTRYNAME,
+                          locale+i, (int)(sizeof(locale)-i)))
             return Py_BuildValue("ss", locale, encoding);
     }
 
@@ -307,7 +307,7 @@ PyLocale_getdefaultlocale(PyObject* self)
     locale[0] = '0';
     locale[1] = 'x';
     if (GetLocaleInfoA(LOCALE_USER_DEFAULT, LOCALE_IDEFAULTLANGUAGE,
-                       locale+2, sizeof(locale)-2)) {
+                      locale+2, sizeof(locale)-2)) {
         return Py_BuildValue("ss", locale, encoding);
     }
 

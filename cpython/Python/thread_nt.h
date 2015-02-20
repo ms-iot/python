@@ -9,6 +9,10 @@
 #include <process.h>
 #endif
 
+#ifdef MS_WINRT
+#include <thr/threads.h>
+#endif
+
 /* options */
 #ifndef _PY_USE_CV_LOCKS
 #define _PY_USE_CV_LOCKS 1     /* use locks based on cond vars */
@@ -75,16 +79,24 @@ EnterNonRecursiveMutex(PNRMUTEX mutex, DWORD milliseconds)
         }
     } else if (milliseconds != 0) {
         /* wait at least until the target */
+#ifdef MS_WINRT
+        ULONGLONG now, target = GetTickCount64() + milliseconds;
+#else
         DWORD now, target = GetTickCount() + milliseconds;
+#endif
         while (mutex->locked) {
             if (PyCOND_TIMEDWAIT(&mutex->cv, &mutex->cs, (PY_LONG_LONG)milliseconds*1000) < 0) {
                 result = WAIT_FAILED;
                 break;
             }
+#ifdef MS_WINRT
+            now = GetTickCount64();
+#else
             now = GetTickCount();
+#endif
             if (target <= now)
                 break;
-            milliseconds = target-now;
+            milliseconds = (DWORD)(target-now);
         }
     }
     if (!mutex->locked) {
@@ -163,6 +175,8 @@ typedef struct {
 thread start function and the internally used one. */
 #if defined(MS_WINCE)
 static DWORD WINAPI
+#elif defined(MS_WINRT)
+static int
 #else
 static unsigned __stdcall
 #endif
@@ -177,22 +191,43 @@ bootstrap(void *call)
 }
 
 long
-PyThread_start_new_thread(void (*func)(void *), void *arg)
+PyThread_start_new_thread(void(*func)(void *), void *arg)
 {
-    HANDLE hThread;
-    unsigned threadID;
-    callobj *obj;
+#ifdef MS_WINRT
+	int result;
+	thrd_t* thrd_t_ptr;
+#else
+	HANDLE hThread;
+#endif
 
-    dprintf(("%ld: PyThread_start_new_thread called\n",
-             PyThread_get_thread_ident()));
-    if (!initialized)
-        PyThread_init_thread();
+	unsigned threadID;
+	callobj *obj;
 
-    obj = (callobj*)HeapAlloc(GetProcessHeap(), 0, sizeof(*obj));
-    if (!obj)
-        return -1;
-    obj->func = func;
-    obj->arg = arg;
+	dprintf(("%ld: PyThread_start_new_thread called\n",
+		PyThread_get_thread_ident()));
+	if (!initialized)
+		PyThread_init_thread();
+
+	obj = (callobj*)HeapAlloc(GetProcessHeap(), 0, sizeof(*obj));
+	if (!obj)
+		return -1;
+	obj->func = func;
+	obj->arg = arg;
+#ifdef MS_WINRT
+	thrd_t_ptr = malloc(sizeof(thrd_t));
+
+	result = thrd_create(thrd_t_ptr, bootstrap, obj);
+	if (result != thrd_success)
+	{
+		threadID = -1;
+	}
+	else
+	{
+		threadID = thrd_t_ptr->_Id;
+	}
+
+	free(thrd_t_ptr);
+#else
 #if defined(MS_WINCE)
     hThread = CreateThread(NULL,
                            Py_SAFE_DOWNCAST(_pythread_stacksize, Py_ssize_t, SIZE_T),
@@ -227,7 +262,8 @@ PyThread_start_new_thread(void (*func)(void *), void *arg)
                  PyThread_get_thread_ident(), (void*)hThread));
         CloseHandle(hThread);
     }
-    return (long) threadID;
+#endif
+	return (long) threadID;
 }
 
 /*
@@ -251,6 +287,8 @@ PyThread_exit_thread(void)
         exit(0);
 #if defined(MS_WINCE)
     ExitThread(0);
+#elif defined(MS_WINRT)
+	thrd_exit(0);
 #else
     _endthreadex(0);
 #endif
@@ -282,7 +320,7 @@ PyThread_free_lock(PyThread_type_lock aLock)
 {
     dprintf(("%ld: PyThread_free_lock(%p) called\n", PyThread_get_thread_ident(),aLock));
 
-    FreeNonRecursiveMutex(aLock) ;
+    FreeNonRecursiveMutex((PNRMUTEX)aLock) ;
 }
 
 /*
@@ -370,8 +408,10 @@ _pythread_nt_set_stacksize(size_t size)
 #define THREAD_SET_STACKSIZE(x) _pythread_nt_set_stacksize(x)
 
 
+#ifndef MS_WINRT
 /* use native Windows TLS functions */
 #define Py_HAVE_NATIVE_TLS
+#endif
 
 #ifdef Py_HAVE_NATIVE_TLS
 int

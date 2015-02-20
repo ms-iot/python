@@ -820,7 +820,7 @@ faulthandler_unregister_py(PyObject *self, PyObject *args)
 static void
 faulthandler_suppress_crash_report(void)
 {
-#ifdef MS_WINDOWS 
+#ifdef MS_WINDOWS
 #ifdef MS_WINRT
     PyErr_SetString(PyExc_NotImplementedError, "Not supported in Windows Store Apps");
     return;

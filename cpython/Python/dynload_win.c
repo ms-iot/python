@@ -145,14 +145,14 @@ static char *GetPythonImport (HINSTANCE hModule)
                                          import_off);
         while (DWORD_AT(import_data)) {
             import_name = dllbase + DWORD_AT(import_data+12);
-            if (strlen(import_name) >= 6 &&
-                !strncmp(import_name,"python",6)) {
+            if (strlen((char*)import_name) >= 6 &&
+                !strncmp((char*)import_name,"python",6)) {
                 char *pch;
 
 #ifndef _DEBUG
                 /* In a release version, don't claim that python3.dll is
                    a Python DLL. */
-                if (strcmp(import_name, "python3.dll") == 0) {
+                if (strcmp((char*)import_name, "python3.dll") == 0) {
                     import_data += 20;
                     continue;
                 }
@@ -160,7 +160,7 @@ static char *GetPythonImport (HINSTANCE hModule)
 
                 /* Ensure python prefix is followed only
                    by numbers to the end of the basename */
-                pch = import_name + 6;
+                pch = (char*)import_name + 6;
 #ifdef _DEBUG
                 while (*pch && pch[0] != '_' && pch[1] != 'd' && pch[2] != '.') {
 #else
@@ -176,7 +176,7 @@ static char *GetPythonImport (HINSTANCE hModule)
 
                 if (pch) {
                     /* Found it - return the name */
-                    return import_name;
+                    return (char*)import_name;
                 }
             }
             import_data += 20;
@@ -186,12 +186,30 @@ static char *GetPythonImport (HINSTANCE hModule)
     return NULL;
 }
 
+#ifdef MS_WINRT
+size_t winrt_getinstallpath(wchar_t *buffer, size_t cch);
+WINBASEAPI
+_Ret_maybenull_
+HMODULE
+WINAPI
+LoadLibraryExW(
+_In_ LPCWSTR lpLibFileName,
+_Reserved_ HANDLE hFile,
+_In_ DWORD dwFlags
+);
+#define LOAD_PACKAGED_LIBRARY 0x00000004
+#endif
+
 dl_funcptr _PyImport_GetDynLoadWindows(const char *shortname,
                                        PyObject *pathname, FILE *fp)
 {
     dl_funcptr p;
     char funcname[258], *import_python;
     wchar_t *wpathname;
+#ifdef MS_WINRT
+    wchar_t packagepath[MAX_PATH];
+    size_t len;
+#endif
 
 #ifndef _DEBUG
     _Py_CheckPython3();
@@ -205,6 +223,7 @@ dl_funcptr _PyImport_GetDynLoadWindows(const char *shortname,
 
     {
         HINSTANCE hDLL = NULL;
+#ifndef MS_WINRT
         unsigned int old_mode;
 #if HAVE_SXS
         ULONG_PTR cookie = 0;
@@ -227,7 +246,20 @@ dl_funcptr _PyImport_GetDynLoadWindows(const char *shortname,
 
         /* restore old error mode settings */
         SetErrorMode(old_mode);
-
+#else
+        /* Windows Store apps require libraries to be packaged */
+        len = winrt_getinstallpath(packagepath, MAX_PATH);
+        if (len >= 0 && wcsnicmp(packagepath, wpathname, len) == 0)
+        {
+            if (wpathname[len] == '\\' || wpathname[len] == '/')
+                len++;
+			hDLL = LoadLibraryExW(&wpathname[len], 0, LOAD_PACKAGED_LIBRARY);
+        }
+        else
+        {
+			hDLL = LoadLibraryExW(wpathname, 0, LOAD_PACKAGED_LIBRARY);
+        }
+#endif
         if (hDLL==NULL){
             PyObject *message;
             unsigned int errorCode;

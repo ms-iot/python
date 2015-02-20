@@ -670,7 +670,7 @@ class _Environ(MutableMapping):
         self.putenv = putenv
         self.unsetenv = unsetenv
         self._data = data
-        
+
     def __getitem__(self, key):
         try:
             value = self._data[self.encodekey(key)]

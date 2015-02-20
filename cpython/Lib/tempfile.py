@@ -128,10 +128,10 @@ def _candidate_tempdir_list():
 
     # As a last resort, the current directory.
     if _os.name != 'winrt_os':
-        try:
-            dirlist.append(_os.getcwd())
-        except (AttributeError, OSError):
-            dirlist.append(_os.curdir)
+    try:
+        dirlist.append(_os.getcwd())
+    except (AttributeError, OSError):
+        dirlist.append(_os.curdir)
 
     return dirlist
 

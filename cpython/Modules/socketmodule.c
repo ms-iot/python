@@ -4216,18 +4216,18 @@ socket_gethostname(PyObject *self, PyObject *unused)
     /* Don't use winsock's gethostname, as this returns the ANSI
        version of the hostname, whereas we need a Unicode string.
        Otherwise, gethostname apparently also returns the DNS name. */
-	wchar_t *name;
+    wchar_t *name;
 	wchar_t buf[MAX_COMPUTERNAME_LENGTH + 1];
 
 	size = Py_ARRAY_LENGTH(buf);
 	
-	if (GetComputerNameExW(ComputerNamePhysicalDnsHostname, buf, &size))
+    if (GetComputerNameExW(ComputerNamePhysicalDnsHostname, buf, &size))
         return PyUnicode_FromWideChar(buf, size);
 
     if (GetLastError() != ERROR_MORE_DATA)
         return PyErr_SetFromWindowsErr(0);
 
-	if (size == 0)
+    if (size == 0)
         return PyUnicode_New(0, 0);
 
     /* MSDN says ERROR_MORE_DATA may occur because DNS allows longer
@@ -5154,10 +5154,10 @@ socket_inet_pton(PyObject *self, PyObject *args)
 	usize = MultiByteToWideChar(CP_ACP, 0, ip, -1, (LPWSTR)wchip, sizeof(wchip));
 	ret = WSAStringToAddressW((LPWSTR)wchip, af, NULL, (LPSOCKADDR)&addr, &size);
 #else
-	ret = WSAStringToAddressA(ip, af, NULL, (LPSOCKADDR)&addr, &size);
+    ret = WSAStringToAddressA(ip, af, NULL, (LPSOCKADDR)&addr, &size);
 #endif
 
-	if (ret) {
+    if (ret) {
         PyErr_SetExcFromWindowsErr(PyExc_OSError, WSAGetLastError());
         return NULL;
     } else if(af == AF_INET) {

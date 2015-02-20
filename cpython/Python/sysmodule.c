@@ -777,15 +777,18 @@ sys_getwindowsversion(PyObject *self)
 {
     PyObject *version;
     int pos = 0;
+#ifndef MS_WINRT
     OSVERSIONINFOEX ver;
     ver.dwOSVersionInfoSize = sizeof(ver);
     if (!GetVersionEx((OSVERSIONINFO*) &ver))
         return PyErr_SetFromWindowsErr(0);
+#endif
 
     version = PyStructSequence_New(&WindowsVersionType);
     if (version == NULL)
         return NULL;
 
+#ifndef MS_WINRT
     PyStructSequence_SET_ITEM(version, pos++, PyLong_FromLong(ver.dwMajorVersion));
     PyStructSequence_SET_ITEM(version, pos++, PyLong_FromLong(ver.dwMinorVersion));
     PyStructSequence_SET_ITEM(version, pos++, PyLong_FromLong(ver.dwBuildNumber));
@@ -795,6 +798,17 @@ sys_getwindowsversion(PyObject *self)
     PyStructSequence_SET_ITEM(version, pos++, PyLong_FromLong(ver.wServicePackMinor));
     PyStructSequence_SET_ITEM(version, pos++, PyLong_FromLong(ver.wSuiteMask));
     PyStructSequence_SET_ITEM(version, pos++, PyLong_FromLong(ver.wProductType));
+#else
+    PyStructSequence_SET_ITEM(version, pos++, PyLong_FromLong(6));
+    PyStructSequence_SET_ITEM(version, pos++, PyLong_FromLong(2));
+    PyStructSequence_SET_ITEM(version, pos++, PyLong_FromLong(9200));
+    PyStructSequence_SET_ITEM(version, pos++, PyLong_FromLong(2));
+    PyStructSequence_SET_ITEM(version, pos++, PyUnicode_FromString(""));
+    PyStructSequence_SET_ITEM(version, pos++, PyLong_FromLong(0));
+    PyStructSequence_SET_ITEM(version, pos++, PyLong_FromLong(0));
+    PyStructSequence_SET_ITEM(version, pos++, PyLong_FromLong(256));
+    PyStructSequence_SET_ITEM(version, pos++, PyLong_FromLong(1));
+#endif
 
     if (PyErr_Occurred()) {
         Py_DECREF(version);
@@ -1131,7 +1145,6 @@ PyDoc_STRVAR(is_finalizing_doc,
 "is_finalizing()\n\
 Return True if Python is exiting.");
 
-
 static PyMethodDef sys_methods[] = {
     /* Might as well keep this in alphabetic order */
     {"callstats", (PyCFunction)PyEval_GetCallStats, METH_NOARGS,
@@ -1379,7 +1392,7 @@ hexversion -- version information encoded as a single integer\n\
 implementation -- Python implementation information.\n\
 int_info -- a struct sequence with information about the int implementation.\n\
 maxsize -- the largest supported length of containers.\n\
-maxunicode -- the value of the largest Unicode code point\n\
+maxunicode -- the value of the largest Unicode codepoint\n\
 platform -- platform identifier\n\
 prefix -- prefix used to find the Python library\n\
 thread_info -- a struct sequence with information about the thread implementation.\n\
@@ -1925,7 +1938,7 @@ sys_update_path(int argc, wchar_t **argv)
 #endif
 #if defined(HAVE_REALPATH)
     wchar_t fullpath[MAXPATHLEN];
-#elif defined(MS_WINDOWS) && !defined(MS_WINCE)
+#elif defined(MS_WINDOWS) && !defined(MS_WINCE) && !defined(MS_WINRT)
     wchar_t fullpath[MAX_PATH];
 #endif
 
@@ -1964,7 +1977,7 @@ sys_update_path(int argc, wchar_t **argv)
 #if SEP == '\\' /* Special case for MS filename syntax */
     if (_HAVE_SCRIPT_ARGUMENT(argc, argv)) {
         wchar_t *q;
-#if defined(MS_WINDOWS) && !defined(MS_WINCE)
+#if defined(MS_WINDOWS) && !defined(MS_WINCE) && !defined(MS_WINRT)
         /* This code here replaces the first element in argv with the full
         path that it represents. Under CE, there are no relative paths so
         the argument must be the full path anyway. */
@@ -2132,7 +2145,7 @@ sys_write(_Py_Identifier *key, FILE *fp, const char *format, va_list va)
     if (written < 0 || (size_t)written >= sizeof(buffer)) {
         const char *truncated = "... truncated";
         if (sys_pyfile_write(truncated, file) != 0)
-            fputs(truncated, fp);
+			fputs(truncated, fp);
     }
     PyErr_Restore(error_type, error_value, error_traceback);
 }
