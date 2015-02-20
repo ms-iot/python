@@ -105,7 +105,7 @@ bytes(cdata)
 #include "structmember.h"
 
 #include <ffi.h>
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
 #include <windows.h>
 #include <malloc.h>
 #ifndef IS_INTRESOURCE
@@ -579,7 +579,7 @@ CDataType_in_dll(PyObject *type, PyObject *args)
         return NULL;
     }
 
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
     address = (void *)GetProcAddress(handle, name);
     if (!address) {
         PyErr_Format(PyExc_ValueError,
@@ -3051,7 +3051,7 @@ static PyGetSetDef PyCFuncPtr_getsets[] = {
     { NULL, NULL }
 };
 
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
 static PPROC FindAddress(void *handle, char *name, PyObject *type)
 {
 #ifdef MS_WIN64
@@ -3188,7 +3188,7 @@ _validate_paramflags(PyTypeObject *type, PyObject *paramflags)
 static int
 _get_name(PyObject *obj, char **pname)
 {
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
     if (PyLong_Check(obj)) {
         /* We have to use MAKEINTRESOURCEA for Windows CE.
            Works on Windows as well, of course.
@@ -3259,7 +3259,7 @@ PyCFuncPtr_FromDll(PyTypeObject *type, PyObject *args, PyObject *kwds)
         return NULL;
     }
 
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
     address = FindAddress(handle, name, (PyObject *)type);
     if (!address) {
         if (!IS_INTRESOURCE(name))
@@ -3312,7 +3312,7 @@ PyCFuncPtr_FromDll(PyTypeObject *type, PyObject *args, PyObject *kwds)
     return (PyObject *)self;
 }
 
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
 static PyObject *
 PyCFuncPtr_FromVtblIndex(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
@@ -3368,7 +3368,7 @@ PyCFuncPtr_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if (1 <= PyTuple_GET_SIZE(args) && PyTuple_Check(PyTuple_GET_ITEM(args, 0)))
         return PyCFuncPtr_FromDll(type, args, kwds);
 
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
     if (2 <= PyTuple_GET_SIZE(args) && PyLong_Check(PyTuple_GET_ITEM(args, 0)))
         return PyCFuncPtr_FromVtblIndex(type, args, kwds);
 #endif
@@ -3539,7 +3539,7 @@ _build_callargs(PyCFuncPtrObject *self, PyObject *argtypes,
 
     /* Trivial cases, where we either return inargs itself, or a slice of it. */
     if (argtypes == NULL || paramflags == NULL || PyTuple_GET_SIZE(argtypes) == 0) {
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
         if (self->index)
             return PyTuple_GetSlice(inargs, 1, PyTuple_GET_SIZE(inargs));
 #endif
@@ -3552,7 +3552,7 @@ _build_callargs(PyCFuncPtrObject *self, PyObject *argtypes,
     if (callargs == NULL)
         return NULL;
 
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
     /* For a COM method, skip the first arg */
     if (self->index) {
         inargs_index = 1;
@@ -3759,7 +3759,7 @@ PyCFuncPtr_call(PyCFuncPtrObject *self, PyObject *inargs, PyObject *kwds)
     PyObject *result;
     PyObject *callargs;
     PyObject *errcheck;
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
     IUnknown *piunk = NULL;
 #endif
     void *pProc = NULL;
@@ -3778,7 +3778,7 @@ PyCFuncPtr_call(PyCFuncPtrObject *self, PyObject *inargs, PyObject *kwds)
 
 
     pProc = *(void **)self->b_ptr;
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
     if (self->index) {
         /* It's a COM method */
         CDataObject *this;
@@ -3847,7 +3847,7 @@ PyCFuncPtr_call(PyCFuncPtrObject *self, PyObject *inargs, PyObject *kwds)
 
     result = _ctypes_callproc(pProc,
                        callargs,
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
                        piunk,
                        self->iid,
 #endif
@@ -3918,7 +3918,7 @@ PyCFuncPtr_dealloc(PyCFuncPtrObject *self)
 static PyObject *
 PyCFuncPtr_repr(PyCFuncPtrObject *self)
 {
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
     if (self->index)
         return PyUnicode_FromFormat("<COM method offset %d: %s at %p>",
                                    self->index - 0x1000,
@@ -3934,7 +3934,7 @@ static int
 PyCFuncPtr_bool(PyCFuncPtrObject *self)
 {
     return ((*(void **)self->b_ptr != NULL)
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
         || (self->index != 0)
 #endif
         );
@@ -4838,7 +4838,7 @@ Pointer_set_contents(CDataObject *self, PyObject *value, void *closure)
     *(void **)self->b_ptr = dst->b_ptr;
 
     /*
-       A Pointer instance must keep the value it points to alive.  So, a
+       A Pointer instance must keep a the value it points to alive.  So, a
        pointer instance has b_length set to 2 instead of 1, and we set
        'value' itself as the second item of the b_objects list, additionally.
     */
@@ -5107,7 +5107,7 @@ PyTypeObject PyCPointer_Type = {
 static const char module_docs[] =
 "Create and manipulate C compatible data types in Python.";
 
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
 
 static char comerror_doc[] = "Raised when a COM method call failed.";
 
@@ -5452,7 +5452,7 @@ PyInit__ctypes(void)
     if (PyType_Ready(&DictRemover_Type) < 0)
         return NULL;
 
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
     if (create_comerror() < 0)
         return NULL;
     PyModule_AddObject(m, "COMError", ComError);

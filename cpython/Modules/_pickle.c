@@ -41,7 +41,7 @@ enum opcode {
     STRING          = 'S',
     BINSTRING       = 'T',
     SHORT_BINSTRING = 'U',
-    UNICODE         = 'V',
+    pickle_UNICODE  = 'V',
     BINUNICODE      = 'X',
     APPEND          = 'a',
     BUILD           = 'b',
@@ -1632,7 +1632,7 @@ whichmodule(PyObject *global, PyObject *global_name, int allow_qualname)
 {
     PyObject *module_name;
     PyObject *modules_dict;
-    PyObject *module;
+    PyObject *module = NULL;
     Py_ssize_t i;
     _Py_IDENTIFIER(__module__);
     _Py_IDENTIFIER(modules);
@@ -2235,7 +2235,7 @@ save_unicode(PicklerObject *self, PyObject *obj)
     else {
         PyObject *encoded;
         Py_ssize_t size;
-        const char unicode_op = UNICODE;
+        const char unicode_op = pickle_UNICODE;
 
         encoded = raw_unicode_escape(obj);
         if (encoded == NULL)
@@ -2889,7 +2889,7 @@ save_dict(PicklerObject *self, PyObject *obj)
 static int
 save_set(PicklerObject *self, PyObject *obj)
 {
-    PyObject *item;
+    PyObject *item = NULL;
     int i;
     Py_ssize_t set_size, ppos = 0;
     Py_hash_t hash;
@@ -3523,7 +3523,7 @@ save_reduce(PicklerObject *self, PyObject *args, PyObject *obj)
 
     if (use_newobj_ex) {
         PyObject *cls;
-        PyObject *args;
+        PyObject *scopeArgs;
         PyObject *kwargs;
 
         if (Py_SIZE(argtup) != 3) {
@@ -3540,11 +3540,11 @@ save_reduce(PicklerObject *self, PyObject *args, PyObject *obj)
                          "be a class, not %.200s", Py_TYPE(cls)->tp_name);
             return -1;
         }
-        args = PyTuple_GET_ITEM(argtup, 1);
-        if (!PyTuple_Check(args)) {
+        scopeArgs = PyTuple_GET_ITEM(argtup, 1);
+        if (!PyTuple_Check(scopeArgs)) {
             PyErr_Format(st->PicklingError,
                          "second item from NEWOBJ_EX argument tuple must "
-                         "be a tuple, not %.200s", Py_TYPE(args)->tp_name);
+                         "be a tuple, not %.200s", Py_TYPE(scopeArgs)->tp_name);
             return -1;
         }
         kwargs = PyTuple_GET_ITEM(argtup, 2);
@@ -3556,7 +3556,7 @@ save_reduce(PicklerObject *self, PyObject *args, PyObject *obj)
         }
 
         if (save(self, cls, 0) < 0 ||
-            save(self, args, 0) < 0 ||
+            save(self, scopeArgs, 0) < 0 ||
             save(self, kwargs, 0) < 0 ||
             _Pickler_Write(self, &newobj_ex_op, 1) < 0) {
             return -1;
@@ -6146,7 +6146,7 @@ load(UnpicklerObject *self)
         OP_ARG(SHORT_BINSTRING, load_counted_binstring, 1)
         OP_ARG(BINSTRING, load_counted_binstring, 4)
         OP(STRING, load_string)
-        OP(UNICODE, load_unicode)
+        OP(pickle_UNICODE, load_unicode)
         OP_ARG(SHORT_BINUNICODE, load_counted_binunicode, 1)
         OP_ARG(BINUNICODE, load_counted_binunicode, 4)
         OP_ARG(BINUNICODE8, load_counted_binunicode, 8)
@@ -6749,7 +6749,7 @@ Unpickler_set_memo(UnpicklerObject *self, PyObject *obj)
         }
     }
     else if (PyDict_Check(obj)) {
-        Py_ssize_t i = 0;
+        Py_ssize_t j = 0;
         PyObject *key, *value;
 
         new_memo_size = PyDict_Size(obj);
@@ -6757,7 +6757,7 @@ Unpickler_set_memo(UnpicklerObject *self, PyObject *obj)
         if (new_memo == NULL)
             return -1;
 
-        while (PyDict_Next(obj, &i, &key, &value)) {
+        while (PyDict_Next(obj, &j, &key, &value)) {
             Py_ssize_t idx;
             if (!PyLong_Check(key)) {
                 PyErr_SetString(PyExc_TypeError,

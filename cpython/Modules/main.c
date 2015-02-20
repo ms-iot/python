@@ -293,7 +293,6 @@ run_file(FILE *fp, const wchar_t *filename, PyCompilerFlags *p_cf)
     char *filename_str;
     int run;
 
-    /* call pending calls like signal handlers (SIGINT) */
     if (Py_MakePendingCalls() == -1) {
         PyErr_Print();
         return 1;
@@ -333,7 +332,7 @@ Py_Main(int argc, wchar_t **argv)
     wchar_t *module = NULL;
     FILE *fp = stdin;
     char *p;
-#ifdef MS_WINDOWS
+#if defined(MS_WINDOWS) && !defined(MS_WINRT)
     wchar_t *wp;
 #endif
     int skipfirstline = 0;
@@ -364,6 +363,10 @@ Py_Main(int argc, wchar_t **argv)
             break;
         }
     }
+#ifdef MS_WINRT
+    /* Windows Store apps do not have environment variables */
+    Py_IgnoreEnvironmentFlag++;
+#endif
 
     Py_HashRandomizationFlag = 1;
     _PyRandom_Init();
@@ -517,7 +520,10 @@ Py_Main(int argc, wchar_t **argv)
         (p = Py_GETENV("PYTHONNOUSERSITE")) && *p != '\0')
         Py_NoUserSiteDirectory = 1;
 
-#ifdef MS_WINDOWS
+#if defined(MS_WINRT)
+    /* Separate case because _wgetenv is an error for Windows Store apps
+       and the else block is always skipped anyway. */
+#elif defined(MS_WINDOWS)
     if (!Py_IgnoreEnvironmentFlag && (wp = _wgetenv(L"PYTHONWARNINGS")) &&
         *wp != L'\0') {
         wchar_t *buf, *warning;

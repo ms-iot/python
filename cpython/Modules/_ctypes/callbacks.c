@@ -2,7 +2,7 @@
 #include "frameobject.h"
 
 #include <ffi.h>
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
 #include <windows.h>
 #endif
 #include "ctypes.h"
@@ -92,7 +92,7 @@ PrintError(char *msg, ...)
 }
 
 
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
 /*
  * We must call AddRef() on non-NULL COM pointers we receive as arguments
  * to callback functions - these functions are COM method implementations.
@@ -136,7 +136,7 @@ static void _CallPythonObject(void *mem,
     PyObject *arglist = NULL;
     Py_ssize_t nArgs;
     PyObject *error_object = NULL;
-    int *space;
+    int *space = NULL;
 #ifdef WITH_THREAD
     PyGILState_STATE state = PyGILState_Ensure();
 #endif
@@ -195,7 +195,7 @@ static void _CallPythonObject(void *mem,
             }
             memcpy(obj->b_ptr, *pArgs, dict->size);
             PyTuple_SET_ITEM(arglist, i, (PyObject *)obj);
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
             TryAddRef(dict, obj);
 #endif
         } else {
@@ -222,7 +222,7 @@ if (x == NULL) _PyTraceback_Add(what, "_ctypes/callbacks.c", __LINE__ - 1), PyEr
             space[0] = errno;
             errno = temp;
         }
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
         if (flags & FUNCFLAG_USE_LASTERROR) {
             int temp = space[1];
             space[1] = GetLastError();
@@ -234,7 +234,7 @@ if (x == NULL) _PyTraceback_Add(what, "_ctypes/callbacks.c", __LINE__ - 1), PyEr
     result = PyObject_CallObject(callable, arglist);
     CHECK("'calling callback function'", result);
 
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
     if (flags & FUNCFLAG_USE_LASTERROR) {
         int temp = space[1];
         space[1] = GetLastError();
@@ -415,7 +415,7 @@ CThunkObject *_ctypes_alloc_callback(PyObject *callable,
     return NULL;
 }
 
-#ifdef MS_WIN32
+#ifdef MS_WINDOWS
 
 static void LoadPython(void)
 {

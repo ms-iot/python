@@ -451,10 +451,10 @@ byte_converter(PyObject *arg, char *p)
             return 1;
         }
     }
-    PyErr_SetString(PyExc_TypeError,
-        "%c requires an integer in range(256) or a single byte");
+            PyErr_SetString(PyExc_TypeError,
+                "%c requires an integer in range(256) or a single byte");
     return 0;
-}
+        }
 
 static PyObject *
 format_obj(PyObject *v, const char **pbuf, Py_ssize_t *plen)

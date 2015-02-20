@@ -103,7 +103,7 @@ def CFUNCTYPE(restype, *argtypes, **kw):
         _c_functype_cache[(restype, argtypes, flags)] = CFunctionType
         return CFunctionType
 
-if _os.name in ("nt", "ce"):
+if _os.name in ("nt", "ce", "winrt_os"):
     from _ctypes import LoadLibrary as _dlopen
     from _ctypes import FUNCFLAG_STDCALL as _FUNCFLAG_STDCALL
     if _os.name == "ce":
@@ -378,7 +378,7 @@ class PyDLL(CDLL):
     """
     _func_flags_ = _FUNCFLAG_CDECL | _FUNCFLAG_PYTHONAPI
 
-if _os.name in ("nt", "ce"):
+if _os.name in ("nt", "ce", "winrt_os"):
 
     class WinDLL(CDLL):
         """This class represents a dll exporting functions using the
@@ -431,13 +431,12 @@ class LibraryLoader(object):
 cdll = LibraryLoader(CDLL)
 pydll = LibraryLoader(PyDLL)
 
-if _os.name in ("nt", "ce"):
+if _os.name in ("nt", "ce", "winrt_os"):
     pythonapi = PyDLL("python dll", None, _sys.dllhandle)
 elif _sys.platform == "cygwin":
     pythonapi = PyDLL("libpython%d.%d.dll" % _sys.version_info[:2])
 else:
     pythonapi = PyDLL(None)
-
 
 if _os.name in ("nt", "ce"):
     windll = LibraryLoader(WinDLL)
@@ -445,7 +444,7 @@ if _os.name in ("nt", "ce"):
 
     if _os.name == "nt":
         GetLastError = windll.kernel32.GetLastError
-    else:
+    elif _os.name == "ce":
         GetLastError = windll.coredll.GetLastError
     from _ctypes import get_last_error, set_last_error
 

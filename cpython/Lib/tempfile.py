@@ -123,14 +123,15 @@ def _candidate_tempdir_list():
     # Failing that, try OS-specific locations.
     if _os.name == 'nt':
         dirlist.extend([ r'c:\temp', r'c:\tmp', r'\temp', r'\tmp' ])
-    else:
+    elif _os.name != 'winrt_os':
         dirlist.extend([ '/tmp', '/var/tmp', '/usr/tmp' ])
 
     # As a last resort, the current directory.
-    try:
-        dirlist.append(_os.getcwd())
-    except (AttributeError, OSError):
-        dirlist.append(_os.curdir)
+    if _os.name != 'winrt_os':
+        try:
+            dirlist.append(_os.getcwd())
+        except (AttributeError, OSError):
+            dirlist.append(_os.curdir)
 
     return dirlist
 

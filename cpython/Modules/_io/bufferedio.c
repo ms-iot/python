@@ -520,7 +520,7 @@ buffered_closed_get(buffered *self, void *context)
 static PyObject *
 buffered_close(buffered *self, PyObject *args)
 {
-    PyObject *res = NULL, *exc = NULL, *val, *tb;
+    PyObject *res = NULL, *exc = NULL, *val = NULL, *tb = NULL;
     int r;
 
     CHECK_INITIALIZED(self)
@@ -537,9 +537,9 @@ buffered_close(buffered *self, PyObject *args)
     }
 
     if (self->finalizing) {
-        PyObject *r = buffered_dealloc_warn(self, (PyObject *) self);
-        if (r)
-            Py_DECREF(r);
+        PyObject *robj = buffered_dealloc_warn(self, (PyObject *) self);
+        if (robj)
+            Py_DECREF(robj);
         else
             PyErr_Clear();
     }

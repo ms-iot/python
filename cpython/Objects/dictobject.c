@@ -1804,7 +1804,7 @@ dict_fromkeys_impl(PyTypeObject *type, PyObject *iterable, PyObject *value)
             PyDictObject *mp = (PyDictObject *)d;
             PyObject *oldvalue;
             Py_ssize_t pos = 0;
-            PyObject *key;
+            PyObject *keynext;
             Py_hash_t hash;
 
             if (dictresize(mp, Py_SIZE(iterable))) {
@@ -1812,8 +1812,8 @@ dict_fromkeys_impl(PyTypeObject *type, PyObject *iterable, PyObject *value)
                 return NULL;
             }
 
-            while (_PyDict_Next(iterable, &pos, &key, &oldvalue, &hash)) {
-                if (insertdict(mp, key, hash, value)) {
+            while (_PyDict_Next(iterable, &pos, &keynext, &oldvalue, &hash)) {
+                if (insertdict(mp, keynext, hash, value)) {
                     Py_DECREF(d);
                     return NULL;
                 }
@@ -1823,7 +1823,7 @@ dict_fromkeys_impl(PyTypeObject *type, PyObject *iterable, PyObject *value)
         if (PyAnySet_CheckExact(iterable)) {
             PyDictObject *mp = (PyDictObject *)d;
             Py_ssize_t pos = 0;
-            PyObject *key;
+            PyObject *keynext = NULL;
             Py_hash_t hash;
 
             if (dictresize(mp, PySet_GET_SIZE(iterable))) {
@@ -1831,8 +1831,8 @@ dict_fromkeys_impl(PyTypeObject *type, PyObject *iterable, PyObject *value)
                 return NULL;
             }
 
-            while (_PySet_NextEntry(iterable, &pos, &key, &hash)) {
-                if (insertdict(mp, key, hash, value)) {
+            while (_PySet_NextEntry(iterable, &pos, &keynext, &hash)) {
+                if (insertdict(mp, keynext, hash, value)) {
                     Py_DECREF(d);
                     return NULL;
                 }

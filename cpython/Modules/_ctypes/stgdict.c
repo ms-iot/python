@@ -1,6 +1,6 @@
 #include "Python.h"
 #include <ffi.h>
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
 #include <windows.h>
 #include <malloc.h>
 #endif

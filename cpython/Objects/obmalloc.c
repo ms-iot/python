@@ -91,7 +91,7 @@ _PyMem_RawFree(void *ctx, void *ptr)
 }
 
 
-#ifdef MS_WINDOWS
+#if defined(MS_WINDOWS) && !defined(MS_WINRT)
 static void *
 _PyObject_ArenaVirtualAlloc(void *ctx, size_t size)
 {
@@ -196,7 +196,7 @@ static PyMemAllocatorEx _PyObject = {
 #undef PYDBG_FUNCS
 
 static PyObjectArenaAllocator _PyObject_Arena = {NULL,
-#ifdef MS_WINDOWS
+#if defined(MS_WINDOWS) && !defined(MS_WINRT)
     _PyObject_ArenaVirtualAlloc, _PyObject_ArenaVirtualFree
 #elif defined(ARENAS_USE_MMAP)
     _PyObject_ArenaMmap, _PyObject_ArenaMunmap

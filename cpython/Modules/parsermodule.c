@@ -785,19 +785,19 @@ build_node_children(PyObject *tuple, node *root, int *line_num)
             }
         }
         if (!ok) {
-            PyObject *err = Py_BuildValue("Os", elem,
+            PyObject *errobj = Py_BuildValue("Os", elem,
                                           "Illegal node construct.");
-            PyErr_SetObject(parser_error, err);
-            Py_XDECREF(err);
+            PyErr_SetObject(parser_error, errobj);
+            Py_XDECREF(errobj);
             Py_XDECREF(elem);
             return (0);
         }
         if (ISTERMINAL(type)) {
-            Py_ssize_t len = PyObject_Size(elem);
+            Py_ssize_t lensize = PyObject_Size(elem);
             PyObject *temp;
             const char *temp_str;
 
-            if ((len != 2) && (len != 3)) {
+            if ((lensize != 2) && (lensize != 3)) {
                 err_string("terminal nodes must have 2 or 3 entries");
                 return 0;
             }
@@ -813,7 +813,7 @@ build_node_children(PyObject *tuple, node *root, int *line_num)
                 Py_DECREF(elem);
                 return 0;
             }
-            if (len == 3) {
+            if (lensize == 3) {
                 PyObject *o = PySequence_GetItem(elem, 2);
                 if (o != NULL) {
                     if (PyLong_Check(o)) {
@@ -839,20 +839,20 @@ build_node_children(PyObject *tuple, node *root, int *line_num)
                     Py_DECREF(o);
                 }
             }
-            temp_str = _PyUnicode_AsStringAndSize(temp, &len);
+            temp_str = _PyUnicode_AsStringAndSize(temp, &lensize);
             if (temp_str == NULL) {
                 Py_DECREF(temp);
                 Py_XDECREF(elem);
                 return 0;
             }
-            strn = (char *)PyObject_MALLOC(len + 1);
+            strn = (char *)PyObject_MALLOC(lensize + 1);
             if (strn == NULL) {
                 Py_DECREF(temp);
                 Py_XDECREF(elem);
                 PyErr_NoMemory();
                 return 0;
             }
-            (void) memcpy(strn, temp_str, len + 1);
+            (void)memcpy(strn, temp_str, lensize + 1);
             Py_DECREF(temp);
         }
         else if (!ISNONTERMINAL(type)) {
@@ -860,9 +860,9 @@ build_node_children(PyObject *tuple, node *root, int *line_num)
              *  It has to be one or the other; this is an error.
              *  Raise an exception.
              */
-            PyObject *err = Py_BuildValue("os", elem, "unknown node type.");
-            PyErr_SetObject(parser_error, err);
-            Py_XDECREF(err);
+            PyObject *errobj = Py_BuildValue("os", elem, "unknown node type.");
+            PyErr_SetObject(parser_error, errobj);
+            Py_XDECREF(errobj);
             Py_XDECREF(elem);
             return (0);
         }
@@ -939,8 +939,8 @@ build_node_tree(PyObject *tuple)
             }
             if (res && encoding) {
                 Py_ssize_t len;
-                const char *temp;
-                temp = _PyUnicode_AsStringAndSize(encoding, &len);
+                const char *tmpptr;
+                tmpptr = _PyUnicode_AsStringAndSize(encoding, &len);
                 if (temp == NULL) {
                     Py_DECREF(res);
                     Py_DECREF(encoding);
@@ -955,7 +955,7 @@ build_node_tree(PyObject *tuple)
                     PyErr_NoMemory();
                     return NULL;
                 }
-                (void) memcpy(res->n_str, temp, len + 1);
+                (void)memcpy(res->n_str, tmpptr, len + 1);
                 Py_DECREF(encoding);
                 Py_DECREF(tuple);
             }

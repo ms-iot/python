@@ -2600,7 +2600,7 @@ textiowrapper_close(textio *self, PyObject *args)
         Py_RETURN_NONE; /* stream already closed */
     }
     else {
-        PyObject *exc = NULL, *val, *tb;
+        PyObject *exc = NULL, *val = NULL, *tb = NULL;
         if (self->finalizing) {
             res = _PyObject_CallMethodId(self->buffer, &PyId__dealloc_warn, "O", self);
             if (res)

@@ -9,7 +9,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#ifndef MS_WIN32
+#ifndef MS_WINDOWS
 
 #include <dlfcn.h>
 
@@ -23,7 +23,7 @@ extern "C" {
 
 #endif /* !CTYPES_DARWIN_DLFCN */
 
-#endif /* !MS_WIN32 */
+#endif /* !MS_WINDOWS */
 
 #ifdef __cplusplus
 }

@@ -3670,7 +3670,7 @@ nm_##MPDFUNC(PyObject *self)                                \
 static PyObject *                                                \
 nm_##MPDFUNC(PyObject *self, PyObject *other)                    \
 {                                                                \
-    PyObject *a, *b;                                             \
+    PyObject *a, *b = NULL;                                             \
     PyObject *result;                                            \
     PyObject *context;                                           \
     uint32_t status = 0;                                         \
@@ -3890,7 +3890,7 @@ nm_nonzero(PyObject *v)
 static PyObject *
 nm_mpd_qdivmod(PyObject *v, PyObject *w)
 {
-    PyObject *a, *b;
+    PyObject *a, *b = NULL;
     PyObject *q, *r;
     PyObject *context;
     uint32_t status = 0;
@@ -3931,7 +3931,7 @@ nm_mpd_qdivmod(PyObject *v, PyObject *w)
 static PyObject *
 nm_mpd_qpow(PyObject *base, PyObject *exp, PyObject *mod)
 {
-    PyObject *a, *b, *c = NULL;
+    PyObject *a, *b = NULL, *c = NULL;
     PyObject *result;
     PyObject *context;
     uint32_t status = 0;

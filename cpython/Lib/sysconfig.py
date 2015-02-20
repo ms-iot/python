@@ -60,6 +60,25 @@ _INSTALL_SCHEMES = {
         'scripts': '{userbase}/Python{py_version_nodot}/Scripts',
         'data': '{userbase}',
         },
+    'winrt_os': {
+        'stdlib': '{installed_base}/Lib',
+        'platstdlib': '{base}/Lib',
+        'purelib': '{base}/Lib/site-packages',
+        'platlib': '{base}/Lib/site-packages',
+        'include': '{installed_base}/Include',
+        'platinclude': '{installed_base}/Include',
+        'scripts': '{base}/Scripts',
+        'data': '{base}',
+        },
+    'winrt_os_user': {
+        'stdlib': '{userbase}/Python{py_version_nodot}',
+        'platstdlib': '{userbase}/Python{py_version_nodot}',
+        'purelib': '{userbase}/Python{py_version_nodot}/site-packages',
+        'platlib': '{userbase}/Python{py_version_nodot}/site-packages',
+        'include': '{userbase}/Python{py_version_nodot}/Include',
+        'scripts': '{userbase}/Scripts',
+        'data': '{userbase}',
+        },
     'posix_user': {
         'stdlib': '{userbase}/lib/python{py_version_short}',
         'platstdlib': '{userbase}/lib/python{py_version_short}',
@@ -164,7 +183,7 @@ def _expand_vars(scheme, vars):
     _extend_dict(vars, get_config_vars())
 
     for key, value in _INSTALL_SCHEMES[scheme].items():
-        if os.name in ('posix', 'nt'):
+        if os.name in ('posix', 'nt', 'winrt_os'):
             value = os.path.expanduser(value)
         res[key] = os.path.normpath(_subst_vars(value, vars))
     return res
@@ -526,6 +545,8 @@ def get_config_vars(*args):
             _CONFIG_VARS['abiflags'] = ''
 
         if os.name == 'nt':
+            _init_non_posix(_CONFIG_VARS)
+        if os.name == 'winrt_os':
             _init_non_posix(_CONFIG_VARS)
         if os.name == 'posix':
             _init_posix(_CONFIG_VARS)

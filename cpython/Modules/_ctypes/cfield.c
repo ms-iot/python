@@ -1,7 +1,7 @@
 #include "Python.h"
 
 #include <ffi.h>
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
 #include <windows.h>
 #endif
 #include "ctypes.h"
@@ -73,7 +73,7 @@ PyCField_FromDesc(PyObject *desc, Py_ssize_t index,
     }
     if (bitsize /* this is a bitfield request */
         && *pfield_size /* we have a bitfield open */
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
         /* MSVC, GCC with -mms-bitfields */
         && dict->size * 8 == *pfield_size
 #else
@@ -691,7 +691,7 @@ i_get_sw(void *ptr, Py_ssize_t size)
     return PyLong_FromLong(val);
 }
 
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
 /* short BOOL - VARIANT_BOOL */
 static PyObject *
 vBOOL_set(void *ptr, PyObject *value, Py_ssize_t size)
@@ -1354,7 +1354,7 @@ z_get(void *ptr, Py_ssize_t size)
 {
     /* XXX What about invalid pointers ??? */
     if (*(void **)ptr) {
-#if defined(MS_WIN32) && !defined(_WIN32_WCE)
+#if defined(MS_WIN32) && !defined(_WIN32_WCE) && !defined(MS_WINRT)
         if (IsBadStringPtrA(*(char **)ptr, -1)) {
             PyErr_Format(PyExc_ValueError,
                          "invalid string pointer %p",
@@ -1418,7 +1418,7 @@ Z_get(void *ptr, Py_ssize_t size)
     wchar_t *p;
     p = *(wchar_t **)ptr;
     if (p) {
-#if defined(MS_WIN32) && !defined(_WIN32_WCE)
+#if defined(MS_WIN32) && !defined(_WIN32_WCE) && !defined(MS_WINRT)
         if (IsBadStringPtrW(*(wchar_t **)ptr, -1)) {
             PyErr_Format(PyExc_ValueError,
                          "invalid string pointer %p",

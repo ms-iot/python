@@ -6,6 +6,7 @@ if not exist "%~dp0..\externals" mkdir "%~dp0..\externals"
 pushd "%~dp0..\externals"
 
 if "%SVNROOT%"=="" set SVNROOT=http://svn.python.org/projects/external/
+if "%MSSVNROOT%"=="" set MSSVNROOT=http://github.com/Microsoft/openssl/branches/WinRT/
 
 rem Optionally clean up first.  Be warned that this can be very destructive!
 if not "%1"=="" (
@@ -68,6 +69,9 @@ for %%e in (
         svn export %SVNROOT%%%e
     )
 )
+
+echo.Fetching %MSSVNROOT%...
+svn export %MSSVNROOT% openssl-winrt
 
 goto end
 

@@ -1281,16 +1281,16 @@ wrap_strftime(PyObject *object, PyObject *format, PyObject *timetuple,
     if (_PyBytes_Resize(&newfmt, usednew) < 0)
         goto Done;
     {
-        PyObject *format;
+        PyObject *formatobj;
         PyObject *time = PyImport_ImportModuleNoBlock("time");
 
         if (time == NULL)
             goto Done;
-        format = PyUnicode_FromString(PyBytes_AS_STRING(newfmt));
-        if (format != NULL) {
+        formatobj = PyUnicode_FromString(PyBytes_AS_STRING(newfmt));
+        if (formatobj != NULL) {
             result = _PyObject_CallMethodId(time, &PyId_strftime, "OO",
-                                            format, timetuple, NULL);
-            Py_DECREF(format);
+                formatobj, timetuple, NULL);
+            Py_DECREF(formatobj);
         }
         Py_DECREF(time);
     }

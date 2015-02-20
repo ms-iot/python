@@ -565,7 +565,7 @@ extern "C" {
 #endif
 
 /* get and set x87 control word for VisualStudio/x86 */
-#if defined(_MSC_VER) && !defined(_WIN64) /* x87 not supported in 64-bit */
+#if defined(_MSC_VER) && !defined(_WIN64) && !defined(_M_ARM) /* x87 not supported in 64-bit or ARM */
 #define HAVE_PY_SET_53BIT_PRECISION 1
 #define _Py_SET_53BIT_PRECISION_HEADER \
     unsigned int old_387controlword, new_387controlword, out_387controlword
@@ -753,7 +753,7 @@ extern pid_t forkpty(int *, char *, struct termios *, struct winsize *);
 #endif
 
 /* only get special linkage if built as shared or platform is Cygwin */
-#if defined(Py_ENABLE_SHARED) || defined(__CYGWIN__)
+#if defined(Py_ENABLE_SHARED) || defined(MS_WINRT) || defined(__CYGWIN__)
 #       if defined(HAVE_DECLSPEC_DLL)
 #               ifdef Py_BUILD_CORE
 #                       define PyAPI_FUNC(RTYPE) __declspec(dllexport) RTYPE

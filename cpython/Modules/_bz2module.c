@@ -12,7 +12,6 @@
 #include <bzlib.h>
 #include <stdio.h>
 
-
 #ifndef BZ_CONFIG_ERROR
 #define BZ2_bzCompress bzCompress
 #define BZ2_bzCompressInit bzCompressInit

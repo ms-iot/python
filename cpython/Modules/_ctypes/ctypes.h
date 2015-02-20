@@ -96,7 +96,7 @@ typedef struct {
     PyObject *restype;
     PyObject *checker;
     PyObject *errcheck;
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
     int index;
     GUID *iid;
 #endif
@@ -271,7 +271,7 @@ typedef int(* PPROC)(void);
 
 PyObject *_ctypes_callproc(PPROC pProc,
                     PyObject *arguments,
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
                     IUnknown *pIUnk,
                     GUID *iid,
 #endif
@@ -364,7 +364,7 @@ extern int _ctypes_simple_instance(PyObject *obj);
 extern PyObject *_ctypes_ptrtype_cache;
 PyObject *_ctypes_get_errobj(int **pspace);
 
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
 extern PyObject *ComError;
 #endif
 

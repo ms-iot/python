@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM">
+      <Configuration>Release</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{83FA65C4-177F-46D3-AFC2-9232A127CC68}</ProjectGuid>
+    <RootNamespace>_elementtree</RootNamespace>
+    <AppContainerApplication>true</AppContainerApplication>
+    <ApplicationType>Windows Store</ApplicationType>
+    <PlatformToolset Condition="'$(VCTargetsPath14)' != ''">v140</PlatformToolset>
+    <AppxOSMinVersionReplaceManifestVersion>false</AppxOSMinVersionReplaceManifestVersion>
+    <ApplicationTypeRevision>8.2</ApplicationTypeRevision>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+  <Import Project="..\python.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup>
+    <TargetExt>.pyd</TargetExt>
+  </PropertyGroup>
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\pyproject.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\Modules\expat;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>XML_NS;XML_DTD;BYTEORDER=1234;XML_CONTEXT_BYTES=1024;USE_PYEXPAT_CAPI;XML_STATIC;HAVE_MEMMOVE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link Condition="'$(ApplicationTypeRevision)'=='8.2'">
+      <IgnoreSpecificDefaultLibraries>LIBC;ole32.lib;kernel32.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+    </Link>
+    <Link>
+      <BaseAddress>0x1D100000</BaseAddress>
+      <ImageHasSafeExceptionHandlers />
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Modules\expat\ascii.h" />
+    <ClInclude Include="..\..\Modules\expat\asciitab.h" />
+    <ClInclude Include="..\..\Modules\expat\expat.h" />
+    <ClInclude Include="..\..\Modules\expat\expat_config.h" />
+    <ClInclude Include="..\..\Modules\expat\expat_external.h" />
+    <ClInclude Include="..\..\Modules\expat\iasciitab.h" />
+    <ClInclude Include="..\..\Modules\expat\internal.h" />
+    <ClInclude Include="..\..\Modules\expat\latin1tab.h" />
+    <ClInclude Include="..\..\Modules\expat\macconfig.h" />
+    <ClInclude Include="..\..\Modules\expat\nametab.h" />
+    <ClInclude Include="..\..\Modules\expat\pyexpatns.h" />
+    <ClInclude Include="..\..\Modules\expat\utf8tab.h" />
+    <ClInclude Include="..\..\Modules\expat\winconfig.h" />
+    <ClInclude Include="..\..\Modules\expat\xmlrole.h" />
+    <ClInclude Include="..\..\Modules\expat\xmltok.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Modules\_elementtree.c" />
+    <ClCompile Include="..\..\Modules\expat\xmlparse.c" />
+    <ClCompile Include="..\..\Modules\expat\xmlrole.c" />
+    <ClCompile Include="..\..\Modules\expat\xmltok.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="pythoncore.vcxproj">
+      <Project>{91c36924-3e30-4482-be39-4a780305c187}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

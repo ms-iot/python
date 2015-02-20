@@ -61,9 +61,19 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
+
       <AdditionalIncludeDirectories>$(opensslDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">_WINSOCK_DEPRECATED_NO_WARNINGS;WIN32;$(_PlatformPreprocessorDefinition)$(_DebugPreprocessorDefinition)$(_PydPreprocessorDefinition)%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">_WINSOCK_DEPRECATED_NO_WARNINGS;WIN32;$(_PlatformPreprocessorDefinition)$(_DebugPreprocessorDefinition)$(_PydPreprocessorDefinition)%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='PGUpdate|Win32'">_WINSOCK_DEPRECATED_NO_WARNINGS;WIN32;$(_PlatformPreprocessorDefinition)$(_DebugPreprocessorDefinition)$(_PydPreprocessorDefinition)%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='PGInstrument|Win32'">_WINSOCK_DEPRECATED_NO_WARNINGS;WIN32;$(_PlatformPreprocessorDefinition)$(_DebugPreprocessorDefinition)$(_PydPreprocessorDefinition)%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_WINSOCK_DEPRECATED_NO_WARNINGS;WIN32;$(_PlatformPreprocessorDefinition)$(_DebugPreprocessorDefinition)$(_PydPreprocessorDefinition)%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">_WINSOCK_DEPRECATED_NO_WARNINGS;WIN32;$(_PlatformPreprocessorDefinition)$(_DebugPreprocessorDefinition)$(_PydPreprocessorDefinition)%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='PGUpdate|x64'">_WINSOCK_DEPRECATED_NO_WARNINGS;WIN32;$(_PlatformPreprocessorDefinition)$(_DebugPreprocessorDefinition)$(_PydPreprocessorDefinition)%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='PGInstrument|x64'">_WINSOCK_DEPRECATED_NO_WARNINGS;WIN32;$(_PlatformPreprocessorDefinition)$(_DebugPreprocessorDefinition)$(_PydPreprocessorDefinition)%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
+
       <AdditionalDependencies>ws2_32.lib;crypt32.lib;$(OutDir)libeay$(PyDebugExt).lib;$(OutDir)ssleay$(PyDebugExt).lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -75,6 +85,7 @@
       <Project>{cf7ac3d1-e2df-41d2-bea6-1e2556cdea26}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+
     <ProjectReference Include="libeay.vcxproj">
       <Project>{e5b04cc0-eb4c-42ab-b4dc-18ef95f864b0}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

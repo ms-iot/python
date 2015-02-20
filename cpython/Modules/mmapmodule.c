@@ -35,7 +35,7 @@ static int
 my_getpagesize(void)
 {
     SYSTEM_INFO si;
-    GetSystemInfo(&si);
+    GetNativeSystemInfo(&si);
     return si.dwPageSize;
 }
 
@@ -44,7 +44,7 @@ my_getallocationgranularity (void)
 {
 
     SYSTEM_INFO si;
-    GetSystemInfo(&si);
+    GetNativeSystemInfo(&si);
     return si.dwAllocationGranularity;
 }
 
@@ -440,6 +440,19 @@ mmap_size_method(mmap_object *self,
     if (self->file_handle != INVALID_HANDLE_VALUE) {
         DWORD low,high;
         PY_LONG_LONG size;
+#ifdef MS_WINRT
+        FILE_STANDARD_INFO fileStandardInfo;
+        if (!GetFileInformationByHandleEx(self->file_handle, FileStandardInfo, &fileStandardInfo, sizeof(fileStandardInfo)))
+        {
+            /* It might be that the function appears to have failed,
+            when indeed its size equals INVALID_FILE_SIZE */
+            DWORD error = GetLastError();
+            if (error != NO_ERROR)
+                return PyErr_SetFromWindowsErr(error);
+        }
+        high = fileStandardInfo.EndOfFile.HighPart;
+        low = fileStandardInfo.EndOfFile.LowPart;
+#else
         low = GetFileSize(self->file_handle, &high);
         if (low == INVALID_FILE_SIZE) {
             /* It might be that the function appears to have failed,
@@ -448,6 +461,7 @@ mmap_size_method(mmap_object *self,
             if (error != NO_ERROR)
                 return PyErr_SetFromWindowsErr(error);
         }
+#endif
         if (!high && low < LONG_MAX)
             return PyLong_FromLong((long)low);
         size = (((PY_LONG_LONG)high)<<32) + low;
@@ -492,9 +506,12 @@ mmap_resize_method(mmap_object *self,
         !is_resizeable(self)) {
         return NULL;
 #ifdef MS_WINDOWS
-    } else {
+#ifndef MS_WINRT
+    }
+    else {
         DWORD dwErrCode = 0;
-        DWORD off_hi, off_lo, newSizeLow, newSizeHigh;
+        DWORD off_hi, off_lo;
+        LARGE_INTEGER liSize;
         /* First, unmap the file view */
         UnmapViewOfFile(self->data);
         self->data = NULL;
@@ -502,12 +519,16 @@ mmap_resize_method(mmap_object *self,
         CloseHandle(self->map_handle);
         self->map_handle = NULL;
         /* Move to the desired EOF position */
-        newSizeHigh = (DWORD)((self->offset + new_size) >> 32);
-        newSizeLow = (DWORD)((self->offset + new_size) & 0xFFFFFFFF);
         off_hi = (DWORD)(self->offset >> 32);
         off_lo = (DWORD)(self->offset & 0xFFFFFFFF);
-        SetFilePointer(self->file_handle,
-                       newSizeLow, &newSizeHigh, FILE_BEGIN);
+        liSize.QuadPart = self->offset + new_size;
+        if (!SetFilePointerEx(self->file_handle,
+            liSize, NULL, FILE_BEGIN))
+        {
+            dwErrCode = GetLastError();
+            PyErr_SetFromWindowsErr(dwErrCode);
+            return NULL;
+        }
         /* Change the size of the file */
         SetEndOfFile(self->file_handle);
         /* Create another mapping object and remap the file view */
@@ -519,25 +540,30 @@ mmap_resize_method(mmap_object *self,
             0,
             self->tagname);
         if (self->map_handle != NULL) {
-            self->data = (char *) MapViewOfFile(self->map_handle,
-                                                FILE_MAP_WRITE,
-                                                off_hi,
-                                                off_lo,
-                                                new_size);
+            self->data = (char *)MapViewOfFile(self->map_handle,
+                FILE_MAP_WRITE,
+                off_hi,
+                off_lo,
+                new_size);
             if (self->data != NULL) {
                 self->size = new_size;
                 Py_INCREF(Py_None);
                 return Py_None;
-            } else {
+            }
+            else {
                 dwErrCode = GetLastError();
                 CloseHandle(self->map_handle);
                 self->map_handle = NULL;
             }
-        } else {
+        }
+        else {
             dwErrCode = GetLastError();
         }
         PyErr_SetFromWindowsErr(dwErrCode);
+#else /* MS_WINRT */
+    } else {
         return NULL;
+#endif
 #endif /* MS_WINDOWS */
 
 #ifdef UNIX
@@ -1254,7 +1280,6 @@ new_mmap_object(PyTypeObject *type, PyObject *args, PyObject *kwdict)
 #endif /* UNIX */
 
 #ifdef MS_WINDOWS
-
 /* A note on sizes and offsets: while the actual map size must hold in a
    Py_ssize_t, both the total file size and the start offset can be longer
    than a Py_ssize_t, so we use PY_LONG_LONG which is always 64-bit.
@@ -1263,6 +1288,7 @@ new_mmap_object(PyTypeObject *type, PyObject *args, PyObject *kwdict)
 static PyObject *
 new_mmap_object(PyTypeObject *type, PyObject *args, PyObject *kwdict)
 {
+#ifndef MS_WINRT
     mmap_object *m_obj;
     PyObject *map_size_obj = NULL;
     Py_ssize_t map_size;
@@ -1454,6 +1480,7 @@ new_mmap_object(PyTypeObject *type, PyObject *args, PyObject *kwdict)
         dwErr = GetLastError();
     Py_DECREF(m_obj);
     PyErr_SetFromWindowsErr(dwErr);
+#endif /* MS_WINRT */
     return NULL;
 }
 #endif /* MS_WINDOWS */

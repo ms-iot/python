@@ -1,6 +1,6 @@
 #include <Python.h>
 #include <ffi.h>
-#ifdef MS_WIN32
+#ifdef MS_WINDOWS
 #include <windows.h>
 #else
 #include <sys/mman.h>
@@ -36,10 +36,14 @@ static void more_core(void)
     int count, i;
 
 /* determine the pagesize */
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
     if (!_pagesize) {
         SYSTEM_INFO systeminfo;
+#ifdef MS_WINRT
+		GetNativeSystemInfo(&systeminfo);
+#else
         GetSystemInfo(&systeminfo);
+#endif
         _pagesize = systeminfo.dwPageSize;
     }
 #else
@@ -56,11 +60,15 @@ static void more_core(void)
     count = BLOCKSIZE / sizeof(ITEM);
 
     /* allocate a memory block */
-#ifdef MS_WIN32
+#ifdef MS_WINDOWS
+#ifdef MS_WINRT
+	item = (ITEM *)malloc(count * sizeof(ITEM));
+#else
     item = (ITEM *)VirtualAlloc(NULL,
-                                           count * sizeof(ITEM),
-                                           MEM_COMMIT,
-                                           PAGE_EXECUTE_READWRITE);
+                                count * sizeof(ITEM),
+                                MEM_COMMIT,
+                                PAGE_EXECUTE_READWRITE);
+#endif
     if (item == NULL)
         return;
 #else

@@ -1728,14 +1728,14 @@ XML_GetBuffer(XML_Parser parser, int len)
       bufferLim = newBuf + bufferSize;
 #ifdef XML_CONTEXT_BYTES
       if (bufferPtr) {
-        int keep = (int)(bufferPtr - buffer);
-        if (keep > XML_CONTEXT_BYTES)
-          keep = XML_CONTEXT_BYTES;
-        memcpy(newBuf, &bufferPtr[-keep], bufferEnd - bufferPtr + keep);
+        int keepcount = (int)(bufferPtr - buffer);
+        if (keepcount > XML_CONTEXT_BYTES)
+            keepcount = XML_CONTEXT_BYTES;
+        memcpy(newBuf, &bufferPtr[-keepcount], bufferEnd - bufferPtr + keepcount);
         FREE(buffer);
         buffer = newBuf;
-        bufferEnd = buffer + (bufferEnd - bufferPtr) + keep;
-        bufferPtr = buffer + keep;
+        bufferEnd = buffer + (bufferEnd - bufferPtr) + keepcount;
+        bufferPtr = buffer + keepcount;
       }
       else {
         bufferEnd = newBuf + (bufferEnd - bufferPtr);

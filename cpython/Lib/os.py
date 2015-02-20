@@ -106,6 +106,48 @@ elif 'ce' in _names:
     except ImportError:
         pass
 
+elif 'winrt' in _names:
+    name = 'winrt'
+    linesep = '\r\n'
+    from winrt import *
+    
+    try:
+        from winrt import _exit
+        __all__.append('_exit')
+    except ImportError:
+        pass
+    import ntpath as path
+
+    import winrt
+    __all__.extend(_get_exports_list(winrt))
+    del winrt
+
+    try:
+        from winrt import _have_functions
+    except ImportError:
+        pass
+
+elif 'winrt_os' in _names:
+    name = 'winrt_os'
+    linesep = '\r\n'
+    from winrt_os import *
+    
+    try:
+        from winrt_os import _exit
+        __all__.append('_exit')
+    except ImportError:
+        pass
+    import ntpath as path
+
+    import winrt_os
+    __all__.extend(_get_exports_list(winrt_os))
+    del winrt_os
+
+    try:
+        from winrt_os import _have_functions
+    except ImportError:
+        pass
+
 else:
     raise ImportError('no os specific module found')
 
@@ -628,7 +670,7 @@ class _Environ(MutableMapping):
         self.putenv = putenv
         self.unsetenv = unsetenv
         self._data = data
-
+        
     def __getitem__(self, key):
         try:
             value = self._data[self.encodekey(key)]
@@ -689,7 +731,7 @@ else:
         __all__.append("unsetenv")
 
 def _createenviron():
-    if name == 'nt':
+    if name == 'nt' or name == 'winrt_os':
         # Where Env Var Names Must Be UPPERCASE
         def check_str(value):
             if not isinstance(value, str):
@@ -729,7 +771,7 @@ def getenv(key, default=None):
     key, default and the result are str."""
     return environ.get(key, default)
 
-supports_bytes_environ = (name != 'nt')
+supports_bytes_environ = (name != 'nt' and name != 'winrt_os')
 __all__.extend(("getenv", "supports_bytes_environ"))
 
 if supports_bytes_environ:

@@ -57,14 +57,14 @@
 #include "Python.h"
 #include "structmember.h"
 
-#ifdef MS_WIN32
+#ifdef MS_WINDOWS
 #include <windows.h>
 #include <tchar.h>
 #else
 #include "ctypes_dlfcn.h"
 #endif
 
-#ifdef MS_WIN32
+#ifdef MS_WINDOWS
 #include <malloc.h>
 #endif
 
@@ -213,7 +213,7 @@ set_errno(PyObject *self, PyObject *args)
     return set_error_internal(self, args, 0);
 }
 
-#ifdef MS_WIN32
+#ifdef MS_WINDOWS
 
 static PyObject *
 get_last_error(PyObject *self, PyObject *args)
@@ -233,6 +233,20 @@ static WCHAR *FormatError(DWORD code)
 {
     WCHAR *lpMsgBuf;
     DWORD n;
+#ifdef MS_WINRT
+#define FORMATMSGSIZE 4096
+	lpMsgBuf = (WCHAR*)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, FORMATMSGSIZE * sizeof(wchar_t));
+	if (lpMsgBuf)
+	{
+		n = FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM,
+			NULL,
+			code,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), /* Default language */
+			(LPWSTR)&lpMsgBuf,
+			FORMATMSGSIZE,
+			NULL);
+	}
+#else
     n = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
                        NULL,
                        code,
@@ -240,6 +254,7 @@ static WCHAR *FormatError(DWORD code)
                (LPWSTR) &lpMsgBuf,
                0,
                NULL);
+#endif
     if (n) {
         while (iswspace(lpMsgBuf[n-1]))
             --n;
@@ -476,7 +491,7 @@ PyCArg_repr(PyCArgObject *self)
     case 'q':
     case 'Q':
         sprintf(buffer,
-#ifdef MS_WIN32
+#ifdef MS_WINDOWS
             "<cparam '%c' (%I64d)>",
 #else
             "<cparam '%c' (%qd)>",
@@ -712,7 +727,7 @@ ffi_type *_ctypes_get_ffi_type(PyObject *obj)
     dict = PyType_stgdict(obj);
     if (dict == NULL)
         return &ffi_type_sint;
-#if defined(MS_WIN32) && !defined(_WIN32_WCE)
+#if defined(MS_WINDOWS) && !defined(_WIN32_WCE)
     /* This little trick works correctly with MSVC.
        It returns small structures in registers
     */
@@ -751,10 +766,10 @@ static int _call_function_pointer(int flags,
     PyThreadState *_save = NULL; /* For Py_BLOCK_THREADS and Py_UNBLOCK_THREADS */
 #endif
     PyObject *error_object = NULL;
-    int *space;
+    int *space = NULL;
     ffi_cif cif;
     int cc;
-#ifdef MS_WIN32
+#ifdef MS_WINDOWS
     int delta;
 #ifndef DONT_USE_SEH
     DWORD dwExceptionCode = 0;
@@ -769,7 +784,7 @@ static int _call_function_pointer(int flags,
     }
 
     cc = FFI_DEFAULT_ABI;
-#if defined(MS_WIN32) && !defined(MS_WIN64) && !defined(_WIN32_WCE)
+#if defined(MS_WINDOWS) && !defined(MS_WIN64) && !defined(_WIN32_WCE)
     if ((flags & FUNCFLAG_CDECL) == 0)
         cc = FFI_STDCALL;
 #endif
@@ -797,7 +812,7 @@ static int _call_function_pointer(int flags,
         space[0] = errno;
         errno = temp;
     }
-#ifdef MS_WIN32
+#ifdef MS_WINDOWS
     if (flags & FUNCFLAG_USE_LASTERROR) {
         int temp = space[1];
         space[1] = GetLastError();
@@ -809,7 +824,7 @@ static int _call_function_pointer(int flags,
         delta =
 #endif
                 ffi_call(&cif, (void *)pProc, resmem, avalues);
-#ifdef MS_WIN32
+#ifdef MS_WINDOWS
 #ifndef DONT_USE_SEH
     }
     __except (HandleException(GetExceptionInformation(),
@@ -833,7 +848,7 @@ static int _call_function_pointer(int flags,
         Py_BLOCK_THREADS
 #endif
     Py_XDECREF(error_object);
-#ifdef MS_WIN32
+#ifdef MS_WINDOWS
 #ifndef DONT_USE_SEH
     if (dwExceptionCode) {
         SetException(dwExceptionCode, &record);
@@ -967,11 +982,14 @@ error:
 }
 
 
-#ifdef MS_WIN32
+#ifdef MS_WINDOWS
 
 static PyObject *
 GetComError(HRESULT errcode, GUID *riid, IUnknown *pIunk)
 {
+#ifdef MS_WINRT
+	return Py_None;
+#else
     HRESULT hr;
     ISupportErrorInfo *psei = NULL;
     IErrorInfo *pei = NULL;
@@ -1029,7 +1047,11 @@ GetComError(HRESULT errcode, GUID *riid, IUnknown *pIunk)
         PyErr_SetObject(ComError, obj);
         Py_DECREF(obj);
     }
+#ifdef MS_WINRT
+	HeapFree(GetProcessHeap(), 0, text);
+#else
     LocalFree(text);
+#endif
 
     if (descr)
         SysFreeString(descr);
@@ -1039,6 +1061,7 @@ GetComError(HRESULT errcode, GUID *riid, IUnknown *pIunk)
         SysFreeString(source);
 
     return NULL;
+#endif
 }
 #endif
 
@@ -1051,7 +1074,7 @@ GetComError(HRESULT errcode, GUID *riid, IUnknown *pIunk)
  */
 PyObject *_ctypes_callproc(PPROC pProc,
                     PyObject *argtuple,
-#ifdef MS_WIN32
+#ifdef MS_WINDOWS
                     IUnknown *pIunk,
                     GUID *iid,
 #endif
@@ -1071,7 +1094,7 @@ PyObject *_ctypes_callproc(PPROC pProc,
     PyObject *retval = NULL;
 
     n = argcount = PyTuple_GET_SIZE(argtuple);
-#ifdef MS_WIN32
+#ifdef MS_WINDOWS
     /* an optional COM object this pointer */
     if (pIunk)
         ++argcount;
@@ -1084,7 +1107,7 @@ PyObject *_ctypes_callproc(PPROC pProc,
     }
     memset(args, 0, sizeof(struct argument) * argcount);
     argtype_count = argtypes ? PyTuple_GET_SIZE(argtypes) : 0;
-#ifdef MS_WIN32
+#ifdef MS_WINDOWS
     if (pIunk) {
         args[0].ffi_type = &ffi_type_pointer;
         args[0].value.p = pIunk;
@@ -1170,7 +1193,7 @@ PyObject *_ctypes_callproc(PPROC pProc,
         resbuf = (char *)resbuf + sizeof(ffi_arg) - rtype->size;
 #endif
 
-#ifdef MS_WIN32
+#ifdef MS_WINDOWS
     if (iid && pIunk) {
         if (*(int *)resbuf & 0x80000000)
             retval = GetComError(*(HRESULT *)resbuf, iid, pIunk);
@@ -1199,7 +1222,7 @@ _parse_voidp(PyObject *obj, void **address)
     return 1;
 }
 
-#ifdef MS_WIN32
+#ifdef MS_WINDOWS
 
 static char format_error_doc[] =
 "FormatError([integer]) -> string\n\
@@ -1218,12 +1241,29 @@ static PyObject *format_error(PyObject *self, PyObject *args)
     lpMsgBuf = FormatError(code);
     if (lpMsgBuf) {
         result = PyUnicode_FromWideChar(lpMsgBuf, wcslen(lpMsgBuf));
+#ifdef MS_WINRT
+		HeapFree(GetProcessHeap(), 0, lpMsgBuf);
+#else
         LocalFree(lpMsgBuf);
+#endif
     } else {
         result = PyUnicode_FromString("<no description>");
     }
     return result;
 }
+
+#ifdef MS_WINRT
+WINBASEAPI
+_Ret_maybenull_
+HMODULE
+WINAPI
+LoadLibraryExW(
+_In_ LPCWSTR lpLibFileName,
+_Reserved_ HANDLE hFile,
+_In_ DWORD dwFlags
+);
+#define LOAD_PACKAGED_LIBRARY 0x00000004
+#endif
 
 static char load_library_doc[] =
 "LoadLibrary(name) -> handle\n\
@@ -1244,7 +1284,11 @@ static PyObject *load_library(PyObject *self, PyObject *args)
     if (!name)
         return NULL;
 
+#ifdef MS_WINRT
+	hMod = LoadLibraryExW(name, 0, LOAD_PACKAGED_LIBRARY);
+#else
     hMod = LoadLibraryW(name);
+#endif
     if (!hMod)
         return PyErr_SetFromWindowsErr(GetLastError());
 #ifdef _WIN64
@@ -1394,7 +1438,7 @@ call_function(PyObject *self, PyObject *args)
 
     result =  _ctypes_callproc((PPROC)func,
                         arguments,
-#ifdef MS_WIN32
+#ifdef MS_WINDOWS
                         NULL,
                         NULL,
 #endif
@@ -1425,7 +1469,7 @@ call_cdeclfunction(PyObject *self, PyObject *args)
 
     result =  _ctypes_callproc((PPROC)func,
                         arguments,
-#ifdef MS_WIN32
+#ifdef MS_WINDOWS
                         NULL,
                         NULL,
 #endif
@@ -1762,7 +1806,7 @@ PyMethodDef _ctypes_module_methods[] = {
     {"_unpickle", unpickle, METH_VARARGS },
     {"buffer_info", buffer_info, METH_O, "Return buffer interface information"},
     {"resize", resize, METH_VARARGS, "Resize the memory buffer of a ctypes instance"},
-#ifdef MS_WIN32
+#ifdef MS_WINDOWS
     {"get_last_error", get_last_error, METH_NOARGS},
     {"set_last_error", set_last_error, METH_VARARGS},
     {"CopyComPointer", copy_com_pointer, METH_VARARGS, copy_com_pointer_doc},

@@ -40,8 +40,10 @@ msvcrt_heapmin(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":heapmin"))
         return NULL;
 
+#ifndef MS_WINRT
     if (_heapmin() != 0)
         return PyErr_SetFromErrno(PyExc_IOError);
+#endif
 
     Py_INCREF(Py_None);
     return Py_None;
@@ -170,13 +172,20 @@ if fd is not recognized.");
 static PyObject *
 msvcrt_kbhit(PyObject *self, PyObject *args)
 {
+#ifndef MS_WINRT
     int ok;
+#endif
 
     if (!PyArg_ParseTuple(args, ":kbhit"))
         return NULL;
 
+#ifdef MS_WINRT
+    PyErr_SetString(PyExc_NotImplementedError, "Not supported in Windows Store Apps");
+    return NULL;
+#else
     ok = _kbhit();
     return PyLong_FromLong(ok);
+#endif
 }
 
 PyDoc_STRVAR(kbhit_doc,
@@ -187,17 +196,24 @@ Return true if a keypress is waiting to be read.");
 static PyObject *
 msvcrt_getch(PyObject *self, PyObject *args)
 {
+#ifndef MS_WINRT
     int ch;
     char s[1];
+#endif
 
     if (!PyArg_ParseTuple(args, ":getch"))
         return NULL;
 
+#ifdef MS_WINRT
+    PyErr_SetString(PyExc_NotImplementedError, "Not supported in Windows Store Apps");
+    return NULL;
+#else
     Py_BEGIN_ALLOW_THREADS
     ch = _getch();
     Py_END_ALLOW_THREADS
     s[0] = ch;
     return PyBytes_FromStringAndSize(s, 1);
+#endif
 }
 
 PyDoc_STRVAR(getch_doc,
@@ -234,17 +250,24 @@ Wide char variant of getch(), returning a Unicode value.");
 static PyObject *
 msvcrt_getche(PyObject *self, PyObject *args)
 {
+#ifndef MS_WINRT
     int ch;
     char s[1];
+#endif
 
     if (!PyArg_ParseTuple(args, ":getche"))
         return NULL;
 
+#ifdef MS_WINRT
+    PyErr_SetString(PyExc_NotImplementedError, "Not supported in Windows Store Apps");
+    return NULL;
+#else
     Py_BEGIN_ALLOW_THREADS
     ch = _getche();
     Py_END_ALLOW_THREADS
     s[0] = ch;
     return PyBytes_FromStringAndSize(s, 1);
+#endif
 }
 
 PyDoc_STRVAR(getche_doc,
@@ -282,9 +305,14 @@ msvcrt_putch(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "c:putch", &ch))
         return NULL;
 
+#ifdef MS_WINRT
+    PyErr_SetString(PyExc_NotImplementedError, "Not supported in Windows Store Apps");
+    return NULL;
+#else
     _putch(ch);
     Py_INCREF(Py_None);
     return Py_None;
+#endif
 }
 
 PyDoc_STRVAR(putch_doc,
@@ -320,10 +348,15 @@ msvcrt_ungetch(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "c:ungetch", &ch))
         return NULL;
 
+#ifdef MS_WINRT
+    PyErr_SetString(PyExc_NotImplementedError, "Not supported in Windows Store Apps");
+    return NULL;
+#else
     if (_ungetch(ch) == EOF)
         return PyErr_SetFromErrno(PyExc_IOError);
     Py_INCREF(Py_None);
     return Py_None;
+#endif
 }
 
 PyDoc_STRVAR(ungetch_doc,
@@ -414,12 +447,20 @@ msvcrt_seterrormode(PyObject *self, PyObject *args)
 static PyObject*
 seterrormode(PyObject *self, PyObject *args)
 {
-    unsigned int mode, res;
+	unsigned int mode;
+#ifndef MS_WINRT
+	unsigned int res;
+#endif
 
     if (!PyArg_ParseTuple(args, "I", &mode))
         return NULL;
+#ifdef MS_WINRT
+    PyErr_SetString(PyExc_NotImplementedError, "Not supported in Windows Store Apps");
+    return NULL;
+#else
     res = SetErrorMode(mode);
     return PyLong_FromUnsignedLong(res);
+#endif
 }
 
 
@@ -430,6 +471,7 @@ static struct PyMethodDef msvcrt_functions[] = {
     {"setmode",                 msvcrt_setmode, METH_VARARGS, setmode_doc},
     {"open_osfhandle",          msvcrt_open_osfhandle, METH_VARARGS, open_osfhandle_doc},
     {"get_osfhandle",           msvcrt_get_osfhandle, METH_VARARGS, get_osfhandle_doc},
+#ifndef MS_WINRT
     {"kbhit",                   msvcrt_kbhit, METH_VARARGS, kbhit_doc},
     {"getch",                   msvcrt_getch, METH_VARARGS, getch_doc},
     {"getche",                  msvcrt_getche, METH_VARARGS, getche_doc},
@@ -440,7 +482,8 @@ static struct PyMethodDef msvcrt_functions[] = {
     {"CrtSetReportFile",        msvcrt_setreportfile, METH_VARARGS},
     {"CrtSetReportMode",        msvcrt_setreportmode, METH_VARARGS},
     {"set_error_mode",          msvcrt_seterrormode, METH_VARARGS},
-#endif
+#endif /* DEBUG */
+#endif /* !MS_WINRT */
 #ifdef _WCONIO_DEFINED
     {"getwch",                  msvcrt_getwch, METH_VARARGS, getwch_doc},
     {"getwche",                 msvcrt_getwche, METH_VARARGS, getwche_doc},
@@ -479,10 +522,12 @@ PyInit_msvcrt(void)
     insertint(d, "LK_NBRLCK", _LK_NBRLCK);
     insertint(d, "LK_RLCK", _LK_RLCK);
     insertint(d, "LK_UNLCK", _LK_UNLCK);
+#ifndef MS_WINRT
     insertint(d, "SEM_FAILCRITICALERRORS", SEM_FAILCRITICALERRORS);
     insertint(d, "SEM_NOALIGNMENTFAULTEXCEPT", SEM_NOALIGNMENTFAULTEXCEPT);
     insertint(d, "SEM_NOGPFAULTERRORBOX", SEM_NOGPFAULTERRORBOX);
     insertint(d, "SEM_NOOPENFILEERRORBOX", SEM_NOOPENFILEERRORBOX);
+#endif
 #ifdef _DEBUG
     insertint(d, "CRT_WARN", _CRT_WARN);
     insertint(d, "CRT_ERROR", _CRT_ERROR);

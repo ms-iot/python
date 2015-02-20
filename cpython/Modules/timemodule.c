@@ -930,7 +930,10 @@ Performance counter for benchmarking.");
 static PyObject*
 py_process_time(_Py_clock_info_t *info)
 {
-#if defined(MS_WINDOWS)
+#if defined(MS_WINRT)
+    PyErr_SetString(PyExc_NotImplementedError, "process_time is not supported for Windows Store Apps");
+    return NULL;
+#elif defined(MS_WINDOWS)
     HANDLE process;
     FILETIME creation_time, exit_time, kernel_time, user_time;
     ULARGE_INTEGER large;
@@ -1164,7 +1167,7 @@ PyInit_timezone(PyObject *m) {
 
     And I'm lazy and hate C so nyer.
      */
-#if defined(HAVE_TZNAME) && !defined(__GLIBC__) && !defined(__CYGWIN__)
+#if defined(HAVE_TZNAME) && !defined(__GLIBC__) && !defined(__CYGWIN__) && !defined(MS_WINRT)
     PyObject *otz0, *otz1;
     tzset();
     PyModule_AddIntConstant(m, "timezone", timezone);
@@ -1432,9 +1435,13 @@ floatsleep(double secs)
          * by Guido, only the main thread can be interrupted.
          */
         ul_millis = (unsigned long)millisecs;
+#ifdef MS_WINRT
+        {
+#else
         if (ul_millis == 0 || !_PyOS_IsMainThread())
             Sleep(ul_millis);
         else {
+#endif
             DWORD rc;
             HANDLE hInterruptEvent = _PyOS_SigintEvent();
             ResetEvent(hInterruptEvent);

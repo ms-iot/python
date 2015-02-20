@@ -3,8 +3,13 @@
   <PropertyGroup Label="Globals">
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
-    <OutDir>$(BuildPath)</OutDir>
-    <IntDir>$(SolutionDir)obj\$(ArchName)_$(Configuration)\$(ProjectName)\</IntDir>
+
+    <OutDirRoot Condition="'$(ApplicationTypeRevision)'!=''">$(SolutionDir)winrt\$(ApplicationTypeRevision)\$(ArchName)\</OutDirRoot>
+    <OutDirRoot Condition="'$(OutDirRoot)'==''">$(BuildPath)</OutDirRoot>
+    <IntDirRoot Condition="'$(ApplicationTypeRevision)'!=''">$(SolutionDir)winrt\$(ApplicationTypeRevision)\$(ArchName)\</IntDirRoot>
+    <IntDirRoot Condition="'$(IntDirRoot)'==''">$(SolutionDir)</IntDirRoot>
+    <OutDir>$(OutDirRoot)</OutDir>
+    <IntDir>$(IntDirRoot)obj\$(ArchName)_$(Configuration)\$(ProjectName)\</IntDir>
     <IntDir Condition="$(Configuration) == 'PGInstrument' or $(Configuration) == 'PGUpdate'">$(SolutionDir)obj\$(ArchName)\$(ProjectName)\</IntDir>
     <TargetName Condition="'$(TargetName)' == ''">$(ProjectName)</TargetName>
     <TargetName>$(TargetName)$(PyDebugExt)</TargetName>
@@ -16,11 +21,13 @@
     <SupportSigning Condition="'$(ConfigurationType)' == 'StaticLibrary'">false</SupportSigning>
   </PropertyGroup>
 
+  <Import Condition="'$(ApplicationTypeRevision)'!=''" Project="winrt.props" />
   <PropertyGroup>
     <_DebugPreprocessorDefinition>NDEBUG;</_DebugPreprocessorDefinition>
     <_DebugPreprocessorDefinition Condition="$(Configuration) == 'Debug'">_DEBUG;</_DebugPreprocessorDefinition>
     <_PlatformPreprocessorDefinition>_WIN32;</_PlatformPreprocessorDefinition>
     <_PlatformPreprocessorDefinition Condition="$(Platform) == 'x64'">_WIN64;_M_X64;</_PlatformPreprocessorDefinition>
+    <_PlatformPreprocessorDefinition Condition="$(Platform) == 'ARM'">ARM;</_PlatformPreprocessorDefinition>
     <_PydPreprocessorDefinition Condition="$(TargetExt) == '.pyd'">Py_BUILD_CORE_MODULE;</_PydPreprocessorDefinition>
   </PropertyGroup>
   <ItemDefinitionGroup>
@@ -56,6 +63,7 @@
       <IgnoreSpecificDefaultLibraries>LIBC;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <TargetMachine>MachineX86</TargetMachine>
       <TargetMachine Condition="'$(Platform)' == 'x64'">MachineX64</TargetMachine>
+      <TargetMachine Condition="'$(Platform)' == 'ARM'">MachineARM</TargetMachine>
       <ProfileGuidedDatabase Condition="$(SupportPGO)">$(OutDir)$(TargetName).pgd</ProfileGuidedDatabase>
       <LinkTimeCodeGeneration Condition="$(Configuration) == 'Release'">UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <LinkTimeCodeGeneration Condition="$(SupportPGO) and $(Configuration) == 'PGInstrument'">PGInstrument</LinkTimeCodeGeneration>
@@ -77,6 +85,7 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TargetEnvironment>Win32</TargetEnvironment>
       <TargetEnvironment Condition="'$(Platform)' == 'x64'">X64</TargetEnvironment>
+      <TargetEnvironment Condition="'$(Platform)' == 'ARM'">ARM</TargetEnvironment>
       <TypeLibraryName>$(OutDir)wininst.tlb</TypeLibraryName>
       <HeaderFileName>
       </HeaderFileName>
@@ -121,7 +130,6 @@ foreach (System.Diagnostics.Process p in System.Diagnostics.Process.GetProcesses
       </Code>
     </Task>
   </UsingTask>
-  
   <Target Name="KillPython" BeforeTargets="PrepareForBuild" Condition="'$(KillPython)' == 'true'">
     <Message Text="Killing any running python.exe instances..." Importance="high" />
     <KillPython FileName="$(OutDir)python$(PyDebugExt).exe" />

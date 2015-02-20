@@ -19,7 +19,10 @@ import shutil
 import socket
 import stat
 import struct
-import subprocess
+if os.name != 'winrt_os':
+    import subprocess
+else:
+    subprocess = None
 import sys
 import sysconfig
 import tempfile

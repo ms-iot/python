@@ -529,11 +529,13 @@ faulthandler_dump_traceback_later(PyObject *self,
     PY_TIMEOUT_T timeout_us;
     int repeat = 0;
     PyObject *file = NULL;
-    int fd;
     int exit = 0;
+#ifndef MS_WINRT
+    int fd;
     PyThreadState *tstate;
     char *header;
     size_t header_len;
+#endif
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs,
         "d|iOi:dump_traceback_later", kwlist,
@@ -548,6 +550,10 @@ faulthandler_dump_traceback_later(PyObject *self,
         PyErr_SetString(PyExc_ValueError, "timeout must be greater than 0");
         return NULL;
     }
+#ifdef MS_WINRT
+    PyErr_SetString(PyExc_NotImplementedError, "dump_tracebacks_later is not supported for Windows Store Apps");
+    return NULL;
+#else
 
     tstate = get_thread_state();
     if (tstate == NULL)
@@ -591,6 +597,7 @@ faulthandler_dump_traceback_later(PyObject *self,
     }
 
     Py_RETURN_NONE;
+#endif
 }
 
 static PyObject*
@@ -721,7 +728,7 @@ faulthandler_register_py(PyObject *self,
     int chain = 0;
     int fd;
     user_signal_t *user;
-    _Py_sighandler_t previous;
+    _Py_sighandler_t previous = NULL;
     PyThreadState *tstate;
     int err;
 
@@ -813,12 +820,17 @@ faulthandler_unregister_py(PyObject *self, PyObject *args)
 static void
 faulthandler_suppress_crash_report(void)
 {
-#ifdef MS_WINDOWS
+#ifdef MS_WINDOWS 
+#ifdef MS_WINRT
+    PyErr_SetString(PyExc_NotImplementedError, "Not supported in Windows Store Apps");
+    return;
+#else
     UINT mode;
 
     /* Configure Windows to not display the Windows Error Reporting dialog */
     mode = SetErrorMode(SEM_NOGPFAULTERRORBOX);
     SetErrorMode(mode | SEM_NOGPFAULTERRORBOX);
+#endif
 #endif
 
 #ifdef HAVE_SYS_RESOURCE_H

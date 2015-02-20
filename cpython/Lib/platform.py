@@ -112,7 +112,9 @@ __copyright__ = """
 __version__ = '1.0.7'
 
 import collections
-import sys, os, re, subprocess
+import sys, os, re
+if sys.platform != "winrt":
+    import subprocess
 
 ### Globals & Constants
 
@@ -841,7 +843,7 @@ def _syscmd_uname(option, default=''):
 
     """ Interface to the system's uname command.
     """
-    if sys.platform in ('dos', 'win32', 'win16'):
+    if sys.platform in ('dos', 'win32', 'win16', 'winrt'):
         # XXX Others too ?
         return default
     try:

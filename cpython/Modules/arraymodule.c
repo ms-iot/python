@@ -2086,7 +2086,7 @@ array__array_reconstructor_impl(PyModuleDef *module, PyTypeObject *arraytype, in
         Py_ssize_t itemcount = Py_SIZE(items) / mf_descr.size;
         const unsigned char *memstr =
             (unsigned char *)PyBytes_AS_STRING(items);
-        struct arraydescr *descr;
+        struct arraydescr *arrdescr;
 
         /* If possible, try to pack array's items using a data type
          * that fits better. This may result in an array with narrower
@@ -2098,11 +2098,11 @@ array__array_reconstructor_impl(PyModuleDef *module, PyTypeObject *arraytype, in
          *
          * XXX: Is it possible to write a unit test for this?
          */
-        for (descr = descriptors; descr->typecode != '\0'; descr++) {
-            if (descr->is_integer_type &&
-                (size_t)descr->itemsize == mf_descr.size &&
-                descr->is_signed == mf_descr.is_signed)
-                typecode = descr->typecode;
+        for (arrdescr = descriptors; arrdescr->typecode != '\0'; arrdescr++) {
+            if (arrdescr->is_integer_type &&
+                (size_t)arrdescr->itemsize == mf_descr.size &&
+                arrdescr->is_signed == mf_descr.is_signed)
+                typecode = arrdescr->typecode;
         }
 
         converted_items = PyList_New(itemcount);
@@ -2330,14 +2330,14 @@ array_subscr(arrayobject* self, PyObject* item)
             return newarrayobject(&Arraytype, 0, self->ob_descr);
         }
         else if (step == 1) {
-            PyObject *result = newarrayobject(&Arraytype,
+            PyObject *arrresult = newarrayobject(&Arraytype,
                                     slicelength, self->ob_descr);
-            if (result == NULL)
+            if (arrresult == NULL)
                 return NULL;
-            memcpy(((arrayobject *)result)->ob_item,
+            memcpy(((arrayobject *)arrresult)->ob_item,
                    self->ob_item + start * itemsize,
                    slicelength * itemsize);
-            return result;
+            return arrresult;
         }
         else {
             result = newarrayobject(&Arraytype, slicelength, self->ob_descr);

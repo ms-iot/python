@@ -159,7 +159,8 @@ def getuser():
     database.  This works on Windows as long as USERNAME is set.
 
     """
-
+    if os.name == "winrt_os":
+        return ""
     for name in ('LOGNAME', 'USER', 'LNAME', 'USERNAME'):
         user = os.environ.get(name)
         if user:

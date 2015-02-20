@@ -139,7 +139,7 @@ tracemalloc_error(const char *format, ...)
 /* If your OS does not provide native thread local storage, you can implement
    it manually using a lock. Functions of thread.c cannot be used because
    they use PyMem_RawMalloc() which leads to a reentrant call. */
-#if !(defined(_POSIX_THREADS) || defined(NT_THREADS))
+#if !(defined(_POSIX_THREADS) || defined(NT_THREADS) || defined(WINRT_THREADS))
 #  error "need native thread local storage (TLS)"
 #endif
 

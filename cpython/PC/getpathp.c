@@ -123,7 +123,12 @@ reduce(wchar_t *dir)
 static int
 exists(wchar_t *filename)
 {
+#ifdef MS_WINRT
+    WIN32_FILE_ATTRIBUTE_DATA fad;
+    return GetFileAttributesExW(filename, GetFileExInfoStandard, &fad) != 0;
+#else
     return GetFileAttributesW(filename) != 0xFFFFFFFF;
+#endif
 }
 
 /* Assumes 'filename' MAXPATHLEN+1 bytes long -
@@ -205,7 +210,7 @@ search_for_prefix(wchar_t *argv0_path, wchar_t *landmark)
     return 0;
 }
 
-#ifdef MS_WINDOWS
+#if defined(MS_WINDOWS) && !defined(MS_WINRT)
 #ifdef Py_ENABLE_SHARED
 
 /* a string loaded from the DLL at startup.*/
@@ -358,6 +363,31 @@ done:
 #endif /* Py_ENABLE_SHARED */
 #endif /* MS_WINDOWS */
 
+#ifdef MS_WINRT
+
+static void
+get_progpath(void)
+{
+    wchar_t *prog = Py_GetProgramName();
+    extern size_t winrt_getinstallpath(wchar_t *buffer, size_t cch);
+    
+    if (progpath[0] != 0)
+    {
+        /* progpath may have been set before calling. */
+        return;
+    }
+
+    if (!winrt_getinstallpath(progpath, MAXPATHLEN))
+    {
+        progpath[0] = 0;
+        return;
+    }
+
+    join(progpath, prog);
+}
+
+#else
+
 static void
 get_progpath(void)
 {
@@ -421,6 +451,7 @@ get_progpath(void)
     else
         progpath[0] = '\0';
 }
+#endif
 
 static int
 find_env_config_value(FILE * env_file, const wchar_t * key, wchar_t * value)
@@ -485,9 +516,11 @@ calculate_path(void)
     wchar_t zip_path[MAXPATHLEN+1];
     size_t len;
 
+#ifndef MS_WINRT
     if (!Py_IgnoreEnvironmentFlag) {
         envpath = _wgetenv(L"PYTHONPATH");
     }
+#endif
 #else
     char *_envpath = Py_GETENV("PYTHONPATH");
     wchar_t wenvpath[MAXPATHLEN+1];
@@ -569,8 +602,10 @@ calculate_path(void)
 
     skiphome = pythonhome==NULL ? 0 : 1;
 #ifdef Py_ENABLE_SHARED
+#ifndef MS_WINRT
     machinepath = getpythonregpath(HKEY_LOCAL_MACHINE, skiphome);
     userpath = getpythonregpath(HKEY_CURRENT_USER, skiphome);
+#endif
 #endif
     /* We only use the default relative PYTHONPATH if we havent
        anything better to use! */
@@ -786,6 +821,19 @@ Py_GetProgramFullPath(void)
     return progpath;
 }
 
+#ifdef MS_WINRT
+WINBASEAPI
+_Ret_maybenull_
+HMODULE
+WINAPI
+LoadLibraryExW(
+_In_ LPCWSTR lpLibFileName,
+_Reserved_ HANDLE hFile,
+_In_ DWORD dwFlags
+);
+#define LOAD_PACKAGED_LIBRARY 0x00000004
+#endif
+
 /* Load python3.dll before loading any extension module that might refer
    to it. That way, we can be sure that always the python3.dll corresponding
    to this python DLL is loaded, not a python3.dll that might be on the path
@@ -810,13 +858,21 @@ _Py_CheckPython3()
     if (!s)
         s = py3path;
     wcscpy(s, L"\\python3.dll");
+#ifndef MS_WINRT
     hPython3 = LoadLibraryExW(py3path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+#else
+	hPython3 = LoadLibraryExW(py3path, 0, LOAD_PACKAGED_LIBRARY);
+#endif
     if (hPython3 != NULL)
         return 1;
 
     /* Check sys.prefix\DLLs\python3.dll */
     wcscpy(py3path, Py_GetPrefix());
     wcscat(py3path, L"\\DLLs\\python3.dll");
+#ifndef MS_WINRT
     hPython3 = LoadLibraryExW(py3path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
+#else
+	hPython3 = LoadLibraryExW(py3path, 0, LOAD_PACKAGED_LIBRARY);
+#endif
     return hPython3 != NULL;
 }

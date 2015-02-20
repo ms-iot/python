@@ -298,16 +298,16 @@ gen_throw(PyGenObject *gen, PyObject *args)
         }
         Py_DECREF(yf);
         if (!ret) {
-            PyObject *val;
+            PyObject *valobj;
             /* Pop subiterator from stack */
             ret = *(--gen->gi_frame->f_stacktop);
             assert(ret == yf);
             Py_DECREF(ret);
             /* Termination repetition of YIELD_FROM */
             gen->gi_frame->f_lasti++;
-            if (_PyGen_FetchStopIterationValue(&val) == 0) {
-                ret = gen_send_ex(gen, val, 0);
-                Py_DECREF(val);
+            if (_PyGen_FetchStopIterationValue(&valobj) == 0) {
+                ret = gen_send_ex(gen, valobj, 0);
+                Py_DECREF(valobj);
             } else {
                 ret = gen_send_ex(gen, Py_None, 1);
             }

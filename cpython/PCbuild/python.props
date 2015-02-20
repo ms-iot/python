@@ -18,6 +18,7 @@
     so we define our own constant ArchName and use wherever we need it.
     -->
     <ArchName Condition="'$(ArchName)' == '' and $(Platform) == 'x64'">amd64</ArchName>
+    <ArchName Condition="'$(ArchName)' == '' and $(Platform) == 'ARM'">ARM</ArchName>
     <ArchName Condition="'$(ArchName)' == ''">win32</ArchName>
     <ArchName Condition="$(Configuration) == 'PGInstrument' or $(Configuration) == 'PGUpdate'">$(ArchName)-pgo</ArchName>
     

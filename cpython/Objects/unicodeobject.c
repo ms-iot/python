@@ -519,7 +519,7 @@ unicode_result_unchanged(PyObject *unicode)
         return _PyUnicode_Copy(unicode);
 }
 
-#ifdef HAVE_MBCS
+#if defined(HAVE_MBCS) && !defined(MS_WINRT)
 static OSVERSIONINFOEX winver;
 #endif
 
@@ -3469,7 +3469,7 @@ PyUnicode_DecodeLocaleAndSize(const char *str, Py_ssize_t len,
     int surrogateescape;
     size_t error_pos;
     char *errmsg;
-    PyObject *reason, *exc;
+    PyObject *reason = NULL, *exc;
 
     if (locale_error_handler(errors, &surrogateescape) < 0)
         return NULL;
@@ -5195,8 +5195,8 @@ _PyUnicode_EncodeUTF32(PyObject *str,
             assert(PyUnicode_KIND(rep) == PyUnicode_1BYTE_KIND);
             repdata = PyUnicode_1BYTE_DATA(rep);
             while (repsize--) {
-                Py_UCS4 ch = *repdata++;
-                STORECHAR(ch);
+                Py_UCS4 chval = *repdata++;
+                STORECHAR(chval);
             }
         }
 
@@ -7103,6 +7103,9 @@ static DWORD
 encode_code_page_flags(UINT code_page, const char *errors)
 {
     if (code_page == CP_UTF8) {
+#ifdef MS_WINRT
+        return WC_ERR_INVALID_CHARS;
+#else
         if (winver.dwMajorVersion >= 6)
             /* CP_UTF8 supports WC_ERR_INVALID_CHARS on Windows Vista
                and later */
@@ -7110,6 +7113,7 @@ encode_code_page_flags(UINT code_page, const char *errors)
         else
             /* CP_UTF8 only supports flags=0 on Windows older than Vista */
             return 0;
+#endif
     }
     else if (code_page == CP_UTF7) {
         /* CP_UTF7 only supports flags=0 */
@@ -7379,8 +7383,8 @@ encode_code_page_errors(UINT code_page, PyObject **outbytes,
             kind = PyUnicode_KIND(rep);
             data = PyUnicode_DATA(rep);
             for (i=0; i < outsize; i++) {
-                Py_UCS4 ch = PyUnicode_READ(kind, data, i);
-                if (ch > 127) {
+                Py_UCS4 chread = PyUnicode_READ(kind, data, i);
+                if (chread > 127) {
                     raise_encode_exception(&exc,
                         encoding, unicode,
                         pos, pos + 1,
@@ -7388,7 +7392,7 @@ encode_code_page_errors(UINT code_page, PyObject **outbytes,
                     Py_DECREF(rep);
                     goto error;
                 }
-                *out = (unsigned char)ch;
+                *out = (unsigned char)chread;
                 out++;
             }
         }
@@ -14967,7 +14971,7 @@ int _PyUnicode_Init(void)
     if (PyType_Ready(&PyFormatterIter_Type) < 0)
         Py_FatalError("Can't initialize formatter iter type");
 
-#ifdef HAVE_MBCS
+#if defined(HAVE_MBCS) && !defined(MS_WINRT)
     winver.dwOSVersionInfoSize = sizeof(winver);
     if (!GetVersionEx((OSVERSIONINFO*)&winver)) {
         PyErr_SetFromWindowsErr(0);

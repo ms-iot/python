@@ -186,7 +186,7 @@ ffi_status ffi_prep_cif_machdep(ffi_cif *cif)
   return FFI_OK;
 }
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(ARM)
 extern int
 ffi_call_x86(void (*)(char *, extended_cif *), 
 	     /*@out@*/ extended_cif *, 
@@ -232,11 +232,13 @@ ffi_call(/*@dependent@*/ ffi_cif *cif,
   switch (cif->abi) 
     {
 #if !defined(_WIN64)
+#if !defined(ARM)
     case FFI_SYSV:
     case FFI_STDCALL:
       return ffi_call_x86(ffi_prep_args, &ecif, cif->bytes, 
 			  cif->flags, ecif.rvalue, fn);
       break;
+#endif
 #else
     case FFI_SYSV:
       /*@-usedef@*/
@@ -292,7 +294,7 @@ ffi_closure_SYSV (ffi_closure *closure, char *argp)
 
   rtype = cif->flags;
 
-#if defined(_WIN32) && !defined(_WIN64)
+#if defined(_WIN32) && !defined(ARM) && !defined(_WIN64)
 #ifdef _MSC_VER
   /* now, do a generic return based on the value of rtype */
   if (rtype == FFI_TYPE_INT)

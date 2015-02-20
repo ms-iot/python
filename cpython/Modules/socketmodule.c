@@ -284,7 +284,7 @@ if_indextoname(index) -- return the corresponding interface name\n\
 #  include <fcntl.h>
 # endif
 
-#if defined(_MSC_VER) && _MSC_VER >= 1800
+#if !defined(MS_WINRT) && defined(_MSC_VER) && _MSC_VER >= 1800
 /* Provides the IsWindows7SP1OrGreater() function */
 #include <VersionHelpers.h>
 #endif
@@ -357,7 +357,7 @@ const char *inet_ntop(int af, const void *src, char *dst, socklen_t size);
 #define SOCKETCLOSE closesocket
 #endif
 
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
 #undef EAFNOSUPPORT
 #define EAFNOSUPPORT WSAEAFNOSUPPORT
 #define snprintf _snprintf
@@ -1907,7 +1907,7 @@ getsockaddrlen(PySocketSockObject *s, socklen_t *len_ret)
    provided.  Some architectures might need extra padding after the
    cmsghdr, however, and CMSG_LEN() would have to take account of
    this. */
-#ifdef CMSG_LEN
+#if defined(CMSG_LEN) && !defined(MS_WINDOWS)
 /* If length is in range, set *result to CMSG_LEN(length) and return
    true; otherwise, return false. */
 static int
@@ -2082,11 +2082,13 @@ sock_accept(PySocketSockObject *s)
         return (!async_err) ? s->errorhandler() : NULL;
 
 #ifdef MS_WINDOWS
+#ifndef MS_WINRT
     if (!SetHandleInformation((HANDLE)newfd, HANDLE_FLAG_INHERIT, 0)) {
         PyErr_SetFromWindowsErr(0);
         SOCKETCLOSE(newfd);
         goto finally;
     }
+#endif
 #else
 
 #if defined(HAVE_ACCEPT4) && defined(SOCK_CLOEXEC)
@@ -2986,7 +2988,7 @@ Like recv_into(buffer[, nbytes[, flags]]) but also return the sender's address i
 
 /* The sendmsg() and recvmsg[_into]() methods require a working
    CMSG_LEN().  See the comment near get_CMSG_LEN(). */
-#ifdef CMSG_LEN
+#if defined(CMSG_LEN) && !defined(MS_WINDOWS)
 /*
  * Call recvmsg() with the supplied iovec structures, flags, and
  * ancillary data buffer size (controllen).  Returns the tuple return
@@ -3519,7 +3521,7 @@ For IP sockets, the address is a pair (hostaddr, port).");
 
 /* The sendmsg() and recvmsg[_into]() methods require a working
    CMSG_LEN().  See the comment near get_CMSG_LEN(). */
-#ifdef CMSG_LEN
+#if defined(CMSG_LEN) && !defined(MS_WINDOWS)
 /* s.sendmsg(buffers[, ancdata[, flags[, address]]]) method */
 
 static PyObject *
@@ -3908,7 +3910,7 @@ static PyMethodDef sock_methods[] = {
                       setsockopt_doc},
     {"shutdown",          (PyCFunction)sock_shutdown, METH_O,
                       shutdown_doc},
-#ifdef CMSG_LEN
+#if defined(CMSG_LEN) && !defined(MS_WINDOWS)
     {"recvmsg",           (PyCFunction)sock_recvmsg, METH_VARARGS,
                       recvmsg_doc},
     {"recvmsg_into",      (PyCFunction)sock_recvmsg_into, METH_VARARGS,
@@ -4092,7 +4094,7 @@ sock_initobj(PyObject *self, PyObject *args, PyObject *kwds)
             set_error();
             return -1;
         }
-
+#ifndef MS_WINRT
         if (!support_wsa_no_inherit) {
             if (!SetHandleInformation((HANDLE)fd, HANDLE_FLAG_INHERIT, 0)) {
                 closesocket(fd);
@@ -4100,6 +4102,7 @@ sock_initobj(PyObject *self, PyObject *args, PyObject *kwds)
                 return -1;
             }
         }
+#endif
 #else
         /* UNIX */
         Py_BEGIN_ALLOW_THREADS
@@ -4193,22 +4196,38 @@ static PyTypeObject sock_type = {
 static PyObject *
 socket_gethostname(PyObject *self, PyObject *unused)
 {
+	DWORD size = 0;
+	PyObject *result;
+
 #ifdef MS_WINDOWS
+#ifdef MS_WINRT
+#define MAX_HOSTNAME_CHARS 256
+	wchar_t name[MAX_HOSTNAME_CHARS];
+
+	size = Py_ARRAY_LENGTH(name);
+
+	if (SOCKET_ERROR == GetHostNameW(name, size))
+	{
+		return PyErr_SetFromWindowsErr(WSAGetLastError());
+	}
+
+	size = wcsnlen_s(name, size);
+#else
     /* Don't use winsock's gethostname, as this returns the ANSI
        version of the hostname, whereas we need a Unicode string.
        Otherwise, gethostname apparently also returns the DNS name. */
-    wchar_t buf[MAX_COMPUTERNAME_LENGTH + 1];
-    DWORD size = Py_ARRAY_LENGTH(buf);
-    wchar_t *name;
-    PyObject *result;
+	wchar_t *name;
+	wchar_t buf[MAX_COMPUTERNAME_LENGTH + 1];
 
-    if (GetComputerNameExW(ComputerNamePhysicalDnsHostname, buf, &size))
+	size = Py_ARRAY_LENGTH(buf);
+	
+	if (GetComputerNameExW(ComputerNamePhysicalDnsHostname, buf, &size))
         return PyUnicode_FromWideChar(buf, size);
 
     if (GetLastError() != ERROR_MORE_DATA)
         return PyErr_SetFromWindowsErr(0);
 
-    if (size == 0)
+	if (size == 0)
         return PyUnicode_New(0, 0);
 
     /* MSDN says ERROR_MORE_DATA may occur because DNS allows longer
@@ -4225,9 +4244,14 @@ socket_gethostname(PyObject *self, PyObject *unused)
         PyMem_Free(name);
         return PyErr_SetFromWindowsErr(0);
     }
+#endif
 
     result = PyUnicode_FromWideChar(name, size);
+
+#ifndef MS_WINRT
     PyMem_Free(name);
+#endif
+
     return result;
 #else
     char buf[1024];
@@ -4718,12 +4742,13 @@ socket_dup(PyObject *self, PyObject *fdobj)
                       &info, 0, WSA_FLAG_OVERLAPPED);
     if (newfd == INVALID_SOCKET)
         return set_error();
-
+#ifndef MS_WINRT
     if (!SetHandleInformation((HANDLE)newfd, HANDLE_FLAG_INHERIT, 0)) {
         closesocket(newfd);
         PyErr_SetFromWindowsErr(0);
         return NULL;
     }
+#endif
 #else
     /* On UNIX, dup can be used to duplicate the file descriptor of a socket */
     newfd = _Py_dup(fd);
@@ -5114,15 +5139,25 @@ socket_inet_pton(PyObject *self, PyObject *args)
     char* ip;
     struct sockaddr_in6 addr;
     INT ret, size;
+#ifdef MS_WINRT
+	wchar_t* wchip[INET6_ADDRSTRLEN];
+	int usize;
+#endif
 
     if (!PyArg_ParseTuple(args, "is:inet_pton", &af, &ip)) {
         return NULL;
     }
 
     size = sizeof(addr);
-    ret = WSAStringToAddressA(ip, af, NULL, (LPSOCKADDR)&addr, &size);
 
-    if (ret) {
+#ifdef MS_WINRT
+	usize = MultiByteToWideChar(CP_ACP, 0, ip, -1, (LPWSTR)wchip, sizeof(wchip));
+	ret = WSAStringToAddressW((LPWSTR)wchip, af, NULL, (LPSOCKADDR)&addr, &size);
+#else
+	ret = WSAStringToAddressA(ip, af, NULL, (LPSOCKADDR)&addr, &size);
+#endif
+
+	if (ret) {
         PyErr_SetExcFromWindowsErr(PyExc_OSError, WSAGetLastError());
         return NULL;
     } else if(af == AF_INET) {
@@ -5214,7 +5249,9 @@ socket_inet_ntop(PyObject *self, PyObject *args)
     int len;
     struct sockaddr_in6 addr;
     DWORD addrlen, ret, retlen;
-#ifdef ENABLE_IPV6
+#ifdef MS_WINRT
+	wchar_t ip[Py_MAX(INET_ADDRSTRLEN, INET6_ADDRSTRLEN) + 1];
+#elif defined(ENABLE_IPV6)
     char ip[Py_MAX(INET_ADDRSTRLEN, INET6_ADDRSTRLEN) + 1];
 #else
     char ip[INET_ADDRSTRLEN + 1];
@@ -5256,15 +5293,23 @@ socket_inet_ntop(PyObject *self, PyObject *args)
         return NULL;
     }
 
-    retlen = sizeof(ip);
+    retlen = sizeof(ip)/sizeof(*ip);
+#ifdef MS_WINRT
+	ret = WSAAddressToStringW((struct sockaddr*)&addr, addrlen, NULL, ip, &retlen);
+#else
     ret = WSAAddressToStringA((struct sockaddr*)&addr, addrlen, NULL,
                               ip, &retlen);
+#endif
 
     if (ret) {
         PyErr_SetExcFromWindowsErr(PyExc_OSError, WSAGetLastError());
         return NULL;
     } else {
+#ifdef MS_WINRT
+		return PyUnicode_FromWideChar(ip, retlen);
+#else
         return PyUnicode_FromString(ip);
+#endif
     }
 }
 
@@ -5631,7 +5676,7 @@ Returns the interface name corresponding to the interface index if_index.");
 #endif  /* HAVE_IF_NAMEINDEX */
 
 
-#ifdef CMSG_LEN
+#if defined(CMSG_LEN) && !defined(MS_WINDOWS)
 /* Python interface to CMSG_LEN(length). */
 
 static PyObject *
@@ -5756,7 +5801,7 @@ static PyMethodDef socket_methods[] = {
     {"if_indextoname", socket_if_indextoname,
      METH_O, if_indextoname_doc},
 #endif
-#ifdef CMSG_LEN
+#if defined(CMSG_LEN) && !defined(MS_WINDOWS)
     {"CMSG_LEN",                socket_CMSG_LEN,
      METH_VARARGS, CMSG_LEN_doc},
 #ifdef CMSG_SPACE
@@ -5867,7 +5912,9 @@ PyInit__socket(void)
 
 #ifdef MS_WINDOWS
     if (support_wsa_no_inherit == -1) {
-#if defined(_MSC_VER) && _MSC_VER >= 1800
+#ifdef MS_WINRT
+		support_wsa_no_inherit = 1;
+#elif defined(_MSC_VER) && _MSC_VER >= 1800
         support_wsa_no_inherit = IsWindows7SP1OrGreater();
 #else
         DWORD version = GetVersion();

@@ -1,0 +1,295 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <ProjectGuid>{7CDD4AB5-BB11-4F6F-827E-576088CD6880}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>pyuapsdk</RootNamespace>
+    <AssemblyName>pyuapsdk</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <GeneratePkgDefFile>false</GeneratePkgDefFile>
+    <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
+    <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
+    <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
+    <CopyBuildOutputToOutputDirectory>false</CopyBuildOutputToOutputDirectory>
+    <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
+    <InputDir>$(SolutionDir)winrt\8.2</InputDir>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="source.extension.vsixmanifest">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="DesignTime\CommonConfiguration\Neutral\CPython.targets">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="DesignTime\CommonConfiguration\Neutral\CPython.props">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="sdkmanifest.xml">
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <SubType>Designer</SubType>
+    </Content>
+    
+    <!-- Win32 -->
+    <Content Include="$(InputDir)\Win32\Python35.dll">
+      <Link>Redist\Retail\x86\Python35.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\Release\pyuapapp.exe">
+      <Link>Redist\Retail\x86\pyuapapp.exe</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\Python35_d.dll">
+      <Link>Redist\Debug\x86\Python35_d.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\Debug\pyuapapp.exe">
+      <Link>Redist\Debug\x86\pyuapapp.exe</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\_socket.pyd">
+      <Link>Redist\Retail\x86\_socket.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\select.pyd">
+      <Link>Redist\Retail\x86\select.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\_ctypes.pyd">
+      <Link>Redist\Retail\x86\_ctypes.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\_socket_d.pyd">
+      <Link>Redist\Debug\x86\_socket.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\select_d.pyd">
+      <Link>Redist\Debug\x86\select.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\_ctypes_d.pyd">
+      <Link>Redist\Debug\x86\_ctypes.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\Release\App.xbf">
+      <Link>Redist\Retail\x86\App.xbf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\Release\MainPage.xbf">
+      <Link>Redist\Retail\x86\MainPage.xbf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\Debug\App.xbf">
+      <Link>Redist\Debug\x86\App.xbf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\Debug\MainPage.xbf">
+      <Link>Redist\Debug\x86\MainPage.xbf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <!-- x64 -->
+    <Content Include="$(InputDir)\amd64\Python35.dll">
+      <Link>Redist\Retail\x64\Python35.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\Release\pyuapapp.exe">
+      <Link>Redist\Retail\x64\pyuapapp.exe</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\Python35_d.dll">
+      <Link>Redist\Debug\x64\Python35_d.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\Debug\pyuapapp.exe">
+      <Link>Redist\Debug\x64\pyuapapp.exe</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\_socket.pyd">
+      <Link>Redist\Retail\x64\_socket.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\select.pyd">
+      <Link>Redist\Retail\x64\select.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\_ctypes.pyd">
+      <Link>Redist\Retail\x64\_ctypes.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\_socket_d.pyd">
+      <Link>Redist\Debug\x64\_socket.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\select_d.pyd">
+      <Link>Redist\Debug\x64\select.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\_ctypes_d.pyd">
+      <Link>Redist\Debug\x64\_ctypes.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\Release\App.xbf">
+      <Link>Redist\Retail\x64\App.xbf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\Release\MainPage.xbf">
+      <Link>Redist\Retail\x64\MainPage.xbf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\Debug\App.xbf">
+      <Link>Redist\Debug\x64\App.xbf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\Debug\MainPage.xbf">
+      <Link>Redist\Debug\x64\MainPage.xbf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <!-- ARM -->
+    <Content Include="$(InputDir)\arm\Python35.dll">
+      <Link>Redist\Retail\arm\Python35.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\Release\pyuapapp.exe">
+      <Link>Redist\Retail\arm\pyuapapp.exe</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\Python35_d.dll">
+      <Link>Redist\Debug\arm\Python35_d.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\Debug\pyuapapp.exe">
+      <Link>Redist\Debug\arm\pyuapapp.exe</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\_socket.pyd">
+      <Link>Redist\Retail\arm\_socket.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\select.pyd">
+      <Link>Redist\Retail\arm\select.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\_ctypes.pyd">
+      <Link>Redist\Retail\arm\_ctypes.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\_socket_d.pyd">
+      <Link>Redist\Debug\arm\_socket.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\select_d.pyd">
+      <Link>Redist\Debug\arm\select.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\_ctypes_d.pyd">
+      <Link>Redist\Debug\arm\_ctypes.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\Release\App.xbf">
+      <Link>Redist\Retail\arm\App.xbf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\Release\MainPage.xbf">
+      <Link>Redist\Retail\arm\MainPage.xbf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\Debug\App.xbf">
+      <Link>Redist\Debug\arm\App.xbf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\Debug\MainPage.xbf">
+      <Link>Redist\Debug\arm\MainPage.xbf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\pyuapapp\lib.zip">
+      <Link>References\CommonConfiguration\Neutral\lib.zip</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <!--
+    <CRTx86Files Include="C:\Program Files (x86)\Microsoft SDKs\UAP\v0.8.0.0\ExtensionSDKs\Microsoft.VCLibs.AppLocal\14.0\Redist\Retail\x86\*.*" />
+    <Content Include="@(CRTx86Files)">
+      <Link>Redist\Retail\x86\%(CRTx86Files.Filename)%(CRTx86Files.Extension)</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <Visible>false</Visible>
+    </Content>
+    <CRTx64Files Include="C:\Program Files (x86)\Microsoft SDKs\UAP\v0.8.0.0\ExtensionSDKs\Microsoft.VCLibs.AppLocal\14.0\Redist\Retail\x64\*.*" />
+    <Content Include="@(CRTx86Files)">
+      <Link>Redist\Retail\x64\%(CRTx64Files.Filename)%(CRTx64Files.Extension)</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <Visible>false</Visible>
+    </Content>
+    <CRTARMFiles Include="C:\Program Files (x86)\Microsoft SDKs\UAP\v0.8.0.0\ExtensionSDKs\Microsoft.VCLibs.AppLocal\14.0\Redist\Retail\arm\*.*" />
+    <Content Include="@(CRTARMFiles)">
+      <Link>Redist\Retail\ARM\%(CRTARMFiles.Filename)%(CRTARMFiles.Extension)</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <Visible>false</Visible>
+    </Content>
+    <CRTdx86Files Include="C:\Program Files (x86)\Microsoft SDKs\UAP\v0.8.0.0\ExtensionSDKs\Microsoft.VCLibs.AppLocal\14.0\Redist\Debug\x86\*.*" />
+    <Content Include="@(CRTdx86Files)">
+      <Link>Redist\Debug\x86\%(CRTdx86Files.Filename)%(CRTdx86Files.Extension)</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <Visible>false</Visible>
+    </Content>
+    <CRTdx64Files Include="C:\Program Files (x86)\Microsoft SDKs\UAP\v0.8.0.0\ExtensionSDKs\Microsoft.VCLibs.AppLocal\14.0\Redist\Debug\x64\*.*" />
+    <Content Include="@(CRTdx86Files)">
+      <Link>Redist\Debug\x64\%(CRTdx64Files.Filename)%(CRTdx64Files.Extension)</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <Visible>false</Visible>
+    </Content>
+    <CRTdARMFiles Include="C:\Program Files (x86)\Microsoft SDKs\UAP\v0.8.0.0\ExtensionSDKs\Microsoft.VCLibs.AppLocal\14.0\Redist\Debug\arm\*.*" />
+    <Content Include="@(CRTdARMFiles)">
+      <Link>Redist\Debug\ARM\%(CRTdARMFiles.Filename)%(CRTdARMFiles.Extension)</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <Visible>false</Visible>
+    </Content>
+    -->
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\pyuapapp\pyuapapp.vcxproj">
+      <Project>{e8dee5bf-d7d3-43fc-982e-961345f695f9}</Project>
+      <Name>pyuapapp</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
