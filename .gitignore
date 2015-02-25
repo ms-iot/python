@@ -181,6 +181,6 @@ UpgradeLog*.htm
 
 # Microsoft Fakes
 FakesAssemblies/
-cpython/Tools/pyuap/pyuapapp/Generated Files/
-cpython/Tools/pyuap/pyuapapp/lib.zip
+lib.zip
 cpython/Tools/pyuap/winrt/
+Generated Files/

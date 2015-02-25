@@ -238,44 +238,6 @@
       <Link>References\CommonConfiguration\Neutral\lib.zip</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <!--
-    <CRTx86Files Include="C:\Program Files (x86)\Microsoft SDKs\UAP\v0.8.0.0\ExtensionSDKs\Microsoft.VCLibs.AppLocal\14.0\Redist\Retail\x86\*.*" />
-    <Content Include="@(CRTx86Files)">
-      <Link>Redist\Retail\x86\%(CRTx86Files.Filename)%(CRTx86Files.Extension)</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-      <Visible>false</Visible>
-    </Content>
-    <CRTx64Files Include="C:\Program Files (x86)\Microsoft SDKs\UAP\v0.8.0.0\ExtensionSDKs\Microsoft.VCLibs.AppLocal\14.0\Redist\Retail\x64\*.*" />
-    <Content Include="@(CRTx86Files)">
-      <Link>Redist\Retail\x64\%(CRTx64Files.Filename)%(CRTx64Files.Extension)</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-      <Visible>false</Visible>
-    </Content>
-    <CRTARMFiles Include="C:\Program Files (x86)\Microsoft SDKs\UAP\v0.8.0.0\ExtensionSDKs\Microsoft.VCLibs.AppLocal\14.0\Redist\Retail\arm\*.*" />
-    <Content Include="@(CRTARMFiles)">
-      <Link>Redist\Retail\ARM\%(CRTARMFiles.Filename)%(CRTARMFiles.Extension)</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-      <Visible>false</Visible>
-    </Content>
-    <CRTdx86Files Include="C:\Program Files (x86)\Microsoft SDKs\UAP\v0.8.0.0\ExtensionSDKs\Microsoft.VCLibs.AppLocal\14.0\Redist\Debug\x86\*.*" />
-    <Content Include="@(CRTdx86Files)">
-      <Link>Redist\Debug\x86\%(CRTdx86Files.Filename)%(CRTdx86Files.Extension)</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-      <Visible>false</Visible>
-    </Content>
-    <CRTdx64Files Include="C:\Program Files (x86)\Microsoft SDKs\UAP\v0.8.0.0\ExtensionSDKs\Microsoft.VCLibs.AppLocal\14.0\Redist\Debug\x64\*.*" />
-    <Content Include="@(CRTdx86Files)">
-      <Link>Redist\Debug\x64\%(CRTdx64Files.Filename)%(CRTdx64Files.Extension)</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-      <Visible>false</Visible>
-    </Content>
-    <CRTdARMFiles Include="C:\Program Files (x86)\Microsoft SDKs\UAP\v0.8.0.0\ExtensionSDKs\Microsoft.VCLibs.AppLocal\14.0\Redist\Debug\arm\*.*" />
-    <Content Include="@(CRTdARMFiles)">
-      <Link>Redist\Debug\ARM\%(CRTdARMFiles.Filename)%(CRTdARMFiles.Extension)</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-      <Visible>false</Visible>
-    </Content>
-    -->
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\pyuapapp\pyuapapp.vcxproj">
