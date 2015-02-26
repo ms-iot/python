@@ -17,9 +17,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependencies", "Dependencie
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_ctypes", "..\..\PCbuild\winrt\_ctypes.vcxproj", "{6BCCDA23-80F4-4C46-A82E-133D64B13FDB}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pystartuptask", "pystartuptask\pystartuptask\pystartuptask.vcxproj", "{3A2C8D37-8778-481F-88C7-ED1AC7FB4EC7}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pystartuptaskapp", "pystartuptask\pystartuptaskapp\pystartuptaskapp.vcxproj", "{3A2C8D37-8778-481F-88C7-ED1AC7FB4EC7}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pystartuptaskStartupTask", "pystartuptask\pystartuptaskStartupTask\pystartuptaskStartupTask.vcxproj", "{33972CB2-A59F-4E82-BF38-E0791EF424F0}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pystartuptask", "pystartuptask\pystartuptask\pystartuptask.vcxproj", "{33972CB2-A59F-4E82-BF38-E0791EF424F0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|ARM">
       <Configuration>Debug</Configuration>
@@ -26,59 +26,65 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <Import Project="..\..\..\PCBuild\python.props" />
+  <Import Project="..\..\..\..\PCBuild\python.props" />
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{e8dee5bf-d7d3-43fc-982e-961345f695f9}</ProjectGuid>
-    <RootNamespace>pyuapapp</RootNamespace>
+    <ProjectGuid>{3a2c8d37-8778-481f-88c7-ed1ac7fb4ec7}</ProjectGuid>
+    <RootNamespace>pystartuptaskapp</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <AppContainerApplication>true</AppContainerApplication>
     <ApplicationType>Windows Store</ApplicationType>
-    <AppxOSMinVersionReplaceManifestVersion>false</AppxOSMinVersionReplaceManifestVersion>
     <ApplicationTypeRevision>8.2</ApplicationTypeRevision>
-    <UseAppLocalVCLibs>true</UseAppLocalVCLibs>
-    <GenerateManifest>true</GenerateManifest>
+    <ContainsStartupTask>true</ContainsStartupTask>
+    <AppxPackageSigningEnabled>true</AppxPackageSigningEnabled>
+    <ProjectName>pystartuptaskapp</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\..\PCBuild\pyproject.props" />
+    <Import Project="..\..\..\..\PCBuild\pyproject.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <TargetName>pyuapapp</TargetName>
+    <TargetName>pystartuptaskapp</TargetName>
     <OutDir>$(OutDir)$(TargetName)\$(Configuration)\</OutDir>
-    <PackageCertificateKeyFile>pyuapapp_TemporaryKey.pfx</PackageCertificateKeyFile>
+    <PackageCertificateKeyFile>pystartuptaskapp_TemporaryKey.pfx</PackageCertificateKeyFile>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -86,9 +92,18 @@
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(OutDir)..\..;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(OutDir)..;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="App.xaml.h">
+      <DependentUpon>App.xaml</DependentUpon>
+    </ClInclude>
+    <ClInclude Include="MainPage.xaml.h">
+      <DependentUpon>MainPage.xaml</DependentUpon>
+    </ClInclude>
+  </ItemGroup>
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalIncludeDirectories>..\..\..\Python;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -102,15 +117,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="pch.h" />
-    <ClInclude Include="App.xaml.h">
-      <DependentUpon>App.xaml</DependentUpon>
-    </ClInclude>
-    <ClInclude Include="MainPage.xaml.h">
-      <DependentUpon>MainPage.xaml</DependentUpon>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
       <SubType>Designer</SubType>
     </ApplicationDefinition>
@@ -122,16 +128,14 @@
     <AppxManifest Include="Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
-    <None Include="Program.py">
-      <DeploymentContent>true</DeploymentContent>
-    </None>
-    <None Include="pyuapapp_TemporaryKey.pfx" />
+    <None Include="pystartuptaskapp_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\Logo.scale-100.png" />
     <Image Include="Assets\SmallLogo.scale-100.png" />
     <Image Include="Assets\StoreLogo.scale-100.png" />
     <Image Include="Assets\SplashScreen.scale-100.png" />
+    <Image Include="Assets\WideLogo.scale-100.png" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.xaml.cpp">
@@ -141,102 +145,20 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </ClCompile>
     <ClCompile Include="pch.cpp">
-      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\PCBuild\winrt\pythoncore.vcxproj">
-      <Project>{91c36924-3e30-4482-be39-4a780305c187}</Project>
+    <ProjectReference Include="..\pystartuptask\pystartuptask.vcxproj">
+      <Project>{33972cb2-a59f-4e82-bf38-e0791ef424f0}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\PCBuild\winrt\select.vcxproj">
-      <Project>{a1863edb-6843-4b69-896b-e9183e94751c}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\PCBuild\winrt\_ctypes.vcxproj">
-      <Project>{6bccda23-80f4-4c46-a82e-133d64b13fdb}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\PCBuild\winrt\_socket.vcxproj">
-      <Project>{b2fbbf74-3e5a-4225-be87-54e54a4f88bc}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="startupinfo.xml">
-      <SubType>Designer</SubType>
-    </Text>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-  <ItemGroup>
-    <None Include="lib.zip">
-      <DeploymentContent>true</DeploymentContent>
-      <Visible>false</Visible>
-    </None>
-  </ItemGroup>
-  <UsingTask TaskName="Zip" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
-    <ParameterGroup>
-      <InputDirectory ParameterType="System.String" Required="true" />
-      <OutputFileName ParameterType="System.String" Required="true" />
-      <OverwriteExistingFile ParameterType="System.Boolean" Required="false" />
-    </ParameterGroup>
-    <Task>
-      <Reference Include="System.IO.Compression" />
-      <Using Namespace="System.IO.Compression" />
-      <Using Namespace="System.IO" />
-      <Code Type="Fragment" Language="cs">
-        <![CDATA[        
-        const int BufferSize = 64 * 1024;
- 
-        var buffer = new byte[BufferSize];
-        var fileMode = OverwriteExistingFile ? FileMode.Create : FileMode.CreateNew;
-        var inputDirectory = new DirectoryInfo(InputDirectory);
-        var startIndex = inputDirectory.FullName.Length + 1;
-        var lastChangeTime = DateTime.MinValue;
-        var lastZipChangeTime = DateTime.MinValue;
-        
-        if (File.Exists(OutputFileName))
-        {
-            lastZipChangeTime = new FileInfo(OutputFileName).LastWriteTimeUtc;
-
-            foreach (var inputFile in inputDirectory.EnumerateFiles("*", SearchOption.AllDirectories))
-            {
-                if (lastChangeTime < inputFile.LastWriteTimeUtc)
-                    lastChangeTime = inputFile.LastWriteTimeUtc;
-                if (lastZipChangeTime <= lastChangeTime)
-                    break;
-            }            
-        }
-        
-        if (lastZipChangeTime <= lastChangeTime)
-        {
-            using (var outputFileStream = new FileStream(OutputFileName, fileMode))
-            {
-              using (var archive = new ZipArchive(outputFileStream, ZipArchiveMode.Create))
-              {
-                foreach (var inputFile in inputDirectory.EnumerateFiles("*", SearchOption.AllDirectories))
-                {
-                  var inputFileName = inputFile.FullName;
-                  var archiveEntry = archive.CreateEntry(inputFileName.Substring(startIndex));
-     
-                  using (var fs = new FileStream(inputFileName, FileMode.Open))
-                  {
-                    using (var zipStream = archiveEntry.Open())
-                    {
-                      int bytesRead = -1;
-                      while ((bytesRead = fs.Read(buffer, 0, BufferSize)) > 0)
-                      {
-                        zipStream.Write(buffer, 0, bytesRead);
-                      }
-                    }
-                  }
-                }
-              }
-            }
-         }
-      ]]>
-      </Code>
-    </Task>
-  </UsingTask>
-  <Target Name="BuildLibs" BeforeTargets="ClCompile">
-    <Zip InputDirectory="..\..\..\Lib" OutputFileName="$(ProjectDir)lib.zip" OverwriteExistingFile="true" />
-  </Target>
 </Project>

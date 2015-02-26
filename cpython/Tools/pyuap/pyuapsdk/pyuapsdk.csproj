@@ -63,21 +63,15 @@
       <SubType>Designer</SubType>
     </Content>
     
-    <!-- Win32 -->
+    <!-- 
+    Win32 
+    -->
     <Content Include="$(InputDir)\Win32\Python35.dll">
       <Link>Redist\Retail\x86\Python35.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\Win32\Release\pyuapapp.exe">
-      <Link>Redist\Retail\x86\pyuapapp.exe</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
     <Content Include="$(InputDir)\Win32\Python35_d.dll">
       <Link>Redist\Debug\x86\Python35_d.dll</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="$(InputDir)\Win32\Debug\pyuapapp.exe">
-      <Link>Redist\Debug\x86\pyuapapp.exe</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\_socket.pyd">
@@ -104,37 +98,56 @@
       <Link>Redist\Debug\x86\_ctypes.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\Win32\Release\App.xbf">
+    <Content Include="$(InputDir)\Win32\pyuapapp\Release\pyuapapp.exe">
+      <Link>Redist\Retail\x86\pyuapapp.exe</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\pyuapapp\Release\App.xbf">
       <Link>Redist\Retail\x86\App.xbf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\Win32\Release\MainPage.xbf">
+    <Content Include="$(InputDir)\Win32\pyuapapp\Release\MainPage.xbf">
       <Link>Redist\Retail\x86\MainPage.xbf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\Win32\Debug\App.xbf">
+    <Content Include="$(InputDir)\Win32\pystartuptaskapp\Release\pystartuptaskapp.exe">
+      <Link>Redist\Retail\x86\pystartuptaskapp.exe</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\pystartuptask\Release\pystartuptask.dll">
+      <Link>Redist\Retail\x86\pystartuptask.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\pyuapapp\Debug\pyuapapp.exe">
+      <Link>Redist\Debug\x86\pyuapapp.exe</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\pyuapapp\Debug\App.xbf">
       <Link>Redist\Debug\x86\App.xbf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\Win32\Debug\MainPage.xbf">
+    <Content Include="$(InputDir)\Win32\pyuapapp\Debug\MainPage.xbf">
       <Link>Redist\Debug\x86\MainPage.xbf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <!-- x64 -->
+    <Content Include="$(InputDir)\Win32\pystartuptaskapp\Debug\pystartuptaskapp.exe">
+      <Link>Redist\Debug\x86\pystartuptaskapp.exe</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\pystartuptask\Debug\pystartuptask.dll">
+      <Link>Redist\Debug\x86\pystartuptask.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    
+    <!-- 
+    x64 
+    -->
     <Content Include="$(InputDir)\amd64\Python35.dll">
       <Link>Redist\Retail\x64\Python35.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\amd64\Release\pyuapapp.exe">
-      <Link>Redist\Retail\x64\pyuapapp.exe</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
     <Content Include="$(InputDir)\amd64\Python35_d.dll">
       <Link>Redist\Debug\x64\Python35_d.dll</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="$(InputDir)\amd64\Debug\pyuapapp.exe">
-      <Link>Redist\Debug\x64\pyuapapp.exe</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\_socket.pyd">
@@ -161,37 +174,56 @@
       <Link>Redist\Debug\x64\_ctypes.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\amd64\Release\App.xbf">
+    <Content Include="$(InputDir)\amd64\pyuapapp\Release\pyuapapp.exe">
+      <Link>Redist\Retail\x64\pyuapapp.exe</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\pyuapapp\Release\App.xbf">
       <Link>Redist\Retail\x64\App.xbf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\amd64\Release\MainPage.xbf">
+    <Content Include="$(InputDir)\amd64\pyuapapp\Release\MainPage.xbf">
       <Link>Redist\Retail\x64\MainPage.xbf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\amd64\Debug\App.xbf">
+    <Content Include="$(InputDir)\amd64\pystartuptaskapp\Release\pystartuptaskapp.exe">
+      <Link>Redist\Retail\x64\pystartuptaskapp.exe</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\pystartuptask\Release\pystartuptask.dll">
+      <Link>Redist\Retail\x64\pystartuptask.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\pyuapapp\Debug\pyuapapp.exe">
+      <Link>Redist\Debug\x64\pyuapapp.exe</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\pyuapapp\Debug\App.xbf">
       <Link>Redist\Debug\x64\App.xbf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\amd64\Debug\MainPage.xbf">
+    <Content Include="$(InputDir)\amd64\pyuapapp\Debug\MainPage.xbf">
       <Link>Redist\Debug\x64\MainPage.xbf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <!-- ARM -->
+    <Content Include="$(InputDir)\amd64\pystartuptaskapp\Debug\pystartuptaskapp.exe">
+      <Link>Redist\Debug\x64\pystartuptaskapp.exe</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\pystartuptask\Debug\pystartuptask.dll">
+      <Link>Redist\Debug\x64\pystartuptask.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+
+    <!-- 
+    ARM 
+    -->
     <Content Include="$(InputDir)\arm\Python35.dll">
       <Link>Redist\Retail\arm\Python35.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\arm\Release\pyuapapp.exe">
-      <Link>Redist\Retail\arm\pyuapapp.exe</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
     <Content Include="$(InputDir)\arm\Python35_d.dll">
       <Link>Redist\Debug\arm\Python35_d.dll</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="$(InputDir)\arm\Debug\pyuapapp.exe">
-      <Link>Redist\Debug\arm\pyuapapp.exe</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\_socket.pyd">
@@ -218,22 +250,47 @@
       <Link>Redist\Debug\arm\_ctypes.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\arm\Release\App.xbf">
+    <Content Include="$(InputDir)\arm\pyuapapp\Release\pyuapapp.exe">
+      <Link>Redist\Retail\arm\pyuapapp.exe</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\pyuapapp\Release\App.xbf">
       <Link>Redist\Retail\arm\App.xbf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\arm\Release\MainPage.xbf">
+    <Content Include="$(InputDir)\arm\pyuapapp\Release\MainPage.xbf">
       <Link>Redist\Retail\arm\MainPage.xbf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\arm\Debug\App.xbf">
+    <Content Include="$(InputDir)\arm\pystartuptaskapp\Release\pystartuptaskapp.exe">
+      <Link>Redist\Retail\arm\pystartuptaskapp.exe</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\pystartuptask\Release\pystartuptask.dll">
+      <Link>Redist\Retail\arm\pystartuptask.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\pyuapapp\Debug\pyuapapp.exe">
+      <Link>Redist\Debug\arm\pyuapapp.exe</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\pyuapapp\Debug\App.xbf">
       <Link>Redist\Debug\arm\App.xbf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\arm\Debug\MainPage.xbf">
+    <Content Include="$(InputDir)\arm\pyuapapp\Debug\MainPage.xbf">
       <Link>Redist\Debug\arm\MainPage.xbf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="$(InputDir)\arm\pystartuptaskapp\Debug\pystartuptaskapp.exe">
+      <Link>Redist\Debug\arm\pystartuptaskapp.exe</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\pystartuptask\Debug\pystartuptask.dll">
+      <Link>Redist\Debug\arm\pystartuptask.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+
     <Content Include="..\pyuapapp\lib.zip">
       <Link>References\CommonConfiguration\Neutral\lib.zip</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
