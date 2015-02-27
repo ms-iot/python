@@ -520,16 +520,16 @@ Py_Main(int argc, wchar_t **argv)
 #ifdef MS_WINDOWS
     if (!Py_IgnoreEnvironmentFlag && (wp = _wgetenv(L"PYTHONWARNINGS")) &&
         *wp != L'\0') {
-        wchar_t *buf, *warning;
+        wchar_t *buf, *warning, *context = NULL;
 
         buf = (wchar_t *)PyMem_RawMalloc((wcslen(wp) + 1) * sizeof(wchar_t));
         if (buf == NULL)
             Py_FatalError(
                "not enough memory to copy PYTHONWARNINGS");
         wcscpy(buf, wp);
-        for (warning = wcstok(buf, L",");
+        for (warning = wcstok_s(buf, L",", &context);
              warning != NULL;
-             warning = wcstok(NULL, L",")) {
+             warning = wcstok_s(NULL, L",", &context)) {
             PySys_AddWarnOption(warning);
         }
         PyMem_RawFree(buf);
@@ -752,9 +752,8 @@ Py_Main(int argc, wchar_t **argv)
                 }
             }
             {
-                /* XXX: does this work on Win/Win64? (see posix_fstat) */
-                struct stat sb;
-                if (fstat(fileno(fp), &sb) == 0 &&
+                struct _Py_stat_struct sb;
+                if (_Py_fstat(fileno(fp), &sb) == 0 &&
                     S_ISDIR(sb.st_mode)) {
                     fprintf(stderr, "%ls: '%ls' is a directory, cannot continue\n", argv[0], filename);
                     fclose(fp);

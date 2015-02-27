@@ -350,8 +350,8 @@ static int win32_can_symlink = 0;
 #ifdef MS_WINDOWS
 #       define STAT win32_stat
 #       define LSTAT win32_lstat
-#       define FSTAT win32_fstat
-#       define STRUCT_STAT struct win32_stat
+#       define FSTAT _Py_fstat
+#       define STRUCT_STAT struct _Py_stat_struct
 #else
 #       define STAT stat
 #       define LSTAT lstat
@@ -372,6 +372,12 @@ static int win32_can_symlink = 0;
 
 #define DWORD_MAX 4294967295U
 
+#ifdef MS_WINDOWS
+/* defined in fileutils.c */
+PyAPI_FUNC(void) _Py_time_t_to_FILE_TIME(time_t, int, FILETIME *);
+PyAPI_FUNC(void) _Py_attribute_data_to_stat(BY_HANDLE_FILE_INFORMATION *,
+                                            ULONG, struct _Py_stat_struct *);
+#endif
 
 #ifdef MS_WINDOWS
 static int
@@ -1451,91 +1457,6 @@ win32_wchdir(LPCWSTR path)
 #define HAVE_STAT_NSEC 1
 #define HAVE_STRUCT_STAT_ST_FILE_ATTRIBUTES 1
 
-struct win32_stat{
-    unsigned long st_dev;
-    __int64 st_ino;
-    unsigned short st_mode;
-    int st_nlink;
-    int st_uid;
-    int st_gid;
-    unsigned long st_rdev;
-    __int64 st_size;
-    time_t st_atime;
-    int st_atime_nsec;
-    time_t st_mtime;
-    int st_mtime_nsec;
-    time_t st_ctime;
-    int st_ctime_nsec;
-    unsigned long st_file_attributes;
-};
-
-static __int64 secs_between_epochs = 11644473600; /* Seconds between 1.1.1601 and 1.1.1970 */
-
-static void
-FILE_TIME_to_time_t_nsec(FILETIME *in_ptr, time_t *time_out, int* nsec_out)
-{
-    /* XXX endianness. Shouldn't matter, as all Windows implementations are little-endian */
-    /* Cannot simply cast and dereference in_ptr,
-       since it might not be aligned properly */
-    __int64 in;
-    memcpy(&in, in_ptr, sizeof(in));
-    *nsec_out = (int)(in % 10000000) * 100; /* FILETIME is in units of 100 nsec. */
-    *time_out = Py_SAFE_DOWNCAST((in / 10000000) - secs_between_epochs, __int64, time_t);
-}
-
-static void
-time_t_to_FILE_TIME(time_t time_in, int nsec_in, FILETIME *out_ptr)
-{
-    /* XXX endianness */
-    __int64 out;
-    out = time_in + secs_between_epochs;
-    out = out * 10000000 + nsec_in / 100;
-    memcpy(out_ptr, &out, sizeof(out));
-}
-
-/* Below, we *know* that ugo+r is 0444 */
-#if _S_IREAD != 0400
-#error Unsupported C library
-#endif
-static int
-attributes_to_mode(DWORD attr)
-{
-    int m = 0;
-    if (attr & FILE_ATTRIBUTE_DIRECTORY)
-        m |= _S_IFDIR | 0111; /* IFEXEC for user,group,other */
-    else
-        m |= _S_IFREG;
-    if (attr & FILE_ATTRIBUTE_READONLY)
-        m |= 0444;
-    else
-        m |= 0666;
-    return m;
-}
-
-static int
-attribute_data_to_stat(BY_HANDLE_FILE_INFORMATION *info, ULONG reparse_tag, struct win32_stat *result)
-{
-    memset(result, 0, sizeof(*result));
-    result->st_mode = attributes_to_mode(info->dwFileAttributes);
-    result->st_size = (((__int64)info->nFileSizeHigh)<<32) + info->nFileSizeLow;
-    result->st_dev = info->dwVolumeSerialNumber;
-    result->st_rdev = result->st_dev;
-    FILE_TIME_to_time_t_nsec(&info->ftCreationTime, &result->st_ctime, &result->st_ctime_nsec);
-    FILE_TIME_to_time_t_nsec(&info->ftLastWriteTime, &result->st_mtime, &result->st_mtime_nsec);
-    FILE_TIME_to_time_t_nsec(&info->ftLastAccessTime, &result->st_atime, &result->st_atime_nsec);
-    result->st_nlink = info->nNumberOfLinks;
-    result->st_ino = (((__int64)info->nFileIndexHigh)<<32) + info->nFileIndexLow;
-    if (reparse_tag == IO_REPARSE_TAG_SYMLINK) {
-        /* first clear the S_IFMT bits */
-        result->st_mode ^= (result->st_mode & S_IFMT);
-        /* now set the bits that make this a symlink */
-        result->st_mode |= S_IFLNK;
-    }
-    result->st_file_attributes = info->dwFileAttributes;
-
-    return 0;
-}
-
 static BOOL
 attributes_from_dir(LPCSTR pszFile, BY_HANDLE_FILE_INFORMATION *info, ULONG *reparse_tag)
 {
@@ -1646,10 +1567,10 @@ get_target_path(HANDLE hdl, wchar_t **target_path)
 }
 
 static int
-win32_xstat_impl_w(const wchar_t *path, struct win32_stat *result,
+win32_xstat_impl_w(const wchar_t *path, struct _Py_stat_struct *result,
                    BOOL traverse);
 static int
-win32_xstat_impl(const char *path, struct win32_stat *result,
+win32_xstat_impl(const char *path, struct _Py_stat_struct *result,
                  BOOL traverse)
 {
     int code;
@@ -1732,7 +1653,7 @@ win32_xstat_impl(const char *path, struct win32_stat *result,
         } else
             CloseHandle(hFile);
     }
-    attribute_data_to_stat(&info, reparse_tag, result);
+    _Py_attribute_data_to_stat(&info, reparse_tag, result);
 
     /* Set S_IEXEC if it is an .exe, .bat, ... */
     dot = strrchr(path, '.');
@@ -1745,7 +1666,7 @@ win32_xstat_impl(const char *path, struct win32_stat *result,
 }
 
 static int
-win32_xstat_impl_w(const wchar_t *path, struct win32_stat *result,
+win32_xstat_impl_w(const wchar_t *path, struct _Py_stat_struct *result,
                    BOOL traverse)
 {
     int code;
@@ -1828,7 +1749,7 @@ win32_xstat_impl_w(const wchar_t *path, struct win32_stat *result,
         } else
             CloseHandle(hFile);
     }
-    attribute_data_to_stat(&info, reparse_tag, result);
+    _Py_attribute_data_to_stat(&info, reparse_tag, result);
 
     /* Set S_IEXEC if it is an .exe, .bat, ... */
     dot = wcsrchr(path, '.');
@@ -1841,7 +1762,7 @@ win32_xstat_impl_w(const wchar_t *path, struct win32_stat *result,
 }
 
 static int
-win32_xstat(const char *path, struct win32_stat *result, BOOL traverse)
+win32_xstat(const char *path, struct _Py_stat_struct *result, BOOL traverse)
 {
     /* Protocol violation: we explicitly clear errno, instead of
        setting it to a POSIX error. Callers should use GetLastError. */
@@ -1851,7 +1772,7 @@ win32_xstat(const char *path, struct win32_stat *result, BOOL traverse)
 }
 
 static int
-win32_xstat_w(const wchar_t *path, struct win32_stat *result, BOOL traverse)
+win32_xstat_w(const wchar_t *path, struct _Py_stat_struct *result, BOOL traverse)
 {
     /* Protocol violation: we explicitly clear errno, instead of
        setting it to a POSIX error. Callers should use GetLastError. */
@@ -1873,78 +1794,27 @@ win32_xstat_w(const wchar_t *path, struct win32_stat *result, BOOL traverse)
    The _w represent Unicode equivalents of the aforementioned ANSI functions. */
 
 static int
-win32_lstat(const char* path, struct win32_stat *result)
+win32_lstat(const char* path, struct _Py_stat_struct *result)
 {
     return win32_xstat(path, result, FALSE);
 }
 
 static int
-win32_lstat_w(const wchar_t* path, struct win32_stat *result)
+win32_lstat_w(const wchar_t* path, struct _Py_stat_struct *result)
 {
     return win32_xstat_w(path, result, FALSE);
 }
 
 static int
-win32_stat(const char* path, struct win32_stat *result)
+win32_stat(const char* path, struct _Py_stat_struct *result)
 {
     return win32_xstat(path, result, TRUE);
 }
 
 static int
-win32_stat_w(const wchar_t* path, struct win32_stat *result)
+win32_stat_w(const wchar_t* path, struct _Py_stat_struct *result)
 {
     return win32_xstat_w(path, result, TRUE);
-}
-
-static int
-win32_fstat(int file_number, struct win32_stat *result)
-{
-    BY_HANDLE_FILE_INFORMATION info;
-    HANDLE h;
-    int type;
-
-    if (!_PyVerify_fd(file_number))
-        h = INVALID_HANDLE_VALUE;
-    else
-        h = (HANDLE)_get_osfhandle(file_number);
-
-    /* Protocol violation: we explicitly clear errno, instead of
-       setting it to a POSIX error. Callers should use GetLastError. */
-    errno = 0;
-
-    if (h == INVALID_HANDLE_VALUE) {
-        /* This is really a C library error (invalid file handle).
-           We set the Win32 error to the closes one matching. */
-        SetLastError(ERROR_INVALID_HANDLE);
-        return -1;
-    }
-    memset(result, 0, sizeof(*result));
-
-    type = GetFileType(h);
-    if (type == FILE_TYPE_UNKNOWN) {
-        DWORD error = GetLastError();
-        if (error != 0) {
-            return -1;
-        }
-        /* else: valid but unknown file */
-    }
-
-    if (type != FILE_TYPE_DISK) {
-        if (type == FILE_TYPE_CHAR)
-            result->st_mode = _S_IFCHR;
-        else if (type == FILE_TYPE_PIPE)
-            result->st_mode = _S_IFIFO;
-        return 0;
-    }
-
-    if (!GetFileInformationByHandle(h, &info)) {
-        return -1;
-    }
-
-    attribute_data_to_stat(&info, 0, result);
-    /* specific to fstat() */
-    result->st_ino = (((__int64)info.nFileIndexHigh)<<32) + info.nFileIndexLow;
-    return 0;
 }
 
 #endif /* MS_WINDOWS */
@@ -6436,8 +6306,8 @@ os_utime_impl(PyModuleDef *module, path_t *path, PyObject *times, PyObject *ns, 
         atime = mtime;
     }
     else {
-        time_t_to_FILE_TIME(utime.atime_s, utime.atime_ns, &atime);
-        time_t_to_FILE_TIME(utime.mtime_s, utime.mtime_ns, &mtime);
+        _Py_time_t_to_FILE_TIME(utime.atime_s, utime.atime_ns, &atime);
+        _Py_time_t_to_FILE_TIME(utime.mtime_s, utime.mtime_ns, &mtime);
     }
     if (!SetFileTime(hFile, NULL, &atime, &mtime)) {
         /* Avoid putting the file name into the error here,
