@@ -181,6 +181,9 @@ UpgradeLog*.htm
 
 # Microsoft Fakes
 FakesAssemblies/
+
+# Python work
 lib.zip
 cpython/Tools/pyuap/winrt/
 Generated Files/
+cpython/PC/pythonnt_rc*.h

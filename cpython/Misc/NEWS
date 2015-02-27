@@ -13,6 +13,25 @@ Core and Builtins
 Library
 -------
 
+- Issue #15955: Add an option to limit the output size in bz2.decompress().
+  Patch by Nikolaus Rath.
+
+- Issue #6639: Module-level turtle functions no longer raise TclError after
+  closing the window.
+
+- Issues #814253, #9179: Group references and conditional group references now
+  work in lookbehind assertions in regular expressions.
+
+- Issue #23215: Multibyte codecs with custom error handlers that ignores errors
+  consumed too much memory and raised SystemError or MemoryError.
+  Original patch by Aleksi Torhamo.
+
+- Issue #5700: io.FileIO() called flush() after closing the file.
+  flush() was not called in close() if closefd=False.
+
+- Issue #23374: Fixed pydoc failure with non-ASCII files when stdout encoding
+  differs from file system encoding (e.g. on Mac OS).
+
 - Issue #23481: Remove RC4 from the SSL module's default cipher list.
 
 - Issue #21548: Fix pydoc.synopsis() and pydoc.apropos() on modules with empty
@@ -57,6 +76,9 @@ Build
 
 Windows
 -------
+
+- Issue #23465: Implement PEP 486 - Make the Python Launcher aware of virtual
+  environments. Patch by Paul Moore.
 
 - Issue #23437: Make user scripts directory versioned on Windows. Patch by Paul
   Moore.
