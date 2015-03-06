@@ -201,6 +201,7 @@ WIN32 is still required for the locale module.
 /* Python 3.5+ requires Windows Vista or greater */
 #define Py_WINVER 0x0600 /* _WIN32_WINNT_VISTA */
 #define Py_NTDDI NTDDI_VISTA
+#endif
 
 /* We only set these values when building Python - we don't want to force
    these values on extensions, as that will affect the prototypes and
