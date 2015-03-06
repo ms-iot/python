@@ -256,7 +256,10 @@ expected_html_data_docstrings = tuple(s.replace(' ', '&nbsp;')
                                       for s in expected_data_docstrings)
 
 # output pattern for missing module
-missing_pattern = "no Python documentation found for '%s'"
+missing_pattern = '''\
+No Python documentation found for %r.
+Use help() to get the interactive help utility.
+Use help(str) for help on the str class.'''.replace('\n', os.linesep)
 
 # output pattern for module with bad imports
 badimport_pattern = "problem in %s - ImportError: No module named %r"
@@ -464,6 +467,8 @@ class PydocDocTest(unittest.TestCase):
         self.assertEqual(expected, result,
             "documentation for missing module found")
 
+    @unittest.skipIf(sys.flags.optimize >= 2,
+                     'Docstrings are omitted with -OO and above')
     def test_not_ascii(self):
         result = run_pydoc('test.test_pydoc.nonascii', PYTHONIOENCODING='ascii')
         encoded = nonascii.__doc__.encode('ascii', 'backslashreplace')
@@ -548,6 +553,8 @@ class PydocDocTest(unittest.TestCase):
             synopsis = pydoc.synopsis(TESTFN, {})
             self.assertEqual(synopsis, 'line 1: h\xe9')
 
+    @unittest.skipIf(sys.flags.optimize >= 2,
+                     'Docstrings are omitted with -OO and above')
     def test_synopsis_sourceless(self):
         expected = os.__doc__.splitlines()[0]
         filename = os.__cached__

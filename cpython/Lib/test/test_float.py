@@ -6,6 +6,7 @@ from test import support
 import math
 from math import isinf, isnan, copysign, ldexp
 import operator
+import time
 import random, fractions
 
 INF = float("inf")
@@ -93,10 +94,6 @@ class GeneralFloatCases(unittest.TestCase):
 
     def test_floatconversion(self):
         # Make sure that calls to __float__() work properly
-        class Foo0:
-            def __float__(self):
-                return 42.
-
         class Foo1(object):
             def __float__(self):
                 return 42.
@@ -122,12 +119,16 @@ class GeneralFloatCases(unittest.TestCase):
             def __float__(self):
                 return float(str(self)) + 1
 
-        self.assertAlmostEqual(float(Foo0()), 42.)
         self.assertAlmostEqual(float(Foo1()), 42.)
         self.assertAlmostEqual(float(Foo2()), 42.)
         self.assertAlmostEqual(float(Foo3(21)), 42.)
         self.assertRaises(TypeError, float, Foo4(42))
         self.assertAlmostEqual(float(FooStr('8')), 9.)
+
+        class Foo5:
+            def __float__(self):
+                return ""
+        self.assertRaises(TypeError, time.sleep, Foo5())
 
     def test_is_integer(self):
         self.assertFalse((1.1).is_integer())

@@ -1841,26 +1841,6 @@ static PyObject *PySSL_SSLread(PySSLSocket *self, PyObject *args)
         BIO_set_nbio(SSL_get_wbio(self->ssl), nonblocking);
     }
 
-    /* first check if there are bytes ready to be read */
-    PySSL_BEGIN_ALLOW_THREADS
-    count = SSL_pending(self->ssl);
-    PySSL_END_ALLOW_THREADS
-
-    if (!count) {
-        sockstate = check_socket_and_wait_for_timeout(sock, 0);
-        if (sockstate == SOCKET_HAS_TIMED_OUT) {
-            PyErr_SetString(PySocketModule.timeout_error,
-                            "The read operation timed out");
-            goto error;
-        } else if (sockstate == SOCKET_TOO_LARGE_FOR_SELECT) {
-            PyErr_SetString(PySSLErrorObject,
-                            "Underlying socket too large for select().");
-            goto error;
-        } else if (sockstate == SOCKET_HAS_BEEN_CLOSED) {
-            count = 0;
-            goto done;
-        }
-    }
     do {
         PySSL_BEGIN_ALLOW_THREADS
         count = SSL_read(self->ssl, mem, len);
@@ -2218,6 +2198,15 @@ context_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     SSL_CTX_set_session_id_context(self->ctx, (const unsigned char *) SID_CTX,
                                    sizeof(SID_CTX));
 #undef SID_CTX
+
+#ifdef X509_V_FLAG_TRUSTED_FIRST
+    {
+        /* Improve trust chain building when cross-signed intermediate
+           certificates are present. See https://bugs.python.org/issue23476. */
+        X509_STORE *store = SSL_CTX_get_cert_store(self->ctx);
+        X509_STORE_set_flags(store, X509_V_FLAG_TRUSTED_FIRST);
+    }
+#endif
 
     return (PyObject *)self;
 }
@@ -4469,6 +4458,10 @@ PyInit__ssl(void)
                             X509_V_FLAG_CRL_CHECK|X509_V_FLAG_CRL_CHECK_ALL);
     PyModule_AddIntConstant(m, "VERIFY_X509_STRICT",
                             X509_V_FLAG_X509_STRICT);
+#ifdef X509_V_FLAG_TRUSTED_FIRST
+    PyModule_AddIntConstant(m, "VERIFY_X509_TRUSTED_FIRST",
+                            X509_V_FLAG_TRUSTED_FIRST);
+#endif
 
     /* Alert Descriptions from ssl.h */
     /* note RESERVED constants no longer intended for use have been removed */
