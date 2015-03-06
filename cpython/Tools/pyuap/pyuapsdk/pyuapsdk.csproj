@@ -62,7 +62,6 @@
       <IncludeInVSIX>true</IncludeInVSIX>
       <SubType>Designer</SubType>
     </Content>
-    
     <!-- 
     Win32 
     -->
@@ -138,7 +137,6 @@
       <Link>Redist\Debug\x86\pystartuptask.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    
     <!-- 
     x64 
     -->
@@ -214,7 +212,6 @@
       <Link>Redist\Debug\x64\pystartuptask.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-
     <!-- 
     ARM 
     -->
@@ -290,13 +287,16 @@
       <Link>Redist\Debug\arm\pystartuptask.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-
     <Content Include="..\pyuapapp\lib.zip">
       <Link>References\CommonConfiguration\Neutral\lib.zip</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\pystartuptask\pystartuptaskapp\pystartuptaskapp.vcxproj">
+      <Project>{3a2c8d37-8778-481f-88c7-ed1ac7fb4ec7}</Project>
+      <Name>pystartuptaskapp</Name>
+    </ProjectReference>
     <ProjectReference Include="..\pyuapapp\pyuapapp.vcxproj">
       <Project>{e8dee5bf-d7d3-43fc-982e-961345f695f9}</Project>
       <Name>pyuapapp</Name>
