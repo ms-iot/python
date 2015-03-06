@@ -818,8 +818,9 @@ class ContextTests(unittest.TestCase):
                          "verify_flags need OpenSSL > 0.9.8")
     def test_verify_flags(self):
         ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
-        # default value by OpenSSL
-        self.assertEqual(ctx.verify_flags, ssl.VERIFY_DEFAULT)
+        # default value
+        tf = getattr(ssl, "VERIFY_X509_TRUSTED_FIRST", 0)
+        self.assertEqual(ctx.verify_flags, ssl.VERIFY_DEFAULT | tf)
         ctx.verify_flags = ssl.VERIFY_CRL_CHECK_LEAF
         self.assertEqual(ctx.verify_flags, ssl.VERIFY_CRL_CHECK_LEAF)
         ctx.verify_flags = ssl.VERIFY_CRL_CHECK_CHAIN
@@ -2283,7 +2284,8 @@ else:
             context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
             context.verify_mode = ssl.CERT_REQUIRED
             context.load_verify_locations(SIGNING_CA)
-            self.assertEqual(context.verify_flags, ssl.VERIFY_DEFAULT)
+            tf = getattr(ssl, "VERIFY_X509_TRUSTED_FIRST", 0)
+            self.assertEqual(context.verify_flags, ssl.VERIFY_DEFAULT | tf)
 
             # VERIFY_DEFAULT should pass
             server = ThreadedEchoServer(context=server_context, chatty=True)

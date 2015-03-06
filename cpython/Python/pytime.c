@@ -138,49 +138,15 @@ pymonotonic(_PyTime_timeval *tp, _Py_clock_info_t *info, int raise)
 
     assert(info == NULL || raise);
 
-#ifdef MS_WINRT
-    has_gettickcount64 = 1;
     result = GetTickCount64();
-#else
-    if (has_gettickcount64 == -1) {
-        /* GetTickCount64() was added to Windows Vista */
-        HINSTANCE hKernel32;
-        hKernel32 = GetModuleHandleW(L"KERNEL32");
-        *(FARPROC*)&Py_GetTickCount64 = GetProcAddress(hKernel32,
-                                                       "GetTickCount64");
-        has_gettickcount64 = (Py_GetTickCount64 != NULL);
-    }
-
-    if (has_gettickcount64) {
-        result = Py_GetTickCount64();
-    }
-    else {
-        static DWORD last_ticks = 0;
-        static DWORD n_overflow = 0;
-        DWORD ticks;
-
-        ticks = GetTickCount();
-        if (ticks < last_ticks)
-            n_overflow++;
-        last_ticks = ticks;
-
-        result = (ULONGLONG)n_overflow << 32;
-        result += ticks;
-    }
-#endif
 
     tp->tv_sec = result / 1000;
     tp->tv_usec = (result % 1000) * 1000;
 
     if (info) {
-#ifndef MS_WINRT
         DWORD timeAdjustment, timeIncrement;
         BOOL isTimeAdjustmentDisabled, ok;
-#endif
-        if (has_gettickcount64)
-            info->implementation = "GetTickCount64()";
-        else
-            info->implementation = "GetTickCount()";
+        info->implementation = "GetTickCount64()";
         info->monotonic = 1;
 #ifndef MS_WINRT
         ok = GetSystemTimeAdjustment(&timeAdjustment, &timeIncrement,
@@ -423,14 +389,6 @@ int
 _PyTime_Init(void)
 {
     _PyTime_timeval tv;
-
-#if defined(MS_WINDOWS) && !defined(MS_WINRT)
-    winver.dwOSVersionInfoSize = sizeof(winver);
-    if (!GetVersionEx((OSVERSIONINFO*)&winver)) {
-        PyErr_SetFromWindowsErr(0);
-        return -1;
-    }
-#endif
 
     /* ensure that the system clock works */
     if (_PyTime_gettimeofday_info(&tv, NULL) < 0)
