@@ -72,7 +72,7 @@
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
     </ClCompile>
     <Link Condition="'$(ApplicationTypeRevision)'=='8.2'">
-      <IgnoreSpecificDefaultLibraries>LIBC;ole32.lib;kernel32.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>LIBC;ole32.lib;kernel32.lib;msvcrt.lib%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
     <Link>
       <AdditionalDependencies>%(AdditionalDependencies);ws2_32.lib</AdditionalDependencies>
@@ -356,6 +356,7 @@
     <ClCompile Include="..\..\Parser\parser.c" />
     <ClCompile Include="..\..\Parser\parsetok.c" />
     <ClCompile Include="..\..\Parser\tokenizer.c" />
+    <ClCompile Include="..\..\PC\invalid_parameter_handler.c" />
     <ClCompile Include="..\..\PC\winreg.c" />
     <ClCompile Include="..\..\PC\config.c" />
     <ClCompile Include="..\..\PC\dl_nt.c" />

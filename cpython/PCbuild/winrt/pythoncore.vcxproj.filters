@@ -967,7 +967,4 @@
     </ClCompile>
     <ClCompile Include="..\..\PC\pythonwinrt.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="lib.zip" />
-  </ItemGroup>
 </Project>
