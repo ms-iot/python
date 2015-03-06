@@ -187,3 +187,7 @@ lib.zip
 cpython/Tools/pyuap/winrt/
 Generated Files/
 cpython/PC/pythonnt_rc*.h
+cpython/python.bat
+cpython/PCbuild/win32/
+cpython/PCbuild/winrt/8.2/
+cpython/externals/
