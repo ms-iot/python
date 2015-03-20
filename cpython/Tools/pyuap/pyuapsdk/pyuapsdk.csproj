@@ -109,12 +109,20 @@
       <Link>Redist\Retail\x86\MainPage.xbf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\Win32\pystartuptaskapp\Release\pystartuptaskapp.exe">
-      <Link>Redist\Retail\x86\pystartuptaskapp.exe</Link>
+    <Content Include="$(InputDir)\Win32\pyuapstartup\Release\pyuapstartup.exe">
+      <Link>Redist\Retail\x86\pyuapstartup.exe</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\Win32\pystartuptask\Release\pystartuptask.dll">
-      <Link>Redist\Retail\x86\pystartuptask.dll</Link>
+    <Content Include="$(InputDir)\Win32\pyuapstartup\Release\pyuapstartup.winmd">
+      <Link>Redist\Retail\x86\pyuapstartup.winmd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\pyuapstartupStartupTask\Release\pyuapstartupStartupTask.dll">
+      <Link>Redist\Retail\x86\pyuapstartupStartupTask.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\pyuapstartupStartupTask\Release\pyuapstartupStartupTask.winmd">
+      <Link>Redist\Retail\x86\pyuapstartupStartupTask.winmd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\pyuapapp\Debug\pyuapapp.exe">
@@ -129,12 +137,20 @@
       <Link>Redist\Debug\x86\MainPage.xbf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\Win32\pystartuptaskapp\Debug\pystartuptaskapp.exe">
-      <Link>Redist\Debug\x86\pystartuptaskapp.exe</Link>
+    <Content Include="$(InputDir)\Win32\pyuapstartup\Debug\pyuapstartup.exe">
+      <Link>Redist\Debug\x86\pyuapstartup.exe</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\Win32\pystartuptask\Debug\pystartuptask.dll">
-      <Link>Redist\Debug\x86\pystartuptask.dll</Link>
+    <Content Include="$(InputDir)\Win32\pyuapstartup\Debug\pyuapstartup.winmd">
+      <Link>Redist\Debug\x86\pyuapstartup.winmd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\pyuapstartupStartupTask\Debug\pyuapstartupStartupTask.dll">
+      <Link>Redist\Debug\x86\pyuapstartupStartupTask.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\pyuapstartupStartupTask\Debug\pyuapstartupStartupTask.winmd">
+      <Link>Redist\Debug\x86\pyuapstartupStartupTask.winmd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <!-- 
@@ -184,12 +200,20 @@
       <Link>Redist\Retail\x64\MainPage.xbf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\amd64\pystartuptaskapp\Release\pystartuptaskapp.exe">
-      <Link>Redist\Retail\x64\pystartuptaskapp.exe</Link>
+    <Content Include="$(InputDir)\amd64\pyuapstartup\Release\pyuapstartup.exe">
+      <Link>Redist\Retail\x64\pyuapstartup.exe</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\amd64\pystartuptask\Release\pystartuptask.dll">
-      <Link>Redist\Retail\x64\pystartuptask.dll</Link>
+    <Content Include="$(InputDir)\amd64\pyuapstartup\Release\pyuapstartup.winmd">
+      <Link>Redist\Retail\x64\pyuapstartup.winmd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\pyuapstartupStartupTask\Release\pyuapstartupStartupTask.dll">
+      <Link>Redist\Retail\x64\pyuapstartupStartupTask.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\pyuapstartupStartupTask\Release\pyuapstartupStartupTask.winmd">
+      <Link>Redist\Retail\x64\pyuapstartupStartupTask.winmd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\pyuapapp\Debug\pyuapapp.exe">
@@ -204,12 +228,20 @@
       <Link>Redist\Debug\x64\MainPage.xbf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\amd64\pystartuptaskapp\Debug\pystartuptaskapp.exe">
-      <Link>Redist\Debug\x64\pystartuptaskapp.exe</Link>
+    <Content Include="$(InputDir)\amd64\pyuapstartup\Debug\pyuapstartup.exe">
+      <Link>Redist\Debug\x64\pyuapstartup.exe</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\amd64\pystartuptask\Debug\pystartuptask.dll">
-      <Link>Redist\Debug\x64\pystartuptask.dll</Link>
+    <Content Include="$(InputDir)\amd64\pyuapstartup\Debug\pyuapstartup.winmd">
+      <Link>Redist\Debug\x64\pyuapstartup.winmd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\pyuapstartupStartupTask\Debug\pyuapstartupStartupTask.dll">
+      <Link>Redist\Debug\x64\pyuapstartupStartupTask.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\pyuapstartupStartupTask\Debug\pyuapstartupStartupTask.winmd">
+      <Link>Redist\Debug\x64\pyuapstartupStartupTask.winmd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <!-- 
@@ -259,12 +291,20 @@
       <Link>Redist\Retail\arm\MainPage.xbf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\arm\pystartuptaskapp\Release\pystartuptaskapp.exe">
-      <Link>Redist\Retail\arm\pystartuptaskapp.exe</Link>
+    <Content Include="$(InputDir)\arm\pyuapstartup\Release\pyuapstartup.exe">
+      <Link>Redist\Retail\arm\pyuapstartup.exe</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\arm\pystartuptask\Release\pystartuptask.dll">
-      <Link>Redist\Retail\arm\pystartuptask.dll</Link>
+    <Content Include="$(InputDir)\arm\pyuapstartup\Release\pyuapstartup.winmd">
+      <Link>Redist\Retail\arm\pyuapstartup.winmd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\pyuapstartupStartupTask\Release\pyuapstartupStartupTask.dll">
+      <Link>Redist\Retail\arm\pyuapstartupStartupTask.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\pyuapstartupStartupTask\Release\pyuapstartupStartupTask.winmd">
+      <Link>Redist\Retail\arm\pyuapstartupStartupTask.winmd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\pyuapapp\Debug\pyuapapp.exe">
@@ -279,23 +319,51 @@
       <Link>Redist\Debug\arm\MainPage.xbf</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\arm\pystartuptaskapp\Debug\pystartuptaskapp.exe">
-      <Link>Redist\Debug\arm\pystartuptaskapp.exe</Link>
+    <Content Include="$(InputDir)\arm\pyuapstartup\Debug\pyuapstartup.exe">
+      <Link>Redist\Debug\arm\pyuapstartup.exe</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\arm\pystartuptask\Debug\pystartuptask.dll">
-      <Link>Redist\Debug\arm\pystartuptask.dll</Link>
+    <Content Include="$(InputDir)\arm\pyuapstartup\Debug\pyuapstartup.winmd">
+      <Link>Redist\Debug\arm\pyuapstartup.winmd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\pyuapstartupStartupTask\Debug\pyuapstartupStartupTask.dll">
+      <Link>Redist\Debug\arm\pyuapstartupStartupTask.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\pyuapstartupStartupTask\Debug\pyuapstartupStartupTask.winmd">
+      <Link>Redist\Debug\arm\pyuapstartupStartupTask.winmd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="..\pyuapapp\lib.zip">
       <Link>References\CommonConfiguration\Neutral\lib.zip</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="..\pyuapstartup\pyuapstartup\Assets\Logo.scale-100.png">
+      <Link>References\CommonConfiguration\Neutral\Logo.scale-100.png</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\pyuapstartup\pyuapstartup\Assets\SmallLogo.scale-100.png">
+      <Link>References\CommonConfiguration\Neutral\SmallLogo.scale-100.png</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\pyuapstartup\pyuapstartup\Assets\SplashScreen.scale-100.png">
+      <Link>References\CommonConfiguration\Neutral\SplashScreen.scale-100.png</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\pyuapstartup\pyuapstartup\Assets\StoreLogo.scale-100.png">
+      <Link>References\CommonConfiguration\Neutral\StoreLogo.scale-100.png</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\pyuapstartup\pyuapstartup\Assets\WideLogo.scale-100.png">
+      <Link>References\CommonConfiguration\Neutral\WideLogo.scale-100.png</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\pystartuptask\pystartuptaskapp\pystartuptaskapp.vcxproj">
-      <Project>{3a2c8d37-8778-481f-88c7-ed1ac7fb4ec7}</Project>
-      <Name>pystartuptaskapp</Name>
+    <ProjectReference Include="..\pyuapstartup\pyuapstartup\pyuapstartup.vcxproj">
+      <Project>{616efb13-5e39-44a3-876b-9d9dfaacc583}</Project>
+      <Name>pyuapstartup</Name>
     </ProjectReference>
     <ProjectReference Include="..\pyuapapp\pyuapapp.vcxproj">
       <Project>{e8dee5bf-d7d3-43fc-982e-961345f695f9}</Project>

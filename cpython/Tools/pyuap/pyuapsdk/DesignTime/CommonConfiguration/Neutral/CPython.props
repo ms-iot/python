@@ -6,7 +6,6 @@
     <WinMDAssembly>false</WinMDAssembly>
     <AppxPackage>true</AppxPackage>
     <WindowsAppContainer>true</WindowsAppContainer>
-    <AppxLayoutFolderName>$(StartupFile)</AppxLayoutFolderName>
     <IncludeCustomOutputGroupForPackaging>true</IncludeCustomOutputGroupForPackaging>
     <_ApplicationTypeDefaultPropsPath>$(VCTargetsPath)\Application Type\Windows Store\Default.props</_ApplicationTypeDefaultPropsPath>
     <_ApplicationTypeRevisionDefaultPropsPath Condition="'$(ApplicationTypeRevision)' != ''">$(VCTargetsPath)\Application Type\Windows Store\$(ApplicationTypeRevision)\Default.props</_ApplicationTypeRevisionDefaultPropsPath>
