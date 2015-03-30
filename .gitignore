@@ -191,3 +191,4 @@ cpython/python.bat
 cpython/PCbuild/win32/
 cpython/PCbuild/winrt/8.2/
 cpython/externals/
+wini2c/winrt/8.2/
