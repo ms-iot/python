@@ -44,15 +44,15 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="pyuapstartup_TemporaryKey.pfx" />
-    <None Include="..\pyuapstartupStartupTask\lib.zip" />
+    <None Include="lib.zip" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="MainPage.xaml" />
   </ItemGroup>
   <ItemGroup>
-    <Xsd Include="..\pyuapstartupStartupTask\StartupTask.py" />
+    <Xsd Include="StartupTask.py" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\pyuapstartupStartupTask\startupinfo.xml" />
+    <Text Include="startupinfo.xml" />
   </ItemGroup>
 </Project>
