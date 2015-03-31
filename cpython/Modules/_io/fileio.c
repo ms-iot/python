@@ -177,24 +177,6 @@ fileio_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     return (PyObject *) self;
 }
 
-static int
-check_fd(int fd)
-{
-#if defined(HAVE_FSTAT) || defined(MS_WINDOWS)
-    struct _Py_stat_struct buf;
-    if (_Py_fstat(fd, &buf) < 0 && errno == EBADF) {
-        PyObject *exc;
-        char *msg = strerror(EBADF);
-        exc = PyObject_CallFunction(PyExc_OSError, "(is)",
-                                    EBADF, msg);
-        PyErr_SetObject(PyExc_OSError, exc);
-        Py_XDECREF(exc);
-        return -1;
-    }
-#endif
-    return 0;
-}
-
 #ifdef O_CLOEXEC
 extern int _Py_open_cloexec_works;
 #endif
@@ -222,9 +204,7 @@ fileio_init(PyObject *oself, PyObject *args, PyObject *kwds)
 #elif !defined(MS_WINDOWS)
     int *atomic_flag_works = NULL;
 #endif
-#if defined(HAVE_FSTAT) || defined(MS_WINDOWS)
     struct _Py_stat_struct fdfstat;
-#endif
     int async_err = 0;
 
     assert(PyFileIO_Check(oself));
@@ -353,8 +333,6 @@ fileio_init(PyObject *oself, PyObject *args, PyObject *kwds)
 #endif
 
     if (fd >= 0) {
-        if (check_fd(fd))
-            goto error;
         self->fd = fd;
         self->closefd = closefd;
     }
@@ -421,11 +399,8 @@ fileio_init(PyObject *oself, PyObject *args, PyObject *kwds)
     }
 
     self->blksize = DEFAULT_BUFFER_SIZE;
-#if defined(HAVE_FSTAT) || defined(MS_WINDOWS)
-    if (_Py_fstat(self->fd, &fdfstat) < 0) {
-        PyErr_SetFromErrno(PyExc_OSError);
+    if (_Py_fstat(self->fd, &fdfstat) < 0)
         goto error;
-    }
 #if defined(S_ISDIR) && defined(EISDIR)
     /* On Unix, open will succeed for directories.
        In Python, there should be no file objects referring to
@@ -440,7 +415,6 @@ fileio_init(PyObject *oself, PyObject *args, PyObject *kwds)
     if (fdfstat.st_blksize > 1)
         self->blksize = fdfstat.st_blksize;
 #endif /* HAVE_STRUCT_STAT_ST_BLKSIZE */
-#endif /* HAVE_FSTAT || MS_WINDOWS */
 
 #if defined(MS_WINDOWS) || defined(__CYGWIN__)
     /* don't translate newlines (\r\n <=> \n) */
@@ -564,8 +538,8 @@ static PyObject *
 fileio_readinto(fileio *self, PyObject *args)
 {
     Py_buffer pbuf;
-    Py_ssize_t n, len;
-    int err, async_err = 0;
+    Py_ssize_t n;
+    int err;
 
     if (self->fd < 0)
         return err_closed();
@@ -575,43 +549,21 @@ fileio_readinto(fileio *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "w*", &pbuf))
         return NULL;
 
-    if (_PyVerify_fd(self->fd)) {
-        len = pbuf.len;
-#ifdef MS_WINDOWS
-        if (len > INT_MAX)
-            len = INT_MAX;
-#endif
-
-        do {
-            Py_BEGIN_ALLOW_THREADS
-            errno = 0;
-#ifdef MS_WINDOWS
-            n = read(self->fd, pbuf.buf, (int)len);
-#else
-            n = read(self->fd, pbuf.buf, len);
-#endif
-            Py_END_ALLOW_THREADS
-        } while (n < 0 && errno == EINTR &&
-                 !(async_err = PyErr_CheckSignals()));
-
-        if (async_err)
-            return NULL;
-    } else
-        n = -1;
+    n = _Py_read(self->fd, pbuf.buf, pbuf.len);
+    /* copy errno because PyBuffer_Release() can indirectly modify it */
     err = errno;
     PyBuffer_Release(&pbuf);
-    if (n < 0) {
-        if (err == EAGAIN)
+
+    if (n == -1) {
+        if (err == EAGAIN) {
+            PyErr_Clear();
             Py_RETURN_NONE;
-        errno = err;
-        PyErr_SetFromErrno(PyExc_IOError);
+        }
         return NULL;
     }
 
     return PyLong_FromSsize_t(n);
 }
-
-#if defined(HAVE_FSTAT) || defined(MS_WINDOWS)
 
 static size_t
 new_buffersize(fileio *self, size_t currentsize)
@@ -635,13 +587,12 @@ new_buffersize(fileio *self, size_t currentsize)
 static PyObject *
 fileio_readall(fileio *self)
 {
-    struct _Py_stat_struct st;
+    struct _Py_stat_struct status;
     Py_off_t pos, end;
     PyObject *result;
     Py_ssize_t bytes_read = 0;
-    Py_ssize_t len, n;
+    Py_ssize_t n;
     size_t bufsize;
-    int async_err = 0;
 
     if (self->fd < 0)
         return err_closed();
@@ -653,8 +604,8 @@ fileio_readall(fileio *self)
 #else
     pos = lseek(self->fd, 0L, SEEK_CUR);
 #endif
-    if (_Py_fstat(self->fd, &st) == 0)
-        end = st.st_size;
+    if (_Py_fstat_noraise(self->fd, &status) == 0)
+        end = status.st_size;
     else
         end = (Py_off_t)-1;
 
@@ -689,36 +640,21 @@ fileio_readall(fileio *self)
             }
         }
 
-        len = bufsize - bytes_read;
-#ifdef MS_WINDOWS
-        if (len > INT_MAX)
-            len = INT_MAX;
-#endif
-        do {
-            Py_BEGIN_ALLOW_THREADS
-            errno = 0;
-#ifdef MS_WINDOWS
-            n = read(self->fd, PyBytes_AS_STRING(result) + bytes_read, (int)len);
-#else
-            n = read(self->fd, PyBytes_AS_STRING(result) + bytes_read, len);
-#endif
-            Py_END_ALLOW_THREADS
-        } while (n < 0 && errno == EINTR &&
-                 !(async_err = PyErr_CheckSignals()));
+        n = _Py_read(self->fd,
+                     PyBytes_AS_STRING(result) + bytes_read,
+                     bufsize - bytes_read);
 
-        if (async_err)
-            return NULL;
         if (n == 0)
             break;
-        if (n < 0) {
+        if (n == -1) {
             if (errno == EAGAIN) {
+                PyErr_Clear();
                 if (bytes_read > 0)
                     break;
                 Py_DECREF(result);
                 Py_RETURN_NONE;
             }
             Py_DECREF(result);
-            PyErr_SetFromErrno(PyExc_IOError);
             return NULL;
         }
         bytes_read += n;
@@ -732,25 +668,12 @@ fileio_readall(fileio *self)
     return result;
 }
 
-#else
-
-static PyObject *
-fileio_readall(fileio *self)
-{
-    _Py_IDENTIFIER(readall);
-    return _PyObject_CallMethodId((PyObject*)&PyRawIOBase_Type,
-                                  &PyId_readall, "O", self);
-}
-
-#endif /* HAVE_FSTAT || MS_WINDOWS */
-
 static PyObject *
 fileio_read(fileio *self, PyObject *args)
 {
     char *ptr;
     Py_ssize_t n;
     Py_ssize_t size = -1;
-    int async_err = 0;
     PyObject *bytes;
 
     if (self->fd < 0)
@@ -761,44 +684,29 @@ fileio_read(fileio *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "|O&", &_PyIO_ConvertSsize_t, &size))
         return NULL;
 
-    if (size < 0) {
+    if (size < 0)
         return fileio_readall(self);
-    }
 
 #ifdef MS_WINDOWS
+    /* On Windows, the count parameter of read() is an int */
     if (size > INT_MAX)
         size = INT_MAX;
 #endif
+
     bytes = PyBytes_FromStringAndSize(NULL, size);
     if (bytes == NULL)
         return NULL;
     ptr = PyBytes_AS_STRING(bytes);
 
-    if (_PyVerify_fd(self->fd)) {
-        do {
-            Py_BEGIN_ALLOW_THREADS
-            errno = 0;
-#ifdef MS_WINDOWS
-            n = read(self->fd, ptr, (int)size);
-#else
-            n = read(self->fd, ptr, size);
-#endif
-            Py_END_ALLOW_THREADS
-        } while (n < 0 && errno == EINTR &&
-                 !(async_err = PyErr_CheckSignals()));
-
-        if (async_err)
-            return NULL;
-    } else
-        n = -1;
-
-    if (n < 0) {
+    n = _Py_read(self->fd, ptr, size);
+    if (n == -1) {
+        /* copy errno because Py_DECREF() can indirectly modify it */
         int err = errno;
         Py_DECREF(bytes);
-        if (err == EAGAIN)
+        if (err == EAGAIN) {
+            PyErr_Clear();
             Py_RETURN_NONE;
-        errno = err;
-        PyErr_SetFromErrno(PyExc_IOError);
+        }
         return NULL;
     }
 
@@ -816,8 +724,8 @@ static PyObject *
 fileio_write(fileio *self, PyObject *args)
 {
     Py_buffer pbuf;
-    Py_ssize_t n, len;
-    int err, async_err = 0;
+    Py_ssize_t n;
+    int err;
 
     if (self->fd < 0)
         return err_closed();
@@ -827,44 +735,16 @@ fileio_write(fileio *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "y*", &pbuf))
         return NULL;
 
-    if (_PyVerify_fd(self->fd)) {
-        len = pbuf.len;
-#ifdef MS_WINDOWS
-        if (len > 32767 && isatty(self->fd)) {
-            /* Issue #11395: the Windows console returns an error (12: not
-               enough space error) on writing into stdout if stdout mode is
-               binary and the length is greater than 66,000 bytes (or less,
-               depending on heap usage). */
-            len = 32767;
-        } else if (len > INT_MAX)
-            len = INT_MAX;
-#endif
-
-        do {
-            Py_BEGIN_ALLOW_THREADS
-            errno = 0;
-#ifdef MS_WINDOWS
-            n = write(self->fd, pbuf.buf, (int)len);
-#else
-            n = write(self->fd, pbuf.buf, len);
-#endif
-            Py_END_ALLOW_THREADS
-        } while (n < 0 && errno == EINTR &&
-                 !(async_err = PyErr_CheckSignals()));
-
-        if (async_err)
-            return NULL;
-    } else
-        n = -1;
+    n = _Py_write(self->fd, pbuf.buf, pbuf.len);
+    /* copy errno because PyBuffer_Release() can indirectly modify it */
     err = errno;
-
     PyBuffer_Release(&pbuf);
 
     if (n < 0) {
-        if (err == EAGAIN)
+        if (err == EAGAIN) {
+            PyErr_Clear();
             Py_RETURN_NONE;
-        errno = err;
-        PyErr_SetFromErrno(PyExc_IOError);
+        }
         return NULL;
     }
 

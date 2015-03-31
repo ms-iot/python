@@ -1104,6 +1104,19 @@ class OtherTests(unittest.TestCase):
             self.assertEqual(zf.filelist[0].filename, "foo.txt")
             self.assertEqual(zf.filelist[1].filename, "\xf6.txt")
 
+    def test_exclusive_create_zip_file(self):
+        """Test exclusive creating a new zipfile."""
+        unlink(TESTFN2)
+        filename = 'testfile.txt'
+        content = b'hello, world. this is some content.'
+        with zipfile.ZipFile(TESTFN2, "x", zipfile.ZIP_STORED) as zipfp:
+            zipfp.writestr(filename, content)
+        with self.assertRaises(FileExistsError):
+            zipfile.ZipFile(TESTFN2, "x", zipfile.ZIP_STORED)
+        with zipfile.ZipFile(TESTFN2, "r") as zipfp:
+            self.assertEqual(zipfp.namelist(), [filename])
+            self.assertEqual(zipfp.read(filename), content)
+
     def test_create_non_existent_file_for_append(self):
         if os.path.exists(TESTFN):
             os.unlink(TESTFN)
@@ -1685,25 +1698,63 @@ class Tellable:
         self.offset = 0
 
     def write(self, data):
-        self.offset += self.fp.write(data)
+        n = self.fp.write(data)
+        self.offset += n
+        return n
 
     def tell(self):
         return self.offset
 
     def flush(self):
-        pass
+        self.fp.flush()
+
+class Unseekable:
+    def __init__(self, fp):
+        self.fp = fp
+
+    def write(self, data):
+        return self.fp.write(data)
+
+    def flush(self):
+        self.fp.flush()
 
 class UnseekableTests(unittest.TestCase):
-    def test_writestr_tellable(self):
-        f = io.BytesIO()
-        with zipfile.ZipFile(Tellable(f), 'w', zipfile.ZIP_STORED) as zipfp:
-            zipfp.writestr('ones', b'111')
-            zipfp.writestr('twos', b'222')
-        with zipfile.ZipFile(f, mode='r') as zipf:
-            with zipf.open('ones') as zopen:
-                self.assertEqual(zopen.read(), b'111')
-            with zipf.open('twos') as zopen:
-                self.assertEqual(zopen.read(), b'222')
+    def test_writestr(self):
+        for wrapper in (lambda f: f), Tellable, Unseekable:
+            with self.subTest(wrapper=wrapper):
+                f = io.BytesIO()
+                f.write(b'abc')
+                bf = io.BufferedWriter(f)
+                with zipfile.ZipFile(wrapper(bf), 'w', zipfile.ZIP_STORED) as zipfp:
+                    zipfp.writestr('ones', b'111')
+                    zipfp.writestr('twos', b'222')
+                self.assertEqual(f.getvalue()[:5], b'abcPK')
+                with zipfile.ZipFile(f, mode='r') as zipf:
+                    with zipf.open('ones') as zopen:
+                        self.assertEqual(zopen.read(), b'111')
+                    with zipf.open('twos') as zopen:
+                        self.assertEqual(zopen.read(), b'222')
+
+    def test_write(self):
+        for wrapper in (lambda f: f), Tellable, Unseekable:
+            with self.subTest(wrapper=wrapper):
+                f = io.BytesIO()
+                f.write(b'abc')
+                bf = io.BufferedWriter(f)
+                with zipfile.ZipFile(wrapper(bf), 'w', zipfile.ZIP_STORED) as zipfp:
+                    self.addCleanup(unlink, TESTFN)
+                    with open(TESTFN, 'wb') as f2:
+                        f2.write(b'111')
+                    zipfp.write(TESTFN, 'ones')
+                    with open(TESTFN, 'wb') as f2:
+                        f2.write(b'222')
+                    zipfp.write(TESTFN, 'twos')
+                self.assertEqual(f.getvalue()[:5], b'abcPK')
+                with zipfile.ZipFile(f, mode='r') as zipf:
+                    with zipf.open('ones') as zopen:
+                        self.assertEqual(zopen.read(), b'111')
+                    with zipf.open('twos') as zopen:
+                        self.assertEqual(zopen.read(), b'222')
 
 
 @requires_zlib

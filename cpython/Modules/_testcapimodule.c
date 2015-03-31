@@ -14,6 +14,10 @@
 #include "marshal.h"
 #include <signal.h>
 
+#ifdef MS_WINDOWS
+#  include <winsock2.h>         /* struct timeval */
+#endif
+
 #ifdef WITH_THREAD
 #include "pythread.h"
 #endif /* WITH_THREAD */
@@ -2476,7 +2480,7 @@ make_memoryview_from_NULL_pointer(PyObject *self)
         return NULL;
     return PyMemoryView_FromBuffer(&info);
 }
- 
+
 static PyObject *
 test_from_contiguous(PyObject* self, PyObject *noargs)
 {
@@ -2630,7 +2634,7 @@ run_in_subinterp(PyObject *self, PyObject *args)
 static int
 check_time_rounding(int round)
 {
-    if (round != _PyTime_ROUND_DOWN && round != _PyTime_ROUND_UP) {
+    if (round != _PyTime_ROUND_FLOOR && round != _PyTime_ROUND_CEILING) {
         PyErr_SetString(PyExc_ValueError, "invalid rounding");
         return -1;
     }
@@ -3360,6 +3364,94 @@ pymarshal_read_object_from_file(PyObject* self, PyObject *args)
     return Py_BuildValue("Nl", obj, pos);
 }
 
+static PyObject*
+return_null_without_error(PyObject *self, PyObject *args)
+{
+    /* invalid call: return NULL without setting an error,
+     * _Py_CheckFunctionResult() must detect such bug at runtime. */
+    PyErr_Clear();
+    return NULL;
+}
+
+static PyObject*
+return_result_with_error(PyObject *self, PyObject *args)
+{
+    /* invalid call: return a result with an error set,
+     * _Py_CheckFunctionResult() must detect such bug at runtime. */
+    PyErr_SetNone(PyExc_ValueError);
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+test_pytime_fromsecondsobject(PyObject *self, PyObject *args)
+{
+    PyObject *obj;
+    int round;
+    _PyTime_t ts;
+
+    if (!PyArg_ParseTuple(args, "Oi", &obj, &round))
+        return NULL;
+    if (check_time_rounding(round) < 0)
+        return NULL;
+    if (_PyTime_FromSecondsObject(&ts, obj, round) == -1)
+        return NULL;
+    return _PyTime_AsNanosecondsObject(ts);
+}
+
+static PyObject *
+test_pytime_assecondsdouble(PyObject *self, PyObject *args)
+{
+    PY_LONG_LONG ns;
+    _PyTime_t ts;
+    double d;
+
+    if (!PyArg_ParseTuple(args, "L", &ns))
+        return NULL;
+    ts = _PyTime_FromNanoseconds(ns);
+    d = _PyTime_AsSecondsDouble(ts);
+    return PyFloat_FromDouble(d);
+}
+
+static PyObject *
+test_PyTime_AsTimeval(PyObject *self, PyObject *args)
+{
+    PY_LONG_LONG ns;
+    int round;
+    _PyTime_t t;
+    struct timeval tv;
+    PyObject *seconds;
+
+    if (!PyArg_ParseTuple(args, "Li", &ns, &round))
+        return NULL;
+    if (check_time_rounding(round) < 0)
+        return NULL;
+    t = _PyTime_FromNanoseconds(ns);
+    if (_PyTime_AsTimeval(t, &tv, round) < 0)
+        return NULL;
+
+    seconds = PyLong_FromLong((PY_LONG_LONG)tv.tv_sec);
+    if (seconds == NULL)
+        return NULL;
+    return Py_BuildValue("Nl", seconds, tv.tv_usec);
+}
+
+#ifdef HAVE_CLOCK_GETTIME
+static PyObject *
+test_PyTime_AsTimespec(PyObject *self, PyObject *args)
+{
+    PY_LONG_LONG ns;
+    _PyTime_t t;
+    struct timespec ts;
+
+    if (!PyArg_ParseTuple(args, "L", &ns))
+        return NULL;
+    t = _PyTime_FromNanoseconds(ns);
+    if (_PyTime_AsTimespec(t, &ts) == -1)
+        return NULL;
+    return Py_BuildValue("Nl", _PyLong_FromTime_t(ts.tv_sec), ts.tv_nsec);
+}
+#endif
+
 
 static PyMethodDef TestMethods[] = {
     {"raise_exception",         raise_exception,                 METH_VARARGS},
@@ -3519,6 +3611,16 @@ static PyMethodDef TestMethods[] = {
         pymarshal_read_last_object_from_file, METH_VARARGS},
     {"pymarshal_read_object_from_file",
         pymarshal_read_object_from_file, METH_VARARGS},
+    {"return_null_without_error",
+        return_null_without_error, METH_NOARGS},
+    {"return_result_with_error",
+        return_result_with_error, METH_NOARGS},
+    {"PyTime_FromSecondsObject", test_pytime_fromsecondsobject,  METH_VARARGS},
+    {"PyTime_AsSecondsDouble", test_pytime_assecondsdouble, METH_VARARGS},
+    {"PyTime_AsTimeval", test_PyTime_AsTimeval, METH_VARARGS},
+#ifdef HAVE_CLOCK_GETTIME
+    {"PyTime_AsTimespec", test_PyTime_AsTimespec, METH_VARARGS},
+#endif
     {NULL, NULL} /* sentinel */
 };
 

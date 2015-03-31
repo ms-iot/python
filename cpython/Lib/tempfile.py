@@ -426,7 +426,13 @@ class _TemporaryFileWrapper:
 
     # iter() doesn't use __getattr__ to find the __iter__ method
     def __iter__(self):
-        return iter(self.file)
+        # Don't return iter(self.file), but yield from it to avoid closing
+        # file as long as it's being used as iterator (see issue #23700).  We
+        # can't use 'yield from' here because iter(file) returns the file
+        # object itself, which has a close method, and thus the file would get
+        # closed when the generator is finalized, due to PEP380 semantics.
+        for line in self.file:
+            yield line
 
 
 def NamedTemporaryFile(mode='w+b', buffering=-1, encoding=None,

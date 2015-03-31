@@ -1328,7 +1328,8 @@ def transient_internet(resource_name, *, timeout=30.0, errnos=()):
             (isinstance(err, urllib.error.HTTPError) and
              500 <= err.code <= 599) or
             (isinstance(err, urllib.error.URLError) and
-             "ConnectionRefusedError" in err.reason) or
+                 (("ConnectionRefusedError" in err.reason) or
+                  ("TimeoutError" in err.reason))) or
             n in captured_errnos):
             if not verbose:
                 sys.stderr.write(denied.args[0] + "\n")
@@ -1438,7 +1439,7 @@ def python_is_optimized():
     for opt in cflags.split():
         if opt.startswith('-O'):
             final_opt = opt
-    return final_opt != '' and final_opt != '-O0'
+    return final_opt not in ('', '-O0', '-Og')
 
 
 _header = 'nP'
@@ -2134,16 +2135,15 @@ def skip_unless_xattr(test):
 
 def fs_is_case_insensitive(directory):
     """Detects if the file system for the specified directory is case-insensitive."""
-    base_fp, base_path = tempfile.mkstemp(dir=directory)
-    case_path = base_path.upper()
-    if case_path == base_path:
-        case_path = base_path.lower()
-    try:
-        return os.path.samefile(base_path, case_path)
-    except FileNotFoundError:
-        return False
-    finally:
-        os.unlink(base_path)
+    with tempfile.NamedTemporaryFile(dir=directory) as base:
+        base_path = base.name
+        case_path = base_path.upper()
+        if case_path == base_path:
+            case_path = base_path.lower()
+        try:
+            return os.path.samefile(base_path, case_path)
+        except FileNotFoundError:
+            return False
 
 
 class SuppressCrashReport:

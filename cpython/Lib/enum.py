@@ -112,6 +112,10 @@ class EnumMeta(type):
         enum_class._member_map_ = OrderedDict()      # name->value map
         enum_class._member_type_ = member_type
 
+        # save attributes from super classes so we know if we can take
+        # the shortcut of storing members in the class dict
+        base_attributes = {a for b in bases for a in b.__dict__}
+
         # Reverse value->name map for hashable values.
         enum_class._value2member_map_ = {}
 
@@ -165,6 +169,11 @@ class EnumMeta(type):
             else:
                 # Aliases don't appear in member names (only in __members__).
                 enum_class._member_names_.append(member_name)
+            # performance boost for any member that would not shadow
+            # a DynamicClassAttribute
+            if member_name not in base_attributes:
+                setattr(enum_class, member_name, enum_member)
+            # now add to _member_map_
             enum_class._member_map_[member_name] = enum_member
             try:
                 # This may fail if value is not hashable. We can't add the value
@@ -468,7 +477,7 @@ class Enum(metaclass=EnumMeta):
                 m
                 for cls in self.__class__.mro()
                 for m in cls.__dict__
-                if m[0] != '_'
+                if m[0] != '_' and m not in self._member_map_
                 ]
         return (['__class__', '__doc__', '__module__'] + added_behavior)
 
@@ -510,10 +519,36 @@ class Enum(metaclass=EnumMeta):
         """The value of the Enum member."""
         return self._value_
 
+    @classmethod
+    def _convert(cls, name, module, filter, source=None):
+        """
+        Create a new Enum subclass that replaces a collection of global constants
+        """
+        # convert all constants from source (or module) that pass filter() to
+        # a new Enum called name, and export the enum and its members back to
+        # module;
+        # also, replace the __reduce_ex__ method so unpickling works in
+        # previous Python versions
+        module_globals = vars(sys.modules[module])
+        if source:
+            source = vars(source)
+        else:
+            source = module_globals
+        members = {name: value for name, value in source.items()
+                if filter(name)}
+        cls = cls(name, members, module=module)
+        cls.__reduce_ex__ = _reduce_ex_by_name
+        module_globals.update(cls.__members__)
+        module_globals[name] = cls
+        return cls
+
 
 class IntEnum(int, Enum):
     """Enum where members are also (and must be) ints"""
 
+
+def _reduce_ex_by_name(self, proto):
+    return self.name
 
 def unique(enumeration):
     """Class decorator for enumerations ensuring unique member values."""

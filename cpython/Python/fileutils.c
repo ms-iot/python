@@ -30,7 +30,8 @@ extern wchar_t* _Py_DecodeUTF8_surrogateescape(const char *s, Py_ssize_t size);
     0: open() ignores O_CLOEXEC flag, ex: Linux kernel older than 2.6.23
     1: open() supports O_CLOEXEC flag, close-on-exec is set
 
-   The flag is used by _Py_open(), io.FileIO and os.open() */
+   The flag is used by _Py_open(), _Py_open_noraise(), io.FileIO
+   and os.open(). */
 int _Py_open_cloexec_works = -1;
 #endif
 
@@ -518,35 +519,6 @@ Py_EncodeLocale(const wchar_t *text, size_t *error_pos)
 #endif   /* __APPLE__ */
 }
 
-/* In principle, this should use HAVE__WSTAT, and _wstat
-   should be detected by autoconf. However, no current
-   POSIX system provides that function, so testing for
-   it is pointless.
-   Not sure whether the MS_WINDOWS guards are necessary:
-   perhaps for cygwin/mingw builds?
-*/
-#if defined(HAVE_STAT) && !defined(MS_WINDOWS)
-
-/* Get file status. Encode the path to the locale encoding. */
-
-int
-_Py_wstat(const wchar_t* path, struct stat *buf)
-{
-    int err;
-    char *fname;
-    fname = Py_EncodeLocale(path, NULL);
-    if (fname == NULL) {
-        errno = EINVAL;
-        return -1;
-    }
-    err = stat(fname, buf);
-    PyMem_Free(fname);
-    return err;
-}
-#endif
-
-
-#if defined(HAVE_FSTAT) || defined(MS_WINDOWS)
 
 #ifdef MS_WINDOWS
 static __int64 secs_between_epochs = 11644473600; /* Seconds between 1.1.1601 and 1.1.1970 */
@@ -593,7 +565,8 @@ attributes_to_mode(DWORD attr)
 }
 
 void
-_Py_attribute_data_to_stat(BY_HANDLE_FILE_INFORMATION *info, ULONG reparse_tag, struct _Py_stat_struct *result)
+_Py_attribute_data_to_stat(BY_HANDLE_FILE_INFORMATION *info, ULONG reparse_tag,
+                           struct _Py_stat_struct *result)
 {
     memset(result, 0, sizeof(*result));
     result->st_mode = attributes_to_mode(info->dwFileAttributes);
@@ -623,9 +596,12 @@ _Py_attribute_data_to_stat(BY_HANDLE_FILE_INFORMATION *info, ULONG reparse_tag, 
    files larger than 2 GB.  fstat() may fail with EOVERFLOW on files larger
    than 2 GB because the file size type is an signed 32-bit integer: see issue
    #23152.
-   */
+
+   On Windows, set the last Windows error and return nonzero on error. On
+   POSIX, set errno and return nonzero on error. Fill status and return 0 on
+   success. */
 int
-_Py_fstat(int fd, struct _Py_stat_struct *result)
+_Py_fstat_noraise(int fd, struct _Py_stat_struct *status)
 {
 #ifdef MS_WINDOWS
     BY_HANDLE_FILE_INFORMATION info;
@@ -637,49 +613,81 @@ _Py_fstat(int fd, struct _Py_stat_struct *result)
     else
         h = (HANDLE)_get_osfhandle(fd);
 
+    /* Protocol violation: we explicitly clear errno, instead of
+       setting it to a POSIX error. Callers should use GetLastError. */
     errno = 0;
 
     if (h == INVALID_HANDLE_VALUE) {
-        errno = EBADF;
+        /* This is really a C library error (invalid file handle).
+           We set the Win32 error to the closes one matching. */
+        SetLastError(ERROR_INVALID_HANDLE);
         return -1;
     }
-    memset(result, 0, sizeof(*result));
+    memset(status, 0, sizeof(*status));
 
     type = GetFileType(h);
     if (type == FILE_TYPE_UNKNOWN) {
         DWORD error = GetLastError();
-        if (error != 0) {
-            errno = EINVAL;
+        if (error != 0)
             return -1;
-        }
         /* else: valid but unknown file */
     }
 
     if (type != FILE_TYPE_DISK) {
         if (type == FILE_TYPE_CHAR)
-            result->st_mode = _S_IFCHR;
+            status->st_mode = _S_IFCHR;
         else if (type == FILE_TYPE_PIPE)
-            result->st_mode = _S_IFIFO;
+            status->st_mode = _S_IFIFO;
         return 0;
     }
 
     if (!GetFileInformationByHandle(h, &info)) {
-        errno = EINVAL;
         return -1;
     }
 
-    _Py_attribute_data_to_stat(&info, 0, result);
+    _Py_attribute_data_to_stat(&info, 0, status);
     /* specific to fstat() */
-    result->st_ino = (((__int64)info.nFileIndexHigh)<<32) + info.nFileIndexLow;
+    status->st_ino = (((__int64)info.nFileIndexHigh)<<32) + info.nFileIndexLow;
     return 0;
 #else
-    return fstat(fd, result);
+    return fstat(fd, status);
 #endif
 }
-#endif   /* HAVE_FSTAT || MS_WINDOWS */
 
+/* Return information about a file.
 
-#ifdef HAVE_STAT
+   On POSIX, use fstat().
+
+   On Windows, use GetFileType() and GetFileInformationByHandle() which support
+   files larger than 2 GB.  fstat() may fail with EOVERFLOW on files larger
+   than 2 GB because the file size type is an signed 32-bit integer: see issue
+   #23152.
+
+   Raise an exception and return -1 on error. On Windows, set the last Windows
+   error on error. On POSIX, set errno on error. Fill status and return 0 on
+   success.
+
+   The GIL must be held. */
+int
+_Py_fstat(int fd, struct _Py_stat_struct *status)
+{
+    int res;
+
+    Py_BEGIN_ALLOW_THREADS
+    res = _Py_fstat_noraise(fd, status);
+    Py_END_ALLOW_THREADS
+
+    if (res != 0) {
+#ifdef MS_WINDOWS
+        PyErr_SetFromWindowsErr(0);
+#else
+        PyErr_SetFromErrno(PyExc_OSError);
+#endif
+        return -1;
+    }
+    return 0;
+}
+
 /* Call _wstat() on Windows, or encode the path to the filesystem encoding and
    call stat() otherwise. Only fill st_mode attribute on Windows.
 
@@ -712,8 +720,6 @@ _Py_stat(PyObject *path, struct stat *statbuf)
 #endif
 }
 
-#endif   /* HAVE_STAT */
-
 
 static int
 get_inheritable(int fd, int raise)
@@ -731,7 +737,7 @@ get_inheritable(int fd, int raise)
     handle = (HANDLE)_get_osfhandle(fd);
     if (handle == INVALID_HANDLE_VALUE) {
         if (raise)
-            PyErr_SetFromWindowsErr(0);
+            PyErr_SetFromErrno(PyExc_OSError);
         return -1;
     }
 
@@ -786,10 +792,10 @@ set_inheritable(int fd, int inheritable, int raise, int *atomic_flag_works)
 
     if (atomic_flag_works != NULL && !inheritable) {
         if (*atomic_flag_works == -1) {
-            int inheritable = get_inheritable(fd, raise);
-            if (inheritable == -1)
+            int isInheritable = get_inheritable(fd, raise);
+            if (isInheritable == -1)
                 return -1;
-            *atomic_flag_works = !inheritable;
+            *atomic_flag_works = !isInheritable;
         }
 
         if (*atomic_flag_works)
@@ -806,7 +812,7 @@ set_inheritable(int fd, int inheritable, int raise, int *atomic_flag_works)
     handle = (HANDLE)_get_osfhandle(fd);
     if (handle == INVALID_HANDLE_VALUE) {
         if (raise)
-            PyErr_SetFromWindowsErr(0);
+            PyErr_SetFromErrno(PyExc_OSError);
         return -1;
     }
 
@@ -905,40 +911,90 @@ _Py_set_inheritable(int fd, int inheritable, int *atomic_flag_works)
     return set_inheritable(fd, inheritable, 1, atomic_flag_works);
 }
 
-/* Open a file with the specified flags (wrapper to open() function).
-   The file descriptor is created non-inheritable. */
-int
-_Py_open(const char *pathname, int flags)
+static int
+_Py_open_impl(const char *pathname, int flags, int gil_held)
 {
     int fd;
-#ifdef MS_WINDOWS
-    fd = open(pathname, flags | O_NOINHERIT);
-    if (fd < 0)
-        return fd;
-#else
-
+    int async_err = 0;
+#ifndef MS_WINDOWS
     int *atomic_flag_works;
-#ifdef O_CLOEXEC
+#endif
+
+#ifdef MS_WINDOWS
+    flags |= O_NOINHERIT;
+#elif defined(O_CLOEXEC)
     atomic_flag_works = &_Py_open_cloexec_works;
     flags |= O_CLOEXEC;
 #else
     atomic_flag_works = NULL;
 #endif
-    fd = open(pathname, flags);
-    if (fd < 0)
-        return fd;
 
-    if (set_inheritable(fd, 0, 0, atomic_flag_works) < 0) {
+    if (gil_held) {
+        do {
+            Py_BEGIN_ALLOW_THREADS
+            fd = open(pathname, flags);
+            Py_END_ALLOW_THREADS
+        } while (fd < 0
+                 && errno == EINTR && !(async_err = PyErr_CheckSignals()));
+        if (async_err)
+            return -1;
+        if (fd < 0) {
+            PyErr_SetFromErrnoWithFilename(PyExc_OSError, pathname);
+            return -1;
+        }
+    }
+    else {
+        fd = open(pathname, flags);
+        if (fd < 0)
+            return -1;
+    }
+
+#ifndef MS_WINDOWS
+    if (set_inheritable(fd, 0, gil_held, atomic_flag_works) < 0) {
         close(fd);
         return -1;
     }
-#endif   /* !MS_WINDOWS */
+#endif
+
     return fd;
 }
 
+/* Open a file with the specified flags (wrapper to open() function).
+   Return a file descriptor on success. Raise an exception and return -1 on
+   error.
+
+   The file descriptor is created non-inheritable.
+
+   When interrupted by a signal (open() fails with EINTR), retry the syscall,
+   except if the Python signal handler raises an exception.
+
+   The GIL must be held. */
+int
+_Py_open(const char *pathname, int flags)
+{
+    /* _Py_open() must be called with the GIL held. */
+    assert(PyGILState_Check());
+    return _Py_open_impl(pathname, flags, 1);
+}
+
+/* Open a file with the specified flags (wrapper to open() function).
+   Return a file descriptor on success. Set errno and return -1 on error.
+
+   The file descriptor is created non-inheritable.
+
+   If interrupted by a signal, fail with EINTR. */
+int
+_Py_open_noraise(const char *pathname, int flags)
+{
+    return _Py_open_impl(pathname, flags, 0);
+}
+
 /* Open a file. Use _wfopen() on Windows, encode the path to the locale
-   encoding and use fopen() otherwise. The file descriptor is created
-   non-inheritable. */
+   encoding and use fopen() otherwise.
+
+   The file descriptor is created non-inheritable.
+
+   If interrupted by a signal, fail with EINTR. */
 FILE *
 _Py_wfopen(const wchar_t *path, const wchar_t *mode)
 {
@@ -969,7 +1025,11 @@ _Py_wfopen(const wchar_t *path, const wchar_t *mode)
     return f;
 }
 
-/* Wrapper to fopen(). The file descriptor is created non-inheritable. */
+/* Wrapper to fopen().
+
+   The file descriptor is created non-inheritable.
+
+   If interrupted by a signal, fail with EINTR. */
 FILE*
 _Py_fopen(const char *pathname, const char *mode)
 {
@@ -984,19 +1044,28 @@ _Py_fopen(const char *pathname, const char *mode)
 }
 
 /* Open a file. Call _wfopen() on Windows, or encode the path to the filesystem
-   encoding and call fopen() otherwise. The file descriptor is created
-   non-inheritable.
+   encoding and call fopen() otherwise.
 
-   Return the new file object on success, or NULL if the file cannot be open or
-   (if PyErr_Occurred()) on unicode error. */
+   Return the new file object on success. Raise an exception and return NULL
+   on error.
+
+   The file descriptor is created non-inheritable.
+
+   When interrupted by a signal (open() fails with EINTR), retry the syscall,
+   except if the Python signal handler raises an exception.
+
+   The GIL must be held. */
 FILE*
 _Py_fopen_obj(PyObject *path, const char *mode)
 {
     FILE *f;
+    int async_err = 0;
 #ifdef MS_WINDOWS
     wchar_t *wpath;
     wchar_t wmode[10];
     int usize;
+
+    assert(PyGILState_Check());
 
     if (!PyUnicode_Check(path)) {
         PyErr_Format(PyExc_TypeError,
@@ -1009,24 +1078,206 @@ _Py_fopen_obj(PyObject *path, const char *mode)
         return NULL;
 
     usize = MultiByteToWideChar(CP_ACP, 0, mode, -1, wmode, sizeof(wmode));
-    if (usize == 0)
+    if (usize == 0) {
+        PyErr_SetFromWindowsErr(0);
         return NULL;
+    }
 
-    f = _wfopen(wpath, wmode);
+    do {
+        Py_BEGIN_ALLOW_THREADS
+        f = _wfopen(wpath, wmode);
+        Py_END_ALLOW_THREADS
+    } while (f == NULL
+             && errno == EINTR && !(async_err = PyErr_CheckSignals()));
 #else
     PyObject *bytes;
+    char *path_bytes;
+
+    assert(PyGILState_Check());
+
     if (!PyUnicode_FSConverter(path, &bytes))
         return NULL;
-    f = fopen(PyBytes_AS_STRING(bytes), mode);
+    path_bytes = PyBytes_AS_STRING(bytes);
+
+    do {
+        Py_BEGIN_ALLOW_THREADS
+        f = fopen(path_bytes, mode);
+        Py_END_ALLOW_THREADS
+    } while (f == NULL
+             && errno == EINTR && !(async_err = PyErr_CheckSignals()));
+
     Py_DECREF(bytes);
 #endif
-    if (f == NULL)
+    if (async_err)
         return NULL;
-    if (make_non_inheritable(fileno(f)) < 0) {
+
+    if (f == NULL) {
+        PyErr_SetFromErrnoWithFilenameObject(PyExc_OSError, path);
+        return NULL;
+    }
+
+    if (set_inheritable(fileno(f), 0, 1, NULL) < 0) {
         fclose(f);
         return NULL;
     }
     return f;
+}
+
+/* Read count bytes from fd into buf.
+ *
+ * On success, return the number of read bytes, it can be lower than count.
+ * If the current file offset is at or past the end of file, no bytes are read,
+ * and read() returns zero.
+ *
+ * On error, raise an exception, set errno and return -1.
+ *
+ * When interrupted by a signal (read() fails with EINTR), retry the syscall.
+ * If the Python signal handler raises an exception, the function returns -1
+ * (the syscall is not retried).
+ *
+ * The GIL must be held. */
+Py_ssize_t
+_Py_read(int fd, void *buf, size_t count)
+{
+    Py_ssize_t n;
+    int err;
+    int async_err = 0;
+
+    /* _Py_read() must not be called with an exception set, otherwise the
+     * caller may think that read() was interrupted by a signal and the signal
+     * handler raised an exception. */
+    assert(!PyErr_Occurred());
+
+    if (!_PyVerify_fd(fd)) {
+        /* save/restore errno because PyErr_SetFromErrno() can modify it */
+        err = errno;
+        PyErr_SetFromErrno(PyExc_OSError);
+        errno = err;
+        return -1;
+    }
+
+#ifdef MS_WINDOWS
+    if (count > INT_MAX) {
+        /* On Windows, the count parameter of read() is an int */
+        count = INT_MAX;
+    }
+#else
+    if (count > PY_SSIZE_T_MAX) {
+        /* if count is greater than PY_SSIZE_T_MAX,
+         * read() result is undefined */
+        count = PY_SSIZE_T_MAX;
+    }
+#endif
+
+    do {
+        Py_BEGIN_ALLOW_THREADS
+        errno = 0;
+#ifdef MS_WINDOWS
+        n = read(fd, buf, (int)count);
+#else
+        n = read(fd, buf, count);
+#endif
+        /* save/restore errno because PyErr_CheckSignals()
+         * and PyErr_SetFromErrno() can modify it */
+        err = errno;
+        Py_END_ALLOW_THREADS
+    } while (n < 0 && err == EINTR &&
+            !(async_err = PyErr_CheckSignals()));
+
+    if (async_err) {
+        /* read() was interrupted by a signal (failed with EINTR)
+         * and the Python signal handler raised an exception */
+        errno = err;
+        assert(errno == EINTR && PyErr_Occurred());
+        return -1;
+    }
+    if (n < 0) {
+        PyErr_SetFromErrno(PyExc_OSError);
+        errno = err;
+        return -1;
+    }
+
+    return n;
+}
+
+/* Write count bytes of buf into fd.
+ *
+ * -On success, return the number of written bytes, it can be lower than count
+ *   including 0
+ * - On error, raise an exception, set errno and return -1.
+ *
+ * When interrupted by a signal (write() fails with EINTR), retry the syscall.
+ * If the Python signal handler raises an exception, the function returns -1
+ * (the syscall is not retried).
+ *
+ * The GIL must be held. */
+Py_ssize_t
+_Py_write(int fd, const void *buf, size_t count)
+{
+    Py_ssize_t n;
+    int err;
+    int async_err = 0;
+
+    /* _Py_write() must not be called with an exception set, otherwise the
+     * caller may think that write() was interrupted by a signal and the signal
+     * handler raised an exception. */
+    assert(!PyErr_Occurred());
+
+    if (!_PyVerify_fd(fd)) {
+        /* save/restore errno because PyErr_SetFromErrno() can modify it */
+        err = errno;
+        PyErr_SetFromErrno(PyExc_OSError);
+        errno = err;
+        return -1;
+    }
+
+#ifdef MS_WINDOWS
+    if (count > 32767 && isatty(fd)) {
+        /* Issue #11395: the Windows console returns an error (12: not
+           enough space error) on writing into stdout if stdout mode is
+           binary and the length is greater than 66,000 bytes (or less,
+           depending on heap usage). */
+        count = 32767;
+    }
+    else if (count > INT_MAX)
+        count = INT_MAX;
+#else
+    if (count > PY_SSIZE_T_MAX) {
+        /* write() should truncate count to PY_SSIZE_T_MAX, but it's safer
+         * to do it ourself to have a portable behaviour. */
+        count = PY_SSIZE_T_MAX;
+    }
+#endif
+
+    do {
+        Py_BEGIN_ALLOW_THREADS
+        errno = 0;
+#ifdef MS_WINDOWS
+        n = write(fd, buf, (int)count);
+#else
+        n = write(fd, buf, count);
+#endif
+        /* save/restore errno because PyErr_CheckSignals()
+         * and PyErr_SetFromErrno() can modify it */
+        err = errno;
+        Py_END_ALLOW_THREADS
+    } while (n < 0 && errno == EINTR &&
+            !(async_err = PyErr_CheckSignals()));
+
+    if (async_err) {
+        /* write() was interrupted by a signal (failed with EINTR)
+         * and the Python signal handler raised an exception */
+        errno = err;
+        assert(errno == EINTR && PyErr_Occurred());
+        return -1;
+    }
+    if (n < 0) {
+        PyErr_SetFromErrno(PyExc_OSError);
+        errno = err;
+        return -1;
+    }
+
+    return n;
 }
 
 #ifdef HAVE_READLINK
@@ -1165,7 +1416,7 @@ _Py_dup(int fd)
 #ifdef MS_WINDOWS
     handle = (HANDLE)_get_osfhandle(fd);
     if (handle == INVALID_HANDLE_VALUE) {
-        PyErr_SetFromWindowsErr(0);
+        PyErr_SetFromErrno(PyExc_OSError);
         return -1;
     }
 

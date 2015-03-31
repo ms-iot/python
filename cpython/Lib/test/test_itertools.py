@@ -698,7 +698,7 @@ class TestBasicOps(unittest.TestCase):
         # iter.__next__ failure on inner object
         self.assertRaises(ExpectedError, gulp, delayed_raise(1))
 
-        # __cmp__ failure
+        # __eq__ failure
         class DummyCmp:
             def __eq__(self, dst):
                 raise ExpectedError
@@ -1338,8 +1338,12 @@ class TestBasicOps(unittest.TestCase):
     # Issue 13454: Crash when deleting backward iterator from tee()
     def test_tee_del_backward(self):
         forward, backward = tee(repeat(None, 20000000))
-        any(forward)  # exhaust the iterator
-        del backward
+        try:
+            any(forward)  # exhaust the iterator
+            del backward
+        except:
+            del forward, backward
+            raise
 
     def test_StopIteration(self):
         self.assertRaises(StopIteration, next, zip())

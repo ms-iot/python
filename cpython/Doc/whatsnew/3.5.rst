@@ -49,9 +49,11 @@ This article explains the new features in Python 3.5, compared to 3.4.
 
 For full details, see the :source:`Misc/NEWS` file.
 
-.. note:: Prerelease users should be aware that this document is currently in
-   draft form. It will be updated substantially as Python 3.5 moves towards
-   release, so it's worth checking back even after reading earlier versions.
+.. note::
+
+   Prerelease users should be aware that this document is currently in draft
+   form. It will be updated substantially as Python 3.5 moves towards release,
+   so it's worth checking back even after reading earlier versions.
 
 
 .. seealso::
@@ -62,20 +64,22 @@ For full details, see the :source:`Misc/NEWS` file.
 Summary -- Release highlights
 =============================
 
-.. This section singles out the most important changes in Python 3.3.
+.. This section singles out the most important changes in Python 3.5.
    Brevity is key.
 
 New syntax features:
 
-* None yet.
+*  :pep:`465`, a new matrix multiplication operator: ``a @ b``.
 
 New library modules:
 
-* None yet.
+* :mod:`zipapp`: :ref:`Improving Python ZIP Application Support
+  <whatsnew-zipapp>` (:pep:`441`).
 
 New built-in features:
 
-* None yet.
+* ``bytes % args``, ``bytearray % args``: :pep:`461` - Adding ``%`` formatting
+  to bytes and bytearray
 
 Implementation improvements:
 
@@ -111,12 +115,68 @@ Please read on for a comprehensive list of user-facing changes.
        PEP written by Carl Meyer
 
 
+PEP 461 - Adding % formatting to bytes and bytearray
+----------------------------------------------------
+
+This PEP proposes adding % formatting operations similar to Python 2's ``str``
+type to :class:`bytes` and :class:`bytearray`.
+
+Examples::
+
+    >>> b'Hello %s!' % b'World'
+    b'Hello World!'
+    >>> b'x=%i y=%f' % (1, 2.5)
+    b'x=1 y=2.500000'
+
+Unicode is not allowed for ``%s``, but it is accepted by ``%a`` (equivalent of
+``repr(obj).encode('ascii', 'backslashreplace')``)::
+
+    >>> b'Hello %s!' % 'World'
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+    TypeError: %b requires bytes, or an object that implements __bytes__, not 'str'
+    >>> b'price: %a' % '10€'
+    b"price: '10\\u20ac'"
+
+.. seealso::
+
+   :pep:`461` -- Adding % formatting to bytes and bytearray
+
+
+PEP 465 - A dedicated infix operator for matrix multiplication
+--------------------------------------------------------------
+
+This PEP proposes a new binary operator to be used for matrix multiplication,
+called ``@``. (Mnemonic: ``@`` is ``*`` for matrices.)
+
+.. seealso::
+
+   :pep:`465` -- A dedicated infix operator for matrix multiplication
+
+
+PEP 471 - os.scandir() function -- a better and faster directory iterator
+-------------------------------------------------------------------------
+
+:pep:`471` adds a new directory iteration function, :func:`os.scandir`,
+to the standard library. Additionally, :func:`os.walk` is now
+implemented using :func:`os.scandir`, which speeds it up by 3-5 times
+on POSIX systems and by 7-20 times on Windows systems.
+
+PEP and implementation written by Ben Hoyt with the help of Victor Stinner.
+
+.. seealso::
+
+   :pep:`471` -- os.scandir() function -- a better and faster directory
+   iterator
+
+
 PEP 475: Retry system calls failing with EINTR
 ----------------------------------------------
 
-:pep:`475` adds support for automatic retry of system calls failing with EINTR:
-this means that user code doesn't have to deal with EINTR or InterruptedError
-manually, and should make it more robust against asynchronous signal reception.
+:pep:`475` adds support for automatic retry of system calls failing with
+:py:data:`~errno.EINTR`: this means that user code doesn't have to deal with
+EINTR or :exc:`InterruptedError` manually, and should make it more robust
+against asynchronous signal reception.
 
 .. seealso::
 
@@ -144,15 +204,29 @@ Some smaller changes made to the core Python language are:
   error handlers now works with decoding and translating.
   (Contributed by Serhiy Storchaka in :issue:`19676` and :issue:`22286`.)
 
+* The :option:`-b` option now affects comparisons of :class:`bytes` with
+  :class:`int`.  (Contributed by Serhiy Storchaka in :issue:`23681`)
 
 
 New Modules
 ===========
 
-.. module name
-.. -----------
+.. _whatsnew-zipapp:
 
-* None yet.
+zipapp
+------
+
+The new :mod:`zipapp` module (specified in :pep:`441`) provides an API and
+command line tool for creating executable Python Zip Applications, which
+were introduced in Python 2.6 in :issue:`1739468` but which were not well
+publicised, either at the time or since.
+
+With the new module, bundling your application is as simple as putting all
+the files, including a ``__main__.py`` file, into a directory ``myapp``
+and running::
+
+    $ python -m zipapp myapp
+    $ python myapp.pyz
 
 
 Improved Modules
@@ -194,6 +268,14 @@ contextlib
   handle inflexible APIs that write their output to :data:`sys.stderr` and
   don't provide any options to redirect it.
   (Contributed by Berker Peksag in :issue:`22389`.)
+
+difflib
+-------
+
+* The charset of the HTML document generated by :meth:`difflib.HtmlDiff.make_file`
+  can now be customized by using *charset* keyword-only parameter.  The default
+  charset of HTML document changed from ``'ISO-8859-1'`` to ``'utf-8'``.
+  (Contributed by Berker Peksag in :issue:`2052`.)
 
 distutils
 ---------
@@ -279,8 +361,28 @@ json
 os
 --
 
+* New :func:`os.scandir` function that exposes file information from
+  the operating system when listing a directory. :func:`os.scandir`
+  returns an iterator of :class:`os.DirEntry` objects corresponding to
+  the entries in the directory given by *path*. (Contributed by Ben
+  Hoyt with the help of Victor Stinner in :issue:`22524`.)
+
 * :class:`os.stat_result` now has a :attr:`~os.stat_result.st_file_attributes`
   attribute on Windows.  (Contributed by Ben Hoyt in :issue:`21719`.)
+
+os.path
+-------
+
+* New :func:`~os.path.commonpath` function that extracts common path prefix.
+  Unlike the :func:`~os.path.commonprefix` function, it always returns a valid
+  patch.  (Contributed by Rafik Draoui and Serhiy Storchaka in :issue:`10395`.)
+
+pickle
+------
+
+* Serializing more "lookupable" objects (such as unbound methods or nested
+  classes) now are supported with pickle protocols < 4.
+  (Contributed by Serhiy Storchaka in :issue:`23611`.)
 
 re
 --
@@ -394,11 +496,34 @@ xmlrpc
 * :class:`xmlrpc.client.ServerProxy` is now a :term:`context manager`.
   (Contributed by Claudiu Popa in :issue:`20627`.)
 
+faulthandler
+------------
+
+* :func:`~faulthandler.enable`, :func:`~faulthandler.register`,
+  :func:`~faulthandler.dump_traceback` and
+  :func:`~faulthandler.dump_traceback_later` functions now accept file
+  descriptors.  (Contributed by Wei Wu in :issue:`23566`.)
+
+zipfile
+-------
+
+* Added support for writing ZIP files to unseekable streams.
+  (Contributed by Serhiy Storchaka in :issue:`23252`.)
+
+* The :func:`zipfile.ZipFile.open` function now supports ``'x'`` (exclusive
+  creation) mode.  (Contributed by Serhiy Storchaka in :issue:`21717`.)
+
 
 Optimizations
 =============
 
 The following performance enhancements have been added:
+
+* :func:`os.walk` has been sped up by 3-5x on POSIX systems and 7-20x
+  on Windows. This was done using the new :func:`os.scandir` function,
+  which exposes file information from the underlying ``readdir`` and
+  ``FindFirstFile``/``FindNextFile`` system calls. (Contributed by
+  Ben Hoyt with help from Victor Stinner in :issue:`23605`.)
 
 * Construction of ``bytes(int)`` (filled by zero bytes) is faster and use less
   memory for large objects. ``calloc()`` is used instead of ``malloc()`` to
@@ -454,6 +579,17 @@ Deprecated Python modules, functions and methods
   ``True``, but this default is deprecated.  Specify the *decode_data* keyword
   with an appropriate value to avoid the deprecation warning.
 
+* Directly assigning values to the :attr:`~http.cookies.Morsel.key`,
+  :attr:`~http.cookies.Morsel.value` and
+  :attr:`~http.cookies.Morsel.coded_value` of :class:`~http.cookies.Morsel`
+  objects is deprecated.  Use the :func:`~http.cookies.Morsel.set` method
+  instead.  In addition, the undocumented *LegalChars* parameter of
+  :func:`~http.cookies.Morsel.set` is deprecated, and is now ignored.
+
+* Passing a format string as keyword argument *format_string* to the
+  :meth:`~string.Formatter.format` method of the :class:`string.Formatter`
+  class has been deprecated.
+
 
 Deprecated functions and types of the C API
 -------------------------------------------
@@ -492,6 +628,17 @@ that may require changes to your code.
 
 Changes in the Python API
 -------------------------
+
+* :pep:`475`: Examples of functions which are now retried when interrupted
+  instead of raising :exc:`InterruptedError` if the signal handler does not
+  raise an exception:
+
+  - :func:`open`, :func:`os.open`, :func:`io.open`
+  - :func:`os.read`, :func:`os.write`
+  - :func:`select.select`, :func:`select.poll.poll`, :func:`select.epoll.poll`,
+    :func:`select.kqueue.control`, :func:`select.devpoll.poll`
+  - :func:`signal.sigtimedwait`, :func:`signal.sigwaitinfo`
+  - :func:`time.sleep`
 
 * Before Python 3.5, a :class:`datetime.time` object was considered to be false
   if it represented midnight in UTC.  This behavior was considered obscure and
@@ -545,6 +692,16 @@ Changes in the Python API
   an empty string.  For compatibility use patterns that never match an empty
   string (e.g. ``'x+'`` instead of ``'x*'``).  Patterns that could only match
   an empty string (such as ``'\b'``) now raise an error.
+
+* The :class:`~http.cookies.Morsel` dict-like interface has been made self
+  consistent:  morsel comparison now takes the :attr:`~http.cookies.Morsel.key`
+  and :attr:`~http.cookies.Morsel.value` into account,
+  :meth:`~http.cookies.Morsel.copy` now results in a
+  :class:`~http.cookies.Morsel` instance rather than a :class:`dict`, and
+  :meth:`~http.cookies.Morsel.update` will now raise an exception if any of the
+  keys in the update dictionary are invalid.  In addition, the undocumented
+  *LegalChars* parameter of :func:`~http.cookies.Morsel.set` is deprecated and
+  is now ignored.  (:issue:`2211`)
 
 Changes in the C API
 --------------------

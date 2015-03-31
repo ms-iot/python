@@ -15,14 +15,7 @@ PyAPI_FUNC(char*) Py_EncodeLocale(
     const wchar_t *text,
     size_t *error_pos);
 
-#if defined(HAVE_STAT) && !defined(MS_WINDOWS)
-PyAPI_FUNC(int) _Py_wstat(
-    const wchar_t* path,
-    struct stat *buf);
-#endif
-
 #ifndef Py_LIMITED_API
-#if defined(HAVE_FSTAT) || defined(MS_WINDOWS)
 
 #ifdef MS_WINDOWS
 struct _Py_stat_struct {
@@ -48,18 +41,23 @@ struct _Py_stat_struct {
 
 PyAPI_FUNC(int) _Py_fstat(
     int fd,
-    struct _Py_stat_struct *stat);
-#endif   /* HAVE_FSTAT || MS_WINDOWS */
+    struct _Py_stat_struct *status);
+
+PyAPI_FUNC(int) _Py_fstat_noraise(
+    int fd,
+    struct _Py_stat_struct *status);
 #endif   /* Py_LIMITED_API */
 
-#ifdef HAVE_STAT
 PyAPI_FUNC(int) _Py_stat(
     PyObject *path,
-    struct stat *statbuf);
-#endif   /* HAVE_STAT */
+    struct stat *status);
 
 #ifndef Py_LIMITED_API
 PyAPI_FUNC(int) _Py_open(
+    const char *pathname,
+    int flags);
+
+PyAPI_FUNC(int) _Py_open_noraise(
     const char *pathname,
     int flags);
 #endif
@@ -75,6 +73,16 @@ PyAPI_FUNC(FILE*) _Py_fopen(
 PyAPI_FUNC(FILE*) _Py_fopen_obj(
     PyObject *path,
     const char *mode);
+
+PyAPI_FUNC(Py_ssize_t) _Py_read(
+    int fd,
+    void *buf,
+    size_t count);
+
+PyAPI_FUNC(Py_ssize_t) _Py_write(
+    int fd,
+    const void *buf,
+    size_t count);
 
 #ifdef HAVE_READLINK
 PyAPI_FUNC(int) _Py_wreadlink(

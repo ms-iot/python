@@ -6,10 +6,12 @@ import pickle
 import random
 import subprocess
 import sys
+import textwrap
 import time
 import unittest
 from test import support
 from test.support import MISSING_C_DOCSTRINGS
+from test.script_helper import assert_python_failure
 try:
     import _posixsubprocess
 except ImportError:
@@ -20,6 +22,9 @@ except ImportError:
     threading = None
 # Skip this test if the _testcapi module isn't available.
 _testcapi = support.import_module('_testcapi')
+
+# Were we compiled --with-pydebug or with #define Py_DEBUG?
+Py_DEBUG = hasattr(sys, 'gettotalrefcount')
 
 
 def testfunction(self):
@@ -166,6 +171,66 @@ class CAPITest(unittest.TestCase):
         o = 42
         o @= m1
         self.assertEqual(o, ("matmul", 42, m1))
+
+    def test_return_null_without_error(self):
+        # Issue #23571: A function must not return NULL without setting an
+        # error
+        if Py_DEBUG:
+            code = textwrap.dedent("""
+                import _testcapi
+                from test import support
+
+                with support.SuppressCrashReport():
+                    _testcapi.return_null_without_error()
+            """)
+            rc, out, err = assert_python_failure('-c', code)
+            self.assertRegex(err.replace(b'\r', b''),
+                             br'Fatal Python error: a function returned NULL '
+                                br'without setting an error\n'
+                             br'SystemError: <built-in function '
+                                 br'return_null_without_error> returned NULL '
+                                 br'without setting an error\n'
+                             br'\n'
+                             br'Current thread.*:\n'
+                             br'  File .*", line 6 in <module>')
+        else:
+            with self.assertRaises(SystemError) as cm:
+                _testcapi.return_null_without_error()
+            self.assertRegex(str(cm.exception),
+                             'return_null_without_error.* '
+                             'returned NULL without setting an error')
+
+    def test_return_result_with_error(self):
+        # Issue #23571: A function must not return a result with an error set
+        if Py_DEBUG:
+            code = textwrap.dedent("""
+                import _testcapi
+                from test import support
+
+                with support.SuppressCrashReport():
+                    _testcapi.return_result_with_error()
+            """)
+            rc, out, err = assert_python_failure('-c', code)
+            self.assertRegex(err.replace(b'\r', b''),
+                             br'Fatal Python error: a function returned a '
+                                br'result with an error set\n'
+                             br'ValueError\n'
+                             br'\n'
+                             br'During handling of the above exception, '
+                                br'another exception occurred:\n'
+                             br'\n'
+                             br'SystemError: <built-in '
+                                br'function return_result_with_error> '
+                                br'returned a result with an error set\n'
+                             br'\n'
+                             br'Current thread.*:\n'
+                             br'  File .*, line 6 in <module>')
+        else:
+            with self.assertRaises(SystemError) as cm:
+                _testcapi.return_result_with_error()
+            self.assertRegex(str(cm.exception),
+                             'return_result_with_error.* '
+                             'returned a result with an error set')
 
 
 @unittest.skipUnless(threading, 'Threading required for this test.')

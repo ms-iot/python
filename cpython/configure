@@ -14200,7 +14200,15 @@ $as_echo_n "checking ABIFLAGS... " >&6; }
 $as_echo "$ABIFLAGS" >&6; }
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking SOABI" >&5
 $as_echo_n "checking SOABI... " >&6; }
-SOABI='cpython-'`echo $VERSION | tr -d .`${ABIFLAGS}
+
+case $ac_sys_system in
+    Linux*|GNU*)
+        BITNESS_SUFFIX=-$(($ac_cv_sizeof_void_p * 8))b;;
+    *)
+        BITNESS_SUFFIX=;;
+esac
+SOABI='cpython-'`echo $VERSION | tr -d .`${ABIFLAGS}${BITNESS_SUFFIX}
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $SOABI" >&5
 $as_echo "$SOABI" >&6; }
 
@@ -15797,6 +15805,74 @@ esac
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ENSUREPIP" >&5
 $as_echo "$ENSUREPIP" >&6; }
 
+
+# check if the dirent structure of a d_type field and DT_UNKNOWN is defined
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if the dirent structure of a d_type field" >&5
+$as_echo_n "checking if the dirent structure of a d_type field... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+    #include <dirent.h>
+
+    int main() {
+      struct dirent entry;
+      return entry.d_type == DT_UNKNOWN;
+    }
+
+
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  have_dirent_d_type=yes
+else
+  have_dirent_d_type=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $have_dirent_d_type" >&5
+$as_echo "$have_dirent_d_type" >&6; }
+
+if test "$have_dirent_d_type" = yes; then
+
+$as_echo "#define HAVE_DIRENT_D_TYPE 1" >>confdefs.h
+
+fi
+
+# check if the Linux getrandom() syscall is available
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for the Linux getrandom() syscall" >&5
+$as_echo_n "checking for the Linux getrandom() syscall... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+    #include <sys/syscall.h>
+
+    int main() {
+        const int flags = 0;
+        char buffer[1];
+        int n;
+        /* ignore the result, Python checks for ENOSYS at runtime */
+        (void)syscall(SYS_getrandom, buffer, sizeof(buffer), flags);
+        return 0;
+    }
+
+
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  have_getrandom_syscall=yes
+else
+  have_getrandom_syscall=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $have_getrandom_syscall" >&5
+$as_echo "$have_getrandom_syscall" >&6; }
+
+if test "$have_getrandom_syscall" = yes; then
+
+$as_echo "#define HAVE_GETRANDOM_SYSCALL 1" >>confdefs.h
+
+fi
 
 # generate output files
 ac_config_files="$ac_config_files Makefile.pre Modules/Setup.config Misc/python.pc Misc/python-config.sh"

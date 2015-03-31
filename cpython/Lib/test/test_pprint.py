@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import pprint
-import test.support
-import unittest
-import test.test_set
-import random
 import collections
+import io
 import itertools
+import pprint
+import random
+import test.support
+import test.test_set
+import types
+import unittest
 
 # list, tuple and dict subclasses that do or don't overwrite __repr__
 class list2(list):
@@ -54,6 +56,18 @@ class QueryTestCase(unittest.TestCase):
         self.a = list(range(100))
         self.b = list(range(200))
         self.a[-12] = self.b
+
+    def test_init(self):
+        pp = pprint.PrettyPrinter()
+        pp = pprint.PrettyPrinter(indent=4, width=40, depth=5,
+                                  stream=io.StringIO(), compact=True)
+        pp = pprint.PrettyPrinter(4, 40, 5, io.StringIO())
+        with self.assertRaises(TypeError):
+            pp = pprint.PrettyPrinter(4, 40, 5, io.StringIO(), True)
+        self.assertRaises(ValueError, pprint.PrettyPrinter, indent=-1)
+        self.assertRaises(ValueError, pprint.PrettyPrinter, depth=0)
+        self.assertRaises(ValueError, pprint.PrettyPrinter, depth=-1)
+        self.assertRaises(ValueError, pprint.PrettyPrinter, width=0)
 
     def test_basic(self):
         # Verify .isrecursive() and .isreadable() w/o recursion
@@ -258,19 +272,51 @@ class QueryTestCase(unittest.TestCase):
             r"{5: [[]], 'xy\tab\n': (3,), (): {}}")
 
     def test_ordered_dict(self):
+        d = collections.OrderedDict()
+        self.assertEqual(pprint.pformat(d, width=1), 'OrderedDict()')
+        d = collections.OrderedDict([])
+        self.assertEqual(pprint.pformat(d, width=1), 'OrderedDict()')
         words = 'the quick brown fox jumped over a lazy dog'.split()
         d = collections.OrderedDict(zip(words, itertools.count()))
         self.assertEqual(pprint.pformat(d),
 """\
-{'the': 0,
- 'quick': 1,
- 'brown': 2,
- 'fox': 3,
- 'jumped': 4,
- 'over': 5,
- 'a': 6,
- 'lazy': 7,
- 'dog': 8}""")
+OrderedDict([('the', 0),
+             ('quick', 1),
+             ('brown', 2),
+             ('fox', 3),
+             ('jumped', 4),
+             ('over', 5),
+             ('a', 6),
+             ('lazy', 7),
+             ('dog', 8)])""")
+
+    def test_mapping_proxy(self):
+        words = 'the quick brown fox jumped over a lazy dog'.split()
+        d = dict(zip(words, itertools.count()))
+        m = types.MappingProxyType(d)
+        self.assertEqual(pprint.pformat(m), """\
+mappingproxy({'a': 6,
+              'brown': 2,
+              'dog': 8,
+              'fox': 3,
+              'jumped': 4,
+              'lazy': 7,
+              'over': 5,
+              'quick': 1,
+              'the': 0})""")
+        d = collections.OrderedDict(zip(words, itertools.count()))
+        m = types.MappingProxyType(d)
+        self.assertEqual(pprint.pformat(m), """\
+mappingproxy(OrderedDict([('the', 0),
+                          ('quick', 1),
+                          ('brown', 2),
+                          ('fox', 3),
+                          ('jumped', 4),
+                          ('over', 5),
+                          ('a', 6),
+                          ('lazy', 7),
+                          ('dog', 8)]))""")
+
     def test_subclassing(self):
         o = {'names with spaces': 'should be presented using repr()',
              'others.should.not.be': 'like.this'}
@@ -657,6 +703,106 @@ frozenset2({0,
             maxwidth = max(map(len, lines))
             self.assertLessEqual(maxwidth, w)
             self.assertGreater(maxwidth, w - 3)
+
+    def test_bytes_wrap(self):
+        self.assertEqual(pprint.pformat(b'', width=1), "b''")
+        self.assertEqual(pprint.pformat(b'abcd', width=1), "b'abcd'")
+        letters = b'abcdefghijklmnopqrstuvwxyz'
+        self.assertEqual(pprint.pformat(letters, width=29), repr(letters))
+        self.assertEqual(pprint.pformat(letters, width=19), """\
+(b'abcdefghijkl'
+ b'mnopqrstuvwxyz')""")
+        self.assertEqual(pprint.pformat(letters, width=18), """\
+(b'abcdefghijkl'
+ b'mnopqrstuvwx'
+ b'yz')""")
+        self.assertEqual(pprint.pformat(letters, width=16), """\
+(b'abcdefghijkl'
+ b'mnopqrstuvwx'
+ b'yz')""")
+        special = bytes(range(16))
+        self.assertEqual(pprint.pformat(special, width=61), repr(special))
+        self.assertEqual(pprint.pformat(special, width=48), """\
+(b'\\x00\\x01\\x02\\x03\\x04\\x05\\x06\\x07\\x08\\t\\n\\x0b'
+ b'\\x0c\\r\\x0e\\x0f')""")
+        self.assertEqual(pprint.pformat(special, width=32), """\
+(b'\\x00\\x01\\x02\\x03'
+ b'\\x04\\x05\\x06\\x07\\x08\\t\\n\\x0b'
+ b'\\x0c\\r\\x0e\\x0f')""")
+        self.assertEqual(pprint.pformat(special, width=1), """\
+(b'\\x00\\x01\\x02\\x03'
+ b'\\x04\\x05\\x06\\x07'
+ b'\\x08\\t\\n\\x0b'
+ b'\\x0c\\r\\x0e\\x0f')""")
+        self.assertEqual(pprint.pformat({'a': 1, 'b': letters, 'c': 2},
+                                        width=21), """\
+{'a': 1,
+ 'b': b'abcdefghijkl'
+      b'mnopqrstuvwx'
+      b'yz',
+ 'c': 2}""")
+        self.assertEqual(pprint.pformat({'a': 1, 'b': letters, 'c': 2},
+                                        width=20), """\
+{'a': 1,
+ 'b': b'abcdefgh'
+      b'ijklmnop'
+      b'qrstuvwxyz',
+ 'c': 2}""")
+        self.assertEqual(pprint.pformat([[[[[[letters]]]]]], width=25), """\
+[[[[[[b'abcdefghijklmnop'
+      b'qrstuvwxyz']]]]]]""")
+        self.assertEqual(pprint.pformat([[[[[[special]]]]]], width=41), """\
+[[[[[[b'\\x00\\x01\\x02\\x03\\x04\\x05\\x06\\x07'
+      b'\\x08\\t\\n\\x0b\\x0c\\r\\x0e\\x0f']]]]]]""")
+        # Check that the pprint is a usable repr
+        for width in range(1, 64):
+            formatted = pprint.pformat(special, width=width)
+            self.assertEqual(eval(formatted), special)
+            formatted = pprint.pformat([special] * 2, width=width)
+            self.assertEqual(eval(formatted), [special] * 2)
+
+    def test_bytearray_wrap(self):
+        self.assertEqual(pprint.pformat(bytearray(), width=1), "bytearray(b'')")
+        letters = bytearray(b'abcdefghijklmnopqrstuvwxyz')
+        self.assertEqual(pprint.pformat(letters, width=40), repr(letters))
+        self.assertEqual(pprint.pformat(letters, width=28), """\
+bytearray(b'abcdefghijkl'
+          b'mnopqrstuvwxyz')""")
+        self.assertEqual(pprint.pformat(letters, width=27), """\
+bytearray(b'abcdefghijkl'
+          b'mnopqrstuvwx'
+          b'yz')""")
+        self.assertEqual(pprint.pformat(letters, width=25), """\
+bytearray(b'abcdefghijkl'
+          b'mnopqrstuvwx'
+          b'yz')""")
+        special = bytearray(range(16))
+        self.assertEqual(pprint.pformat(special, width=72), repr(special))
+        self.assertEqual(pprint.pformat(special, width=57), """\
+bytearray(b'\\x00\\x01\\x02\\x03\\x04\\x05\\x06\\x07\\x08\\t\\n\\x0b'
+          b'\\x0c\\r\\x0e\\x0f')""")
+        self.assertEqual(pprint.pformat(special, width=41), """\
+bytearray(b'\\x00\\x01\\x02\\x03'
+          b'\\x04\\x05\\x06\\x07\\x08\\t\\n\\x0b'
+          b'\\x0c\\r\\x0e\\x0f')""")
+        self.assertEqual(pprint.pformat(special, width=1), """\
+bytearray(b'\\x00\\x01\\x02\\x03'
+          b'\\x04\\x05\\x06\\x07'
+          b'\\x08\\t\\n\\x0b'
+          b'\\x0c\\r\\x0e\\x0f')""")
+        self.assertEqual(pprint.pformat({'a': 1, 'b': letters, 'c': 2},
+                                        width=31), """\
+{'a': 1,
+ 'b': bytearray(b'abcdefghijkl'
+                b'mnopqrstuvwx'
+                b'yz'),
+ 'c': 2}""")
+        self.assertEqual(pprint.pformat([[[[[letters]]]]], width=37), """\
+[[[[[bytearray(b'abcdefghijklmnop'
+               b'qrstuvwxyz')]]]]]""")
+        self.assertEqual(pprint.pformat([[[[[special]]]]], width=50), """\
+[[[[[bytearray(b'\\x00\\x01\\x02\\x03\\x04\\x05\\x06\\x07'
+               b'\\x08\\t\\n\\x0b\\x0c\\r\\x0e\\x0f')]]]]]""")
 
 
 class DottedPrettyPrinter(pprint.PrettyPrinter):

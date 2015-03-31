@@ -2,13 +2,260 @@
 Python News
 +++++++++++
 
-What's New in Python 3.5 alpha 2?
-=================================
+What's New in Python 3.5.0 alpha 4?
+===================================
 
-Release date: 2015-03-08
+Release date: XXX
 
 Core and Builtins
 -----------------
+
+Library
+-------
+
+- Issue #10395: Added os.path.commonpath(). Implemented in posixpath and ntpath.
+  Based on patch by Rafik Draoui.
+
+- Issue #23611: Serializing more "lookupable" objects (such as unbound methods
+  or nested classes) now are supported with pickle protocols < 4.
+
+- Issue #13583: sqlite3.Row now supports slice indexing.
+
+- Issue #18473: Fixed 2to3 and 3to2 compatible pickle mappings.  Fixed
+  ambigious reverse mappings.  Added many new mappings.  Import mapping is no
+  longer applied to modules already mapped with full name mapping.
+
+- Issue #23485: select.select() is now retried automatically with the
+  recomputed timeout when interrupted by a signal, except if the signal handler
+  raises an exception. This change is part of the PEP 475.
+
+- Issue #23752: When built from an existing file descriptor, io.FileIO() now
+  only calls fstat() once. Before fstat() was called twice, which was not
+  necessary.
+
+Build
+-----
+
+Tests
+-----
+
+Tools/Demos
+-----------
+
+
+
+What's New in Python 3.5.0 alpha 3?
+===================================
+
+Release date: 2015-03-28
+
+Core and Builtins
+-----------------
+
+- Issue #23466: %c, %o, %x, and %X in bytes formatting now raise TypeError on
+  non-integer input.
+
+- Issue #23573: Increased performance of string search operations (str.find,
+  str.index, str.count, the in operator, str.split, str.partition) with
+  arguments of different kinds (UCS1, UCS2, UCS4).
+
+- Issue #23753: Python doesn't support anymore platforms without stat() or
+  fstat(), these functions are always required.
+
+- Issue #23681: The -b option now affects comparisons of bytes with int.
+
+- Issue #23632: Memoryviews now allow tuple indexing (including for
+  multi-dimensional memoryviews).
+
+- Issue #23192: Fixed generator lambdas.  Patch by Bruno Cauet.
+
+- Issue #23629: Fix the default __sizeof__ implementation for variable-sized
+  objects.
+
+Library
+-------
+
+- Issue #23171: csv.Writer.writerow() now supports arbitrary iterables.
+
+- Issue #23745: The new email header parser now handles duplicate MIME
+  parameter names without error, similar to how get_param behaves.
+
+- Issue #22117: Fix os.utime(), it now rounds the timestamp towards minus
+  infinity (-inf) instead of rounding towards zero.
+
+- Issue #14260: The groupindex attribute of regular expression pattern object
+  now is non-modifiable mapping.
+
+- Issue #23792: Ignore KeyboardInterrupt when the pydoc pager is active.
+  This mimics the behavior of the standard unix pagers, and prevents
+  pipepager from shutting down while the pager itself is still running.
+
+- Issue #23775: pprint() of OrderedDict now outputs the same representation
+  as repr().
+
+- Issue #23765: Removed IsBadStringPtr calls in ctypes
+
+- Issue #22364: Improved some re error messages using regex for hints.
+
+- Issue #23742: ntpath.expandvars() no longer loses unbalanced single quotes.
+
+- Issue #21717: The zipfile.ZipFile.open function now supports 'x' (exclusive
+  creation) mode.
+
+- Issue #21802: The reader in BufferedRWPair now is closed even when closing
+  writer failed in BufferedRWPair.close().
+
+- Issue #23622: Unknown escapes in regular expressions that consist of ``'\'``
+  and ASCII letter now raise a deprecation warning and will be forbidden in
+  Python 3.6.
+
+- Issue #23671: string.Template now allows to specify the "self" parameter as
+  keyword argument.  string.Formatter now allows to specify the "self" and
+  the "format_string" parameters as keyword arguments.
+
+- Issue #23502: The pprint module now supports mapping proxies.
+
+- Issue #17530: pprint now wraps long bytes objects and bytearrays.
+
+- Issue #22687: Fixed some corner cases in breaking words in tetxtwrap.
+  Got rid of quadratic complexity in breaking long words.
+
+- Issue #4727: The copy module now uses pickle protocol 4 (PEP 3154) and
+  supports copying of instances of classes whose __new__ method takes
+  keyword-only arguments.
+
+- Issue #23491: Added a zipapp module to support creating executable zip
+  file archives of Python code. Registered ".pyz" and ".pyzw" extensions
+  on Windows for these archives (PEP 441).
+
+- Issue #23657: Avoid explicit checks for str in zipapp, adding support
+  for pathlib.Path objects as arguments.
+
+- Issue #23688: Added support of arbitrary bytes-like objects and avoided
+  unnecessary copying of memoryview in gzip.GzipFile.write().
+  Original patch by Wolfgang Maier.
+
+- Issue #23252:  Added support for writing ZIP files to unseekable streams.
+
+- Issue #21526: Tkinter now supports new boolean type in Tcl 8.5.
+
+- Issue #23647: Increase impalib's MAXLINE to accommodate modern mailbox sizes.
+
+- Issue #23539: If body is None, http.client.HTTPConnection.request now sets
+  Content-Length to 0 for PUT, POST, and PATCH headers to avoid 411 errors from
+  some web servers.
+
+- Issue #22351: The nntplib.NNTP constructor no longer leaves the connection
+  and socket open until the garbage collector cleans them up.  Patch by
+  Martin Panter.
+
+- Issue #23704: collections.deque() objects now support methods for index(),
+  insert(), and copy().  This allows deques to be registered as a
+  MutableSequence and it improves their substitutablity for lists.
+  Deques now also support __add__, __mul__, and __imul__().
+
+- Issue #23715: :func:`signal.sigwaitinfo` and :func:`signal.sigtimedwait` are
+  now retried when interrupted by a signal not in the *sigset* parameter, if
+  the signal handler does not raise an exception. signal.sigtimedwait()
+  recomputes the timeout with a monotonic clock when it is retried.
+
+- Issue #23001: Few functions in modules mmap, ossaudiodev, socket, ssl, and
+  codecs, that accepted only read-only bytes-like object now accept writable
+  bytes-like object too.
+
+- Issue #23646: If time.sleep() is interrupted by a signal, the sleep is now
+  retried with the recomputed delay, except if the signal handler raises an
+  exception (PEP 475).
+
+- Issue #23136: _strptime now uniformly handles all days in week 0, including
+  Dec 30 of previous year.  Based on patch by Jim Carroll.
+
+- Issue #23700: Iterator of NamedTemporaryFile now keeps a reference to
+  NamedTemporaryFile instance.  Patch by Bohuslav Kabrda.
+
+- Issue #22903: The fake test case created by unittest.loader when it fails
+  importing a test module is now picklable.
+
+- Issue #22181: On Linux, os.urandom() now uses the new getrandom() syscall if
+  available, syscall introduced in the Linux kernel 3.17. It is more reliable
+  and more secure, because it avoids the need of a file descriptor and waits
+  until the kernel has enough entropy.
+
+- Issue #2211: Updated the implementation of the http.cookies.Morsel class.
+  Setting attributes key, value and coded_value directly now is deprecated.
+  update() and setdefault() now transform and check keys.  Comparing for
+  equality now takes into account attributes key, value and coded_value.
+  copy() now returns a Morsel, not a dict.  repr() now contains all attributes.
+  Optimized checking keys and quoting values.  Added new tests.
+  Original patch by Demian Brecht.
+
+- Issue #18983: Allow selection of output units in timeit.
+  Patch by Julian Gindi.
+
+- Issue #23631: Fix traceback.format_list when a traceback has been mutated.
+
+- Issue #23568: Add rdivmod support to MagicMock() objects.
+  Patch by Håkan Lövdahl.
+
+- Issue #2052: Add charset parameter to HtmlDiff.make_file().
+
+- Issue #23138: Fixed parsing cookies with absent keys or values in cookiejar.
+  Patch by Demian Brecht.
+
+- Issue #23051: multiprocessing.Pool methods imap() and imap_unordered() now
+  handle exceptions raised by an iterator.  Patch by Alon Diamant and Davin
+  Potts.
+
+- Issue #23581: Add matmul support to MagicMock. Patch by Håkan Lövdahl.
+
+- Issue #23566: enable(), register(), dump_traceback() and
+  dump_traceback_later() functions of faulthandler now accept file
+  descriptors. Patch by Wei Wu.
+
+- Issue #22928: Disabled HTTP header injections in http.client.
+  Original patch by Demian Brecht.
+
+- Issue #23615: Modules bz2, tarfile and tokenize now can be reloaded with
+  imp.reload().  Patch by Thomas Kluyver.
+
+- Issue #23605: os.walk() now calls os.scandir() instead of os.listdir().
+  The usage of os.scandir() reduces the number of calls to os.stat().
+  Initial patch written by Ben Hoyt.
+
+Build
+-----
+
+- Issue #23585: make patchcheck will ensure the interpreter is built.
+
+Tests
+-----
+
+- Issue #22390: test.regrtest now emits a warning if temporary files or
+  directories are left after running a test.
+
+- Issue #23583: Added tests for standard IO streams in IDLE.
+
+- Issue #22289: Prevent test_urllib2net failures due to ftp connection timeout.
+
+Tools/Demos
+-----------
+
+- Issue #22826: The result of open() in Tools/freeze/bkfile.py is now better
+  compatible with regular files (in particular it now supports the context
+  management protocol).
+
+
+What's New in Python 3.5 alpha 2?
+=================================
+
+Release date: 2015-03-09
+
+Core and Builtins
+-----------------
+
+- Issue #22980: Under Linux, C extensions now include bitness in the file
+  name, to make it easy to test 32-bit and 64-bit builds in the same
+  working tree.
 
 - Issue #23571: PyObject_Call() and PyCFunction_Call() now raise a SystemError
   if a function returns a result and raises an exception. The SystemError is
@@ -16,6 +263,15 @@ Core and Builtins
 
 Library
 -------
+
+- Issue #22524: New os.scandir() function, part of the PEP 471: "os.scandir()
+  function -- a better and faster directory iterator". Patch written by Ben
+  Hoyt.
+
+- Issue #23103: Reduced the memory consumption of IPv4Address and IPv6Address.
+
+- Issue #21793: BaseHTTPRequestHandler again logs response code as numeric,
+  not as stringified enum.  Patch by Demian Brecht.
 
 - Issue #23476: In the ssl module, enable OpenSSL's X509_V_FLAG_TRUSTED_FIRST
   flag on certificate stores when it is available.
@@ -106,13 +362,16 @@ Library
 - Issue #19705: turtledemo now has a visual sorting algorithm demo.  Original
   patch from Jason Yeo.
 
+- Issue #23801: Fix issue where cgi.FieldStorage did not always ignore the
+  entire preamble to a multipart body.
+
 Build
 -----
 
 - Issue #23445: pydebug builds now use "gcc -Og" where possible, to make
   the resulting executable faster.
 
-- Issue #23593: Update OS X 10.5 installer build to use OpenSSL 1.0.2.
+- Issue #23686: Update OS X 10.5 installer build to use OpenSSL 1.0.2a.
 
 C API
 -----

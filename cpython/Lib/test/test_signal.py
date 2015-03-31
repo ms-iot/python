@@ -418,18 +418,28 @@ class WakeupSignalTests(unittest.TestCase):
             TIMEOUT_FULL = 10
             TIMEOUT_HALF = 5
 
+            class InterruptSelect(Exception):
+                pass
+
+            def handler(signum, frame):
+                raise InterruptSelect
+            signal.signal(signal.SIGALRM, handler)
+
             signal.alarm(1)
-            before_time = time.time()
+
             # We attempt to get a signal during the sleep,
             # before select is called
-            time.sleep(TIMEOUT_FULL)
-            mid_time = time.time()
-            dt = mid_time - before_time
-            if dt >= TIMEOUT_HALF:
-                raise Exception("%s >= %s" % (dt, TIMEOUT_HALF))
+            try:
+                select.select([], [], [], TIMEOUT_FULL)
+            except InterruptSelect:
+                pass
+            else:
+                raise Exception("select() was not interrupted")
+
+            before_time = time.monotonic()
             select.select([read], [], [], TIMEOUT_FULL)
-            after_time = time.time()
-            dt = after_time - mid_time
+            after_time = time.monotonic()
+            dt = after_time - before_time
             if dt >= TIMEOUT_HALF:
                 raise Exception("%s >= %s" % (dt, TIMEOUT_HALF))
         """, signal.SIGALRM)
@@ -442,16 +452,23 @@ class WakeupSignalTests(unittest.TestCase):
             TIMEOUT_FULL = 10
             TIMEOUT_HALF = 5
 
+            class InterruptSelect(Exception):
+                pass
+
+            def handler(signum, frame):
+                raise InterruptSelect
+            signal.signal(signal.SIGALRM, handler)
+
             signal.alarm(1)
-            before_time = time.time()
+            before_time = time.monotonic()
             # We attempt to get a signal during the select call
             try:
                 select.select([read], [], [], TIMEOUT_FULL)
-            except OSError:
+            except InterruptSelect:
                 pass
             else:
-                raise Exception("OSError not raised")
-            after_time = time.time()
+                raise Exception("select() was not interrupted")
+            after_time = time.monotonic()
             dt = after_time - before_time
             if dt >= TIMEOUT_HALF:
                 raise Exception("%s >= %s" % (dt, TIMEOUT_HALF))
@@ -709,8 +726,8 @@ class ItimerTest(unittest.TestCase):
         signal.signal(signal.SIGVTALRM, self.sig_vtalrm)
         signal.setitimer(self.itimer, 0.3, 0.2)
 
-        start_time = time.time()
-        while time.time() - start_time < 60.0:
+        start_time = time.monotonic()
+        while time.monotonic() - start_time < 60.0:
             # use up some virtual time by doing real work
             _ = pow(12345, 67890, 10000019)
             if signal.getitimer(self.itimer) == (0.0, 0.0):
@@ -732,8 +749,8 @@ class ItimerTest(unittest.TestCase):
         signal.signal(signal.SIGPROF, self.sig_prof)
         signal.setitimer(self.itimer, 0.2, 0.2)
 
-        start_time = time.time()
-        while time.time() - start_time < 60.0:
+        start_time = time.monotonic()
+        while time.monotonic() - start_time < 60.0:
             # do some work
             _ = pow(12345, 67890, 10000019)
             if signal.getitimer(self.itimer) == (0.0, 0.0):
@@ -932,35 +949,6 @@ class PendingSignalsTests(unittest.TestCase):
     def test_sigtimedwait_negative_timeout(self):
         signum = signal.SIGALRM
         self.assertRaises(ValueError, signal.sigtimedwait, [signum], -1.0)
-
-    @unittest.skipUnless(hasattr(signal, 'sigwaitinfo'),
-                         'need signal.sigwaitinfo()')
-    # Issue #18238: sigwaitinfo() can be interrupted on Linux (raises
-    # InterruptedError), but not on AIX
-    @unittest.skipIf(sys.platform.startswith("aix"),
-                     'signal.sigwaitinfo() cannot be interrupted on AIX')
-    def test_sigwaitinfo_interrupted(self):
-        self.wait_helper(signal.SIGUSR1, '''
-        def test(signum):
-            import errno
-
-            hndl_called = True
-            def alarm_handler(signum, frame):
-                hndl_called = False
-
-            signal.signal(signal.SIGALRM, alarm_handler)
-            signal.alarm(1)
-            try:
-                signal.sigwaitinfo([signal.SIGUSR1])
-            except OSError as e:
-                if e.errno == errno.EINTR:
-                    if not hndl_called:
-                        raise Exception("SIGALRM handler not called")
-                else:
-                    raise Exception("Expected EINTR to be raised by sigwaitinfo")
-            else:
-                raise Exception("Expected EINTR to be raised by sigwaitinfo")
-        ''')
 
     @unittest.skipUnless(hasattr(signal, 'sigwait'),
                          'need signal.sigwait()')

@@ -1,11 +1,14 @@
 #include "Python.h"
 #ifdef MS_WINDOWS
-#include <windows.h>
+#  include <windows.h>
 #else
-#include <fcntl.h>
-#ifdef HAVE_SYS_STAT_H
-#include <sys/stat.h>
-#endif
+#  include <fcntl.h>
+#  ifdef HAVE_SYS_STAT_H
+#    include <sys/stat.h>
+#  endif
+#  ifdef HAVE_GETRANDOM_SYSCALL
+#    include <sys/syscall.h>
+#  endif
 #endif
 
 #ifdef Py_DEBUG
@@ -78,28 +81,97 @@ py_getentropy(unsigned char *buffer, Py_ssize_t size, int fatal)
 {
     while (size > 0) {
         Py_ssize_t len = Py_MIN(size, 256);
-        int res = getentropy(buffer, len);
-        if (res < 0) {
-            if (fatal) {
-                Py_FatalError("getentropy() failed");
-            }
-            else {
+        int res;
+
+        if (!fatal) {
+            Py_BEGIN_ALLOW_THREADS
+            res = getentropy(buffer, len);
+            Py_END_ALLOW_THREADS
+
+            if (res < 0) {
                 PyErr_SetFromErrno(PyExc_OSError);
                 return -1;
             }
         }
+        else {
+            res = getentropy(buffer, len);
+            if (res < 0)
+                Py_FatalError("getentropy() failed");
+        }
+
         buffer += len;
         size -= len;
     }
     return 0;
 }
 
-#else
+#else   /* !HAVE_GETENTROPY */
+
+#ifdef HAVE_GETRANDOM_SYSCALL
+static int
+py_getrandom(void *buffer, Py_ssize_t size, int raise)
+{
+    /* is getrandom() supported by the running kernel?
+     * need Linux kernel 3.17 or later */
+    static int getrandom_works = 1;
+    /* Use /dev/urandom, block if the kernel has no entropy */
+    const int flags = 0;
+    int n;
+
+    if (!getrandom_works)
+        return 0;
+
+    while (0 < size) {
+        errno = 0;
+
+        /* Use syscall() because the libc doesn't expose getrandom() yet, see:
+         * https://sourceware.org/bugzilla/show_bug.cgi?id=17252 */
+        if (raise) {
+            Py_BEGIN_ALLOW_THREADS
+            n = syscall(SYS_getrandom, buffer, size, flags);
+            Py_END_ALLOW_THREADS
+        }
+        else {
+            n = syscall(SYS_getrandom, buffer, size, flags);
+        }
+
+        if (n < 0) {
+            if (errno == ENOSYS) {
+                getrandom_works = 0;
+                return 0;
+            }
+
+            if (errno == EINTR) {
+                /* Note: EINTR should not occur with flags=0 */
+                if (PyErr_CheckSignals()) {
+                    if (!raise)
+                        Py_FatalError("getrandom() interrupted by a signal");
+                    return -1;
+                }
+                /* retry getrandom() */
+                continue;
+            }
+
+            if (raise)
+                PyErr_SetFromErrno(PyExc_OSError);
+            else
+                Py_FatalError("getrandom() failed");
+            return -1;
+        }
+
+        buffer += n;
+        size -= n;
+    }
+    return 1;
+}
+#endif
+
 static struct {
     int fd;
     dev_t st_dev;
     ino_t st_ino;
 } urandom_cache = { -1 };
+
 
 /* Read size bytes from /dev/urandom into buffer.
    Call Py_FatalError() on error. */
@@ -111,7 +183,14 @@ dev_urandom_noraise(unsigned char *buffer, Py_ssize_t size)
 
     assert (0 < size);
 
-    fd = _Py_open("/dev/urandom", O_RDONLY);
+#ifdef HAVE_GETRANDOM_SYSCALL
+    if (py_getrandom(buffer, size, 0) == 1)
+        return;
+    /* getrandom() is not supported by the running kernel, fall back
+     * on reading /dev/urandom */
+#endif
+
+    fd = _Py_open_noraise("/dev/urandom", O_RDONLY);
     if (fd < 0)
         Py_FatalError("Failed to open /dev/urandom");
 
@@ -140,13 +219,26 @@ dev_urandom_python(char *buffer, Py_ssize_t size)
     int fd;
     Py_ssize_t n;
     struct _Py_stat_struct st;
+#ifdef HAVE_GETRANDOM_SYSCALL
+    int res;
+#endif
 
     if (size <= 0)
         return 0;
 
+#ifdef HAVE_GETRANDOM_SYSCALL
+    res = py_getrandom(buffer, size, 1);
+    if (res < 0)
+        return -1;
+    if (res == 1)
+        return 0;
+    /* getrandom() is not supported by the running kernel, fall back
+     * on reading /dev/urandom */
+#endif
+
     if (urandom_cache.fd >= 0) {
         /* Does the fd point to the same thing as before? (issue #21207) */
-        if (_Py_fstat(urandom_cache.fd, &st)
+        if (_Py_fstat_noraise(urandom_cache.fd, &st)
             || st.st_dev != urandom_cache.st_dev
             || st.st_ino != urandom_cache.st_ino) {
             /* Something changed: forget the cached fd (but don't close it,
@@ -158,17 +250,13 @@ dev_urandom_python(char *buffer, Py_ssize_t size)
     if (urandom_cache.fd >= 0)
         fd = urandom_cache.fd;
     else {
-        Py_BEGIN_ALLOW_THREADS
         fd = _Py_open("/dev/urandom", O_RDONLY);
-        Py_END_ALLOW_THREADS
-        if (fd < 0)
-        {
+        if (fd < 0) {
             if (errno == ENOENT || errno == ENXIO ||
                 errno == ENODEV || errno == EACCES)
                 PyErr_SetString(PyExc_NotImplementedError,
                                 "/dev/urandom (or equivalent) not found");
-            else
-                PyErr_SetFromErrno(PyExc_OSError);
+            /* otherwise, keep the OSError exception raised by _Py_open() */
             return -1;
         }
         if (urandom_cache.fd >= 0) {
@@ -179,7 +267,6 @@ dev_urandom_python(char *buffer, Py_ssize_t size)
         }
         else {
             if (_Py_fstat(fd, &st)) {
-                PyErr_SetFromErrno(PyExc_OSError);
                 close(fd);
                 return -1;
             }
@@ -191,29 +278,21 @@ dev_urandom_python(char *buffer, Py_ssize_t size)
         }
     }
 
-    Py_BEGIN_ALLOW_THREADS
     do {
-        do {
-            n = read(fd, buffer, (size_t)size);
-        } while (n < 0 && errno == EINTR);
-        if (n <= 0)
-            break;
-        buffer += n;
-        size -= (Py_ssize_t)n;
-    } while (0 < size);
-    Py_END_ALLOW_THREADS
-
-    if (n <= 0)
-    {
-        /* stop on error or if read(size) returned 0 */
-        if (n < 0)
-            PyErr_SetFromErrno(PyExc_OSError);
-        else
+        n = _Py_read(fd, buffer, (size_t)size);
+        if (n == -1)
+            return -1;
+        if (n == 0) {
             PyErr_Format(PyExc_RuntimeError,
-                         "Failed to read %zi bytes from /dev/urandom",
-                         size);
-        return -1;
-    }
+                    "Failed to read %zi bytes from /dev/urandom",
+                    size);
+            return -1;
+        }
+
+        buffer += n;
+        size -= n;
+    } while (0 < size);
+
     return 0;
 }
 

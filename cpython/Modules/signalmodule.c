@@ -503,7 +503,7 @@ signal_siginterrupt(PyObject *self, PyObject *args)
 static PyObject *
 signal_set_wakeup_fd(PyObject *self, PyObject *args)
 {
-    struct _Py_stat_struct st;
+    struct _Py_stat_struct status;
 #ifdef MS_WINDOWS
     PyObject *fdobj;
     SOCKET_T sockfd, old_sockfd;
@@ -559,10 +559,8 @@ signal_set_wakeup_fd(PyObject *self, PyObject *args)
                 return NULL;
             }
 
-            if (_Py_fstat(fd, &st) != 0) {
-                PyErr_SetFromErrno(PyExc_OSError);
+            if (_Py_fstat(fd, &status) != 0)
                 return NULL;
-            }
 
             /* on Windows, a file cannot be set to non-blocking mode */
         }
@@ -591,10 +589,8 @@ signal_set_wakeup_fd(PyObject *self, PyObject *args)
             return NULL;
         }
 
-        if (_Py_fstat(fd, &st) != 0) {
-            PyErr_SetFromErrno(PyExc_OSError);
+        if (_Py_fstat(fd, &status) != 0)
             return NULL;
-        }
 
         blocking = _Py_get_blocking(fd);
         if (blocking < 0)
@@ -934,6 +930,7 @@ signal_sigwaitinfo(PyObject *self, PyObject *args)
     sigset_t set;
     siginfo_t si;
     int err;
+    int async_err = 0;
 
     if (!PyArg_ParseTuple(args, "O:sigwaitinfo", &signals))
         return NULL;
@@ -941,11 +938,14 @@ signal_sigwaitinfo(PyObject *self, PyObject *args)
     if (iterable_to_sigset(signals, &set))
         return NULL;
 
-    Py_BEGIN_ALLOW_THREADS
-    err = sigwaitinfo(&set, &si);
-    Py_END_ALLOW_THREADS
+    do {
+        Py_BEGIN_ALLOW_THREADS
+        err = sigwaitinfo(&set, &si);
+        Py_END_ALLOW_THREADS
+    } while (err == -1
+             && errno == EINTR && !(async_err = PyErr_CheckSignals()));
     if (err == -1)
-        return PyErr_SetFromErrno(PyExc_OSError);
+        return (!async_err) ? PyErr_SetFromErrno(PyExc_OSError) : NULL;
 
     return fill_siginfo(&si);
 }
@@ -962,25 +962,22 @@ Returns a struct_siginfo containing information about the signal.");
 static PyObject *
 signal_sigtimedwait(PyObject *self, PyObject *args)
 {
-    PyObject *signals, *timeout;
-    struct timespec buf;
+    PyObject *signals, *timeout_obj;
+    struct timespec ts;
     sigset_t set;
     siginfo_t si;
-    time_t tv_sec;
-    long tv_nsec;
-    int err;
+    int res;
+    _PyTime_t timeout, deadline, monotonic;
 
     if (!PyArg_ParseTuple(args, "OO:sigtimedwait",
-                          &signals, &timeout))
+                          &signals, &timeout_obj))
         return NULL;
 
-    if (_PyTime_ObjectToTimespec(timeout, &tv_sec, &tv_nsec,
-                                 _PyTime_ROUND_DOWN) == -1)
+    if (_PyTime_FromSecondsObject(&timeout,
+                                  timeout_obj, _PyTime_ROUND_CEILING) < 0)
         return NULL;
-    buf.tv_sec = tv_sec;
-    buf.tv_nsec = tv_nsec;
 
-    if (buf.tv_sec < 0 || buf.tv_nsec < 0) {
+    if (timeout < 0) {
         PyErr_SetString(PyExc_ValueError, "timeout must be non-negative");
         return NULL;
     }
@@ -988,15 +985,35 @@ signal_sigtimedwait(PyObject *self, PyObject *args)
     if (iterable_to_sigset(signals, &set))
         return NULL;
 
-    Py_BEGIN_ALLOW_THREADS
-    err = sigtimedwait(&set, &si, &buf);
-    Py_END_ALLOW_THREADS
-    if (err == -1) {
-        if (errno == EAGAIN)
-            Py_RETURN_NONE;
-        else
-            return PyErr_SetFromErrno(PyExc_OSError);
-    }
+    deadline = _PyTime_GetMonotonicClock() + timeout;
+
+    do {
+        if (_PyTime_AsTimespec(timeout, &ts) < 0)
+            return NULL;
+
+        Py_BEGIN_ALLOW_THREADS
+        res = sigtimedwait(&set, &si, &ts);
+        Py_END_ALLOW_THREADS
+
+        if (res != -1)
+            break;
+
+        if (errno != EINTR) {
+            if (errno == EAGAIN)
+                Py_RETURN_NONE;
+            else
+                return PyErr_SetFromErrno(PyExc_OSError);
+        }
+
+        /* sigtimedwait() was interrupted by a signal (EINTR) */
+        if (PyErr_CheckSignals())
+            return NULL;
+
+        monotonic = _PyTime_GetMonotonicClock();
+        timeout = deadline - monotonic;
+        if (timeout < 0)
+            break;
+    } while (1);
 
     return fill_siginfo(&si);
 }

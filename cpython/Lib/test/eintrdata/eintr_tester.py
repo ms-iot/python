@@ -10,6 +10,7 @@ sub-second periodicity (contrarily to signal()).
 
 import io
 import os
+import select
 import signal
 import socket
 import time
@@ -37,8 +38,12 @@ class EINTRBaseTest(unittest.TestCase):
                          cls.signal_period)
 
     @classmethod
-    def tearDownClass(cls):
+    def stop_alarm(cls):
         signal.setitimer(signal.ITIMER_REAL, 0, 0)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.stop_alarm()
         signal.signal(signal.SIGALRM, cls.orig_handler)
 
     @classmethod
@@ -252,8 +257,119 @@ class SocketEINTRTest(EINTRBaseTest):
                         lambda path: os.close(os.open(path, os.O_WRONLY)))
 
 
+@unittest.skipUnless(hasattr(signal, "setitimer"), "requires setitimer()")
+class TimeEINTRTest(EINTRBaseTest):
+    """ EINTR tests for the time module. """
+
+    def test_sleep(self):
+        t0 = time.monotonic()
+        time.sleep(self.sleep_time)
+        self.stop_alarm()
+        dt = time.monotonic() - t0
+        self.assertGreaterEqual(dt, self.sleep_time)
+
+
+@unittest.skipUnless(hasattr(signal, "setitimer"), "requires setitimer()")
+class SignalEINTRTest(EINTRBaseTest):
+    """ EINTR tests for the signal module. """
+
+    @unittest.skipUnless(hasattr(signal, 'sigtimedwait'),
+                         'need signal.sigtimedwait()')
+    def test_sigtimedwait(self):
+        t0 = time.monotonic()
+        signal.sigtimedwait([signal.SIGUSR1], self.sleep_time)
+        dt = time.monotonic() - t0
+        self.assertGreaterEqual(dt, self.sleep_time)
+
+    @unittest.skipUnless(hasattr(signal, 'sigwaitinfo'),
+                         'need signal.sigwaitinfo()')
+    def test_sigwaitinfo(self):
+        signum = signal.SIGUSR1
+        pid = os.getpid()
+
+        old_handler = signal.signal(signum, lambda *args: None)
+        self.addCleanup(signal.signal, signum, old_handler)
+
+        t0 = time.monotonic()
+        child_pid = os.fork()
+        if child_pid == 0:
+            # child
+            try:
+                self._sleep()
+                os.kill(pid, signum)
+            finally:
+                os._exit(0)
+        else:
+            # parent
+            signal.sigwaitinfo([signum])
+            dt = time.monotonic() - t0
+            os.waitpid(child_pid, 0)
+
+        self.assertGreaterEqual(dt, self.sleep_time)
+
+
+@unittest.skipUnless(hasattr(signal, "setitimer"), "requires setitimer()")
+class SelectEINTRTest(EINTRBaseTest):
+    """ EINTR tests for the select module. """
+
+    def test_select(self):
+        t0 = time.monotonic()
+        select.select([], [], [], self.sleep_time)
+        dt = time.monotonic() - t0
+        self.stop_alarm()
+        self.assertGreaterEqual(dt, self.sleep_time)
+
+    @unittest.skipUnless(hasattr(select, 'poll'), 'need select.poll')
+    def test_poll(self):
+        poller = select.poll()
+
+        t0 = time.monotonic()
+        poller.poll(self.sleep_time * 1e3)
+        dt = time.monotonic() - t0
+        self.stop_alarm()
+        self.assertGreaterEqual(dt, self.sleep_time)
+
+    @unittest.skipUnless(hasattr(select, 'epoll'), 'need select.epoll')
+    def test_epoll(self):
+        poller = select.epoll()
+        self.addCleanup(poller.close)
+
+        t0 = time.monotonic()
+        poller.poll(self.sleep_time)
+        dt = time.monotonic() - t0
+        self.stop_alarm()
+        self.assertGreaterEqual(dt, self.sleep_time)
+
+    @unittest.skipUnless(hasattr(select, 'kqueue'), 'need select.kqueue')
+    def test_kqueue(self):
+        kqueue = select.kqueue()
+        self.addCleanup(kqueue.close)
+
+        t0 = time.monotonic()
+        kqueue.control(None, 1, self.sleep_time)
+        dt = time.monotonic() - t0
+        self.stop_alarm()
+        self.assertGreaterEqual(dt, self.sleep_time)
+
+    @unittest.skipUnless(hasattr(select, 'devpoll'), 'need select.devpoll')
+    def test_devpoll(self):
+        poller = select.devpoll()
+        self.addCleanup(poller.close)
+
+        t0 = time.monotonic()
+        poller.poll(self.sleep_time * 1e3)
+        dt = time.monotonic() - t0
+        self.stop_alarm()
+        self.assertGreaterEqual(dt, self.sleep_time)
+
+
 def test_main():
-    support.run_unittest(OSEINTRTest, SocketEINTRTest)
+    support.run_unittest(
+        OSEINTRTest,
+        SocketEINTRTest,
+        TimeEINTRTest,
+        SignalEINTRTest,
+        SelectEINTRTest)
 
 
 if __name__ == "__main__":

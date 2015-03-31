@@ -707,8 +707,7 @@ public: // IBootstrapperApplication
         HRESULT hr = S_OK;
         BAL_INFO_PACKAGE* pPackage = nullptr;
 
-        if (_nextPackageAfterRestart) // after force restart, skip packages until after the package that caused the restart.
-        {
+        if (_nextPackageAfterRestart) {
             // After restart we need to finish the dependency registration for our package so allow the package
             // to go present.
             if (CSTR_EQUAL == ::CompareStringW(LOCALE_NEUTRAL, 0, wzPackageId, -1, _nextPackageAfterRestart, -1)) {
@@ -723,6 +722,12 @@ public: // IBootstrapperApplication
                 BalLog(BOOTSTRAPPER_LOG_LEVEL_STANDARD, "Skipping package: %ls, after restart because it was applied before the restart.", wzPackageId);
 
                 *pRequestState = BOOTSTRAPPER_REQUEST_STATE_NONE;
+            }
+        } else if ((_plannedAction == BOOTSTRAPPER_ACTION_INSTALL || _plannedAction == BOOTSTRAPPER_ACTION_MODIFY) &&
+                   SUCCEEDED(BalInfoFindPackageById(&_bundle.packages, wzPackageId, &pPackage))) {
+            BOOL f = FALSE;
+            if (SUCCEEDED(_engine->EvaluateCondition(pPackage->sczInstallCondition, &f)) && f) {
+                *pRequestState = BOOTSTRAPPER_REQUEST_STATE_PRESENT;
             }
         }
 
@@ -742,6 +747,8 @@ public: // IBootstrapperApplication
             } else {
                 *pRequestedState = BOOTSTRAPPER_FEATURE_STATE_ABSENT;
             }
+        } else {
+            *pRequestedState = BOOTSTRAPPER_FEATURE_STATE_LOCAL;
         }
         return CheckCanceled() ? IDCANCEL : IDNOACTION;
     }
@@ -1231,10 +1238,11 @@ private:
 
         hr = LoadBootstrapperBAFunctions();
         BalExitOnFailure(hr, "Failed to load bootstrapper functions.");
+        hr = UpdateUIStrings(_command.action);
+        BalExitOnFailure(hr, "Failed to load UI strings.");
 
         GetBundleFileVersion();
         // don't fail if we couldn't get the version info; best-effort only
-
     LExit:
         ReleaseObject(pixdManifest);
         ReleaseStr(sczModulePath);
@@ -1833,18 +1841,10 @@ private:
 
         return;
     }
-
-
-    //
-    // OnPlan - plan the detected changes.
-    //
-    void OnPlan(__in BOOTSTRAPPER_ACTION action) {
+    HRESULT UpdateUIStrings(__in BOOTSTRAPPER_ACTION action) {
         HRESULT hr = S_OK;
         LPCWSTR likeInstalling = nullptr;
         LPCWSTR likeInstallation = nullptr;
-
-        _plannedAction = action;
-
         switch (action) {
         case BOOTSTRAPPER_ACTION_INSTALL:
             likeInstalling = L"Installing";
@@ -1893,6 +1893,19 @@ private:
                 SUCCEEDED(hr) && locText ? locText->wzText : likeInstallation
             );
         }
+        return hr;
+    }
+
+    //
+    // OnPlan - plan the detected changes.
+    //
+    void OnPlan(__in BOOTSTRAPPER_ACTION action) {
+        HRESULT hr = S_OK;
+
+        _plannedAction = action;
+
+        hr = UpdateUIStrings(action);
+        BalExitOnFailure(hr, "Failed to update strings");
 
         // If we are going to apply a downgrade, bail.
         if (_downgrading && BOOTSTRAPPER_ACTION_UNINSTALL < action) {
@@ -2574,6 +2587,7 @@ public:
             }
         }
 
+        _crtInstalledToken = -1;
         pEngine->SetVariableNumeric(L"CRTInstalled", IsCrtInstalled() ? 1 : 0);
 
         _wixLoc = nullptr;
@@ -2602,8 +2616,6 @@ public:
         _suppressDowngradeFailure = FALSE;
         _suppressRepair = FALSE;
         _modifying = FALSE;
-
-        _crtInstalledToken = -1;
 
         _overridableVariables = nullptr;
         _taskbarList = nullptr;
