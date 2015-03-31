@@ -15,20 +15,18 @@ extern "C" {
     void init_gpio(PyObject* module) {
         gpioPins = ref new Vector<GpioPin^>();
 
-        create_task(GpioController::GetDefaultAsync()).then([=](GpioController^ controller) {
-            gpioController = controller;
+		gpioController = GpioController::GetDefault();
 
-            if (gpioController != nullptr) {
-                int pinCount = (int)gpioController->PinCount;
+        if (gpioController != nullptr) {
+            int pinCount = (int)gpioController->PinCount;
 
-                // Ensure the vector has the number of pins
-                for (auto i = 0; i < pinCount; i++) {
-                    gpioPins->Append(nullptr);
-                }
+            // Ensure the vector has the number of pins
+            for (auto i = 0; i < pinCount; i++) {
+                gpioPins->Append(nullptr);
+            }
 
-				PyModule_AddIntConstant(module, "pincount", pinCount);
-			}
-        }).wait();
+			PyModule_AddIntConstant(module, "pincount", pinCount);
+		}
     }
 
     void setup_gpio_channel(int channel, int direction, int pull_up_down, int initial) {

@@ -11,29 +11,33 @@ static const char moduledocstring[] = "I2C functionality of a Windows \"Athens\"
 static void
 i2cdevice_dealloc(PyI2cDeviceObject *d) 
 {
-	delete_i2cdevice(d->i2cdevice);
-	d->i2cdevice = NULL;
+	delete_i2cdevice(d->ob_device);
+	d->ob_device = NULL;
+	Py_TYPE(d)->tp_free((PyObject*)d);
 }
 
 static PyObject *
 i2cdevice_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-	PyObject *newObj;
+	PyI2cDeviceObject *self;
 
-	newObj = type->tp_alloc(type, 0);
+	self = (PyI2cDeviceObject*)type->tp_alloc(type, 0);
+	if (self != NULL) {
+		self->ob_device = NULL;
+	}
 
-	return newObj;
+	return (PyObject*)self;
 }
 
 static PyMethodDef i2cdevice_methods[] = {
-	{ NULL, NULL, 0, NULL }
-};
-
-static PyMemberDef i2cdevice_memberlist[] = {
-	{0},
-};
-
-static PyMethodDef win_i2c_methods[] = {
+	/*
+	{ "read", (PyCFunction)i2cdevice_read, METH_VARARGS | METH_KEYWORDS, "Reads data from I2C device" },
+	{ "write", (PyCFunction)i2cdevice_write, METH_VARARGS | METH_KEYWORDS, "Writes data to I2C device" },
+	{ "writeread", (PyCFunction)i2cdevice_writeread, METH_VARARGS | METH_KEYWORDS, "Writes data to and reads data from I2C device" },
+	{ "slaveaddress", (PyCFunction)i2cdevice_slaveaddress, METH_NOARGS, "Returns slave address for I2C device" },
+	{ "busspeed", (PyCFunction)i2cdevice_busspeed, METH_NOARGS, "Returns bus speed for I2C device" },
+	{ "sharingmode", (PyCFunction)i2cdevice_sharingmode, METH_NOARGS, "Returns sharing mode for I2C device" },
+	*/
 	{ NULL, NULL, 0, NULL }
 };
 
@@ -42,7 +46,6 @@ static struct PyModuleDef wini2cmodule = {
 	"wini2c",       // name of module
 	moduledocstring,  // module documentation, may be NULL
 	-1,               // size of per-interpreter state of the module, or -1 if the module keeps state in global variables.
-	win_i2c_methods
 };
 
 static PyTypeObject i2cdevice_type = {
@@ -53,27 +56,36 @@ static PyTypeObject i2cdevice_type = {
 };
 
 static int
-i2cdevice_initobj(PyObject *self, PyObject *args, PyObject *kwds)
+i2cdevice_init(PyI2cDeviceObject *self, PyObject *args, PyObject *kwds)
 {
-	PyI2cDeviceObject *d = (PyI2cDeviceObject *)self;
-	static char *keywords[] = { "deviceId", "address", 0 };
-	char *deviceId = NULL;
-	int address = 0;
+	static char *keywords[] = { "name", "slaveaddress", "busspeed", "sharemode", NULL };
+	PyObject *name = NULL, *tmp = NULL;
+	int slaveAddress = 0;
+	int shareMode = EXCLUSIVEMODE;
+	int busSpeed = STANDARDSPEED;
+	wchar_t* nameString = NULL;
 
 	if (!PyArg_ParseTupleAndKeywords(args, 
 		kwds, 
-		"|ziO:i2cdevice", 
+		"Oi|ii", 
 		keywords, 
-		&deviceId, 
-		&address))
+		&name, 
+		&slaveAddress,
+		&busSpeed,
+		&shareMode))
 		return -1;
 
-	d->i2cdevice = new_i2cdevice(deviceId, address);
+	nameString = PyUnicode_AsWideCharString(name, NULL);
+
+	self->ob_device = new_i2cdevice(nameString, slaveAddress, busSpeed, shareMode);
+	if (self->ob_device == NULL)
+		return -1;
 
 	return 0;
 }
 
-PyMODINIT_FUNC PyInit_wini2c(void)
+PyMODINIT_FUNC 
+PyInit_wini2c(void)
 {
 	PyObject *module = NULL;
 
@@ -82,8 +94,7 @@ PyMODINIT_FUNC PyInit_wini2c(void)
 	i2cdevice_type.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
 	i2cdevice_type.tp_doc = i2cdevice_doc;
 	i2cdevice_type.tp_methods = i2cdevice_methods;
-	i2cdevice_type.tp_members = i2cdevice_memberlist;
-	i2cdevice_type.tp_init = i2cdevice_initobj;
+	i2cdevice_type.tp_init = (initproc)i2cdevice_init;
 	i2cdevice_type.tp_alloc = PyType_GenericAlloc;
 	i2cdevice_type.tp_new = i2cdevice_new;
 	i2cdevice_type.tp_free = PyObject_Del;
@@ -91,8 +102,14 @@ PyMODINIT_FUNC PyInit_wini2c(void)
 
 	Py_TYPE(&i2cdevice_type) = &PyType_Type;
 
+	if (PyType_Ready(&i2cdevice_type) < 0)
+		return NULL;
+
 	if ((module = PyModule_Create(&wini2cmodule)) == NULL)
 		return NULL;
+
+	Py_INCREF(&i2cdevice_type);
+	PyModule_AddObject(module, "i2cdevice", (PyObject*)&i2cdevice_type);
 
 	define_constants(module);
 

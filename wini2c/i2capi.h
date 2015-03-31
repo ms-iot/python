@@ -27,29 +27,24 @@ extern "C" {
 #endif
 	typedef struct {
 		PyObject_HEAD
-		void* i2cdevice;
+		void *ob_device;
 	} PyI2cDeviceObject;
 
-    void* new_i2cdevice(char *deviceId, int address);
-	void  delete_i2cdevice(void* device);
+    void *new_i2cdevice(wchar_t *name, int slaveAddress, int busSpeed, int shareMode);
+	void delete_i2cdevice(void *device);
+	void write_i2cdevice(void *device, unsigned char* data, unsigned int count);
+	void read_i2cdevice(void *device, unsigned char* buffer, unsigned int length);
+	void writeread_i2cdevice(void *device, unsigned char* data, unsigned int count, unsigned char* buffer, unsigned int length);
+	int getbusspeed_i2cdevice(void *device);
+	int getsharingmode_i2cdevice(void *device);
+	int getaddress_i2cdevice(void *device);
 
 #ifdef __cplusplus
 }
 #endif
 
-#define SETUP_OK          0
-#define SETUP_DEVMEM_FAIL 1
-#define SETUP_MALLOC_FAIL 2
-#define SETUP_MMAP_FAIL   3
+#define STANDARDSPEED 0
+#define FASTSPEED 1
 
-#define INPUT  1 // is really 0 for control register!
-#define OUTPUT 0 // is really 1 for control register!
-#define ALT0   4
-
-#define HIGH 1
-#define LOW  0
-
-#define PUD_OFF  0
-#define PUD_DOWN 1
-#define PUD_UP   2
-
+#define EXCLUSIVEMODE 0
+#define SHAREDMODE 1
