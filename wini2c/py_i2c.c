@@ -39,29 +39,63 @@ i2cdevice_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 static PyObject *py_i2cdevice_read(PyI2cDeviceObject *self, PyObject *args, PyObject *kwargs)
 {
 	static char *kwlist[] = { "count", NULL };
-	int* count = 0;
+	int* count = 1;
 	PyByteArrayObject* result = NULL;
 
 	VALIDATE_I2C(self);
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i|", kwlist, &count))
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", kwlist, &count))
 		return NULL;
 
 	result = PyByteArray_FromStringAndSize(NULL, count);
+
+	read_i2cdevice(self->ob_device, result->ob_bytes, count);
 
 	return result;
 }
 
 static PyObject *py_i2cdevice_write(PyI2cDeviceObject *self, PyObject *args, PyObject *kwargs)
 {
+	static char *kwlist[] = { "data", NULL };
+	PyObject* data = NULL;
+	PyByteArrayObject* byteArray = NULL;
+
 	VALIDATE_I2C(self);
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|", kwlist, &data))
+		return NULL;
+
+	byteArray = PyBytes_FromObject(data);
+	if (byteArray == NULL)
+		return NULL;
+
+	write_i2cdevice(self->ob_device, byteArray->ob_bytes, PyByteArray_Size(byteArray));
+
 	Py_RETURN_NONE;
 }
 
 static PyObject *py_i2cdevice_writeread(PyI2cDeviceObject *self, PyObject *args, PyObject *kwargs)
 {
+	static char *kwlist[] = { "data", "count", NULL };
+	PyObject* data = NULL;
+	PyByteArrayObject* byteArray = NULL;
+	int* count = 1;
+	PyByteArrayObject* result = NULL;
+
 	VALIDATE_I2C(self);
-	Py_RETURN_NONE;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", kwlist, &data, &count))
+		return NULL;
+
+	byteArray = PyBytes_FromObject(data);
+	if (byteArray == NULL)
+		return NULL;
+
+	result = PyByteArray_FromStringAndSize(NULL, count);
+
+	writeread_i2cdevice(self->ob_device, byteArray->ob_bytes, PyByteArray_Size(byteArray), result->ob_bytes, count);
+
+	return result;
 }
 
 static PyObject *py_i2cdevice_slaveaddress(PyI2cDeviceObject *self, PyObject *args)
