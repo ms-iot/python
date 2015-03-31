@@ -3,6 +3,13 @@
 #include "constants.h"
 #include "structmember.h"
 
+#define VALIDATE_I2C(d) \
+    if (!(d) && !((d)->ob_device)) { \
+        PyErr_SetString(PyExc_ValueError, \
+             "I2C device is not initialized"); \
+        return NULL; \
+    }
+
 PyDoc_STRVAR(i2cdevice_doc,
 "i2cdevice(deviceId=<deviceid>, address=<address>) -> i2cdevice\n");
 
@@ -29,15 +36,80 @@ i2cdevice_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	return (PyObject*)self;
 }
 
+static PyObject *py_i2cdevice_read(PyI2cDeviceObject *self, PyObject *args, PyObject *kwargs)
+{
+	static char *kwlist[] = { "count", NULL };
+	int* count = 0;
+	PyByteArrayObject* result = NULL;
+
+	VALIDATE_I2C(self);
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i|", kwlist, &count))
+		return NULL;
+
+	result = PyByteArray_FromStringAndSize(NULL, count);
+
+	return result;
+}
+
+static PyObject *py_i2cdevice_write(PyI2cDeviceObject *self, PyObject *args, PyObject *kwargs)
+{
+	VALIDATE_I2C(self);
+	Py_RETURN_NONE;
+}
+
+static PyObject *py_i2cdevice_writeread(PyI2cDeviceObject *self, PyObject *args, PyObject *kwargs)
+{
+	VALIDATE_I2C(self);
+	Py_RETURN_NONE;
+}
+
+static PyObject *py_i2cdevice_slaveaddress(PyI2cDeviceObject *self, PyObject *args)
+{
+	VALIDATE_I2C(self);
+
+	long val = getaddress_i2cdevice(self->ob_device);
+
+	if (val != -1) {
+		return PyLong_FromLong(val);
+	}
+
+	return NULL;
+}
+
+static PyObject *py_i2cdevice_busspeed(PyI2cDeviceObject *self, PyObject *args)
+{
+	VALIDATE_I2C(self);
+
+	long val = getbusspeed_i2cdevice(self->ob_device);
+
+	if (val != -1) {
+		return PyLong_FromLong(val);
+	}
+
+	return NULL;
+}
+
+static PyObject *py_i2cdevice_sharingmode(PyI2cDeviceObject *self, PyObject *args)
+{
+	VALIDATE_I2C(self);
+
+	long val = getsharingmode_i2cdevice(self->ob_device);
+
+	if (val != -1) {
+		return PyLong_FromLong(val);
+	}
+
+	return NULL;
+}
+
 static PyMethodDef i2cdevice_methods[] = {
-	/*
-	{ "read", (PyCFunction)i2cdevice_read, METH_VARARGS | METH_KEYWORDS, "Reads data from I2C device" },
-	{ "write", (PyCFunction)i2cdevice_write, METH_VARARGS | METH_KEYWORDS, "Writes data to I2C device" },
-	{ "writeread", (PyCFunction)i2cdevice_writeread, METH_VARARGS | METH_KEYWORDS, "Writes data to and reads data from I2C device" },
-	{ "slaveaddress", (PyCFunction)i2cdevice_slaveaddress, METH_NOARGS, "Returns slave address for I2C device" },
-	{ "busspeed", (PyCFunction)i2cdevice_busspeed, METH_NOARGS, "Returns bus speed for I2C device" },
-	{ "sharingmode", (PyCFunction)i2cdevice_sharingmode, METH_NOARGS, "Returns sharing mode for I2C device" },
-	*/
+	{ "read", (PyCFunction)py_i2cdevice_read, METH_VARARGS | METH_KEYWORDS, "Reads data from I2C device" },
+	{ "write", (PyCFunction)py_i2cdevice_write, METH_VARARGS | METH_KEYWORDS, "Writes data to I2C device" },
+	{ "writeread", (PyCFunction)py_i2cdevice_writeread, METH_VARARGS | METH_KEYWORDS, "Writes data to and reads data from I2C device" },
+	{ "slaveaddress", (PyCFunction)py_i2cdevice_slaveaddress, METH_NOARGS, "Returns slave address for I2C device" },
+	{ "busspeed", (PyCFunction)py_i2cdevice_busspeed, METH_NOARGS, "Returns bus speed for I2C device" },
+	{ "sharingmode", (PyCFunction)py_i2cdevice_sharingmode, METH_NOARGS, "Returns sharing mode for I2C device" },
 	{ NULL, NULL, 0, NULL }
 };
 

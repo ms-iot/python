@@ -59,27 +59,30 @@ extern "C" {
 		}
 	}
 
-	void write_i2cdevice(void *device, unsigned char* data, unsigned int count) {
+	void write_i2cdevice(void *device, char* data, unsigned int count) {
 		if (device != NULL) {
 			I2cDevice^ i2cDevice = I2CDEVICE_FROMPOINTER(device);
-
-			i2cDevice->Write(ArrayReference<unsigned char>(data, count));
+			unsigned char* udata = reinterpret_cast<unsigned char*>(data);
+			i2cDevice->Write(ArrayReference<unsigned char>(udata, count));
 		}
 	}
 
-	void read_i2cdevice(void *device, unsigned char* buffer, unsigned int length) {
+	void read_i2cdevice(void *device, char* buffer, unsigned int length) {
 		if (device != NULL) {
 			I2cDevice^ i2cDevice = I2CDEVICE_FROMPOINTER(device);
+			unsigned char* ubuffer = reinterpret_cast<unsigned char*>(buffer);
 
-			i2cDevice->Read(ArrayReference<unsigned char>(buffer, length));
+			i2cDevice->Read(ArrayReference<unsigned char>(ubuffer, length));
 		}
 	}
 
-	void writeread_i2cdevice(void *device, unsigned char* data, unsigned int count, unsigned char* buffer, unsigned int length) {
+	void writeread_i2cdevice(void *device, char* data, unsigned int count, char* buffer, unsigned int length) {
 		if (device != NULL) {
 			I2cDevice^ i2cDevice = I2CDEVICE_FROMPOINTER(device);
+			unsigned char* udata = reinterpret_cast<unsigned char*>(data);
+			unsigned char* ubuffer = reinterpret_cast<unsigned char*>(buffer);
 
-			i2cDevice->WriteRead(ArrayReference<unsigned char>(data, count), ArrayReference<unsigned char>(buffer, length));
+			i2cDevice->WriteRead(ArrayReference<unsigned char>(udata, count), ArrayReference<unsigned char>(ubuffer, length));
 		}
 	}
 

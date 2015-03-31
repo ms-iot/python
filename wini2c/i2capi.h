@@ -32,9 +32,9 @@ extern "C" {
 
     void *new_i2cdevice(wchar_t *name, int slaveAddress, int busSpeed, int shareMode);
 	void delete_i2cdevice(void *device);
-	void write_i2cdevice(void *device, unsigned char* data, unsigned int count);
-	void read_i2cdevice(void *device, unsigned char* buffer, unsigned int length);
-	void writeread_i2cdevice(void *device, unsigned char* data, unsigned int count, unsigned char* buffer, unsigned int length);
+	void write_i2cdevice(void *device, char* data, unsigned int count);
+	void read_i2cdevice(void *device, char* buffer, unsigned int length);
+	void writeread_i2cdevice(void *device, char* data, unsigned int count, char* buffer, unsigned int length);
 	int getbusspeed_i2cdevice(void *device);
 	int getsharingmode_i2cdevice(void *device);
 	int getaddress_i2cdevice(void *device);
