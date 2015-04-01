@@ -1661,14 +1661,16 @@ magic_methods = (
     "len contains iter "
     "hash str sizeof "
     "enter exit "
-    "divmod neg pos abs invert "
+    # we added divmod and rdivmod here instead of numerics
+    # because there is no idivmod
+    "divmod rdivmod neg pos abs invert "
     "complex int float index "
     "trunc floor ceil "
     "bool next "
 )
 
 numerics = (
-    "add sub mul div floordiv mod lshift rshift and xor or pow truediv"
+    "add sub mul matmul div floordiv mod lshift rshift and xor or pow truediv"
 )
 inplace = ' '.join('i%s' % n for n in numerics.split())
 right = ' '.join('r%s' % n for n in numerics.split())

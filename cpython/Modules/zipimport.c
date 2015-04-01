@@ -875,8 +875,12 @@ read_directory(PyObject *archive)
 
     fp = _Py_fopen_obj(archive, "rb");
     if (fp == NULL) {
-        if (!PyErr_Occurred())
+        if (PyErr_ExceptionMatches(PyExc_OSError)) {
+            PyObject *exc, *val, *tb;
+            PyErr_Fetch(&exc, &val, &tb);
             PyErr_Format(ZipImportError, "can't open Zip file: %R", archive);
+            _PyErr_ChainExceptions(exc, val, tb);
+        }
         return NULL;
     }
 
@@ -939,6 +943,9 @@ read_directory(PyObject *archive)
         header_size = name_size +
            PyMarshal_ReadShortFromFile(fp) +
            PyMarshal_ReadShortFromFile(fp);
+        if (PyErr_Occurred())
+            goto error;
+
         if (fread(dummy, 1, 8, fp) != 8) /* Skip unused fields, avoid fseek */
             goto file_error;
         file_offset = PyMarshal_ReadLongFromFile(fp) + arc_offset;
@@ -1073,12 +1080,8 @@ get_data(PyObject *archive, PyObject *toc_entry)
     }
 
     fp = _Py_fopen_obj(archive, "rb");
-    if (!fp) {
-        if (!PyErr_Occurred())
-            PyErr_Format(PyExc_IOError,
-               "zipimport: can not open file %U", archive);
+    if (!fp)
         return NULL;
-    }
 
     /* Check to make sure the local file header is correct */
     if (fseek(fp, file_offset, 0) == -1) {

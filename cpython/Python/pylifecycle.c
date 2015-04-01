@@ -550,7 +550,7 @@ Py_Finalize(void)
     _Py_Finalizing = tstate;
     initialized = 0;
 
-    /* Flush stdout+stderr */
+    /* Flush sys.stdout and sys.stderr */
     flush_std_files();
 
     /* Disable signal handling */
@@ -579,7 +579,7 @@ Py_Finalize(void)
     /* Destroy all modules */
     PyImport_Cleanup();
 
-    /* Flush stdout+stderr (again, in case more was printed) */
+    /* Flush sys.stdout and sys.stderr (again, in case more was printed) */
     flush_std_files();
 
     /* Collect final garbage.  This disposes of cycles created by
@@ -1248,34 +1248,112 @@ initstdio(void)
 }
 
 
+/* Print the current exception (if an exception is set) with its traceback,
+ * or display the current Python stack.
+ *
+ * Don't call PyErr_PrintEx() and the except hook, because Py_FatalError() is
+ * called on catastrophic cases. */
+
+static void
+_Py_PrintFatalError(int fd)
+{
+    PyObject *ferr, *res;
+    PyObject *exception, *v, *tb;
+    int has_tb;
+    PyThreadState *tstate;
+
+    PyErr_Fetch(&exception, &v, &tb);
+    if (exception == NULL) {
+        /* No current exception */
+        goto display_stack;
+    }
+
+    ferr = _PySys_GetObjectId(&PyId_stderr);
+    if (ferr == NULL || ferr == Py_None) {
+        /* sys.stderr is not set yet or set to None,
+           no need to try to display the exception */
+        goto display_stack;
+    }
+
+    PyErr_NormalizeException(&exception, &v, &tb);
+    if (tb == NULL) {
+        tb = Py_None;
+        Py_INCREF(tb);
+    }
+    PyException_SetTraceback(v, tb);
+    if (exception == NULL) {
+        /* PyErr_NormalizeException() failed */
+        goto display_stack;
+    }
+
+    has_tb = (tb != NULL && tb != Py_None);
+    PyErr_Display(exception, v, tb);
+    Py_XDECREF(exception);
+    Py_XDECREF(v);
+    Py_XDECREF(tb);
+
+    /* sys.stderr may be buffered: call sys.stderr.flush() */
+    res = _PyObject_CallMethodId(ferr, &PyId_flush, "");
+    if (res == NULL)
+        PyErr_Clear();
+    else
+        Py_DECREF(res);
+
+    if (has_tb)
+        return;
+
+display_stack:
+    /* PyGILState_GetThisThreadState() works even if the GIL was released */
+    tstate = PyGILState_GetThisThreadState();
+    if (tstate == NULL) {
+        /* _Py_DumpTracebackThreads() requires the thread state to display
+         * frames */
+        return;
+    }
+
+    fputc('\n', stderr);
+    fflush(stderr);
+
+    /* display the current Python stack */
+    _Py_DumpTracebackThreads(fd, tstate->interp, tstate);
+}
 /* Print fatal error message and abort */
 
 void
 Py_FatalError(const char *msg)
 {
     const int fd = fileno(stderr);
-    PyThreadState *tstate;
+    static int reentrant = 0;
+#ifdef MS_WINDOWS
+    size_t len;
+    WCHAR* buffer;
+    size_t i;
+#endif
+
+    if (reentrant) {
+        /* Py_FatalError() caused a second fatal error.
+           Example: flush_std_files() raises a recursion error. */
+        goto exit;
+    }
+    reentrant = 1;
 
     fprintf(stderr, "Fatal Python error: %s\n", msg);
     fflush(stderr); /* it helps in Windows debug build */
-    if (PyErr_Occurred()) {
-        PyErr_PrintEx(0);
-    }
-    else {
-        tstate = (PyThreadState*)_Py_atomic_load_relaxed(&_PyThreadState_Current);
-        if (tstate != NULL) {
-            fputc('\n', stderr);
-            fflush(stderr);
-            _Py_DumpTracebackThreads(fd, tstate->interp, tstate);
-        }
-        _PyFaulthandler_Fini();
-    }
+
+    /* Print the exception (if an exception is set) with its traceback,
+     * or display the current Python stack. */
+    _Py_PrintFatalError(fd);
+
+    /* Flush sys.stdout and sys.stderr */
+    flush_std_files();
+
+    /* The main purpose of faulthandler is to display the traceback. We already
+     * did our best to display it. So faulthandler can now be disabled.
+     * (Don't trigger it on abort().) */
+    _PyFaulthandler_Fini();
 
 #ifdef MS_WINDOWS
-    {
-        size_t len = strlen(msg);
-        WCHAR* buffer;
-        size_t i;
+    len = strlen(msg);
 
         /* Convert the message to wchar_t. This uses a simple one-to-one
         conversion, assuming that the this error message actually uses ASCII
@@ -1286,11 +1364,12 @@ Py_FatalError(const char *msg)
         OutputDebugStringW(L"Fatal Python error: ");
         OutputDebugStringW(buffer);
         OutputDebugStringW(L"\n");
-    }
-#if defined(_DEBUG) && !defined(MS_WINRT)
+#endif /*MS_WINDOWS */
+
+exit:
+#if defined(_DEBUG) && defined(MS_WINDOWS) && !defined(MS_WINRT)
     DebugBreak();
 #endif
-#endif /* MS_WINDOWS */
     abort();
 }
 

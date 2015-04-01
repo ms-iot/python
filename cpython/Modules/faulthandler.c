@@ -133,32 +133,46 @@ static stack_t stack;
    call its flush() method.
 
    If file is NULL or Py_None, use sys.stderr as the new file.
+   If file is an integer, it will be treated as file descriptor.
 
-   On success, return the new file and write the file descriptor into *p_fd.
-   On error, return NULL. */
+   On success, return the file descriptor and write the new file into *file_ptr.
+   On error, return -1. */
 
-static PyObject*
-faulthandler_get_fileno(PyObject *file, int *p_fd)
+static int
+faulthandler_get_fileno(PyObject **file_ptr)
 {
     PyObject *result;
     long fd_long;
     int fd;
+    PyObject *file = *file_ptr;
 
     if (file == NULL || file == Py_None) {
         file = _PySys_GetObjectId(&PyId_stderr);
         if (file == NULL) {
             PyErr_SetString(PyExc_RuntimeError, "unable to get sys.stderr");
-            return NULL;
+            return -1;
         }
         if (file == Py_None) {
             PyErr_SetString(PyExc_RuntimeError, "sys.stderr is None");
-            return NULL;
+            return -1;
         }
+    }
+    else if (PyLong_Check(file)) {
+        fd = _PyLong_AsInt(file);
+        if (fd == -1 && PyErr_Occurred())
+            return -1;
+        if (fd < 0 || !_PyVerify_fd(fd)) {
+            PyErr_SetString(PyExc_ValueError,
+                            "file is not a valid file descripter");
+            return -1;
+        }
+        *file_ptr = NULL;
+        return fd;
     }
 
     result = _PyObject_CallMethodId(file, &PyId_fileno, "");
     if (result == NULL)
-        return NULL;
+        return -1;
 
     fd = -1;
     if (PyLong_Check(result)) {
@@ -171,7 +185,7 @@ faulthandler_get_fileno(PyObject *file, int *p_fd)
     if (fd == -1) {
         PyErr_SetString(PyExc_RuntimeError,
                         "file.fileno() is not a valid file descriptor");
-        return NULL;
+        return -1;
     }
 
     result = _PyObject_CallMethodId(file, &PyId_flush, "");
@@ -181,8 +195,8 @@ faulthandler_get_fileno(PyObject *file, int *p_fd)
         /* ignore flush() error */
         PyErr_Clear();
     }
-    *p_fd = fd;
-    return file;
+    *file_ptr = file;
+    return fd;
 }
 
 /* Get the state of the current thread: only call this function if the current
@@ -215,8 +229,8 @@ faulthandler_dump_traceback_py(PyObject *self,
         &file, &all_threads))
         return NULL;
 
-    file = faulthandler_get_fileno(file, &fd);
-    if (file == NULL)
+    fd = faulthandler_get_fileno(&file);
+    if (fd < 0)
         return NULL;
 
     tstate = get_thread_state();
@@ -339,8 +353,8 @@ faulthandler_enable(PyObject *self, PyObject *args, PyObject *kwargs)
         "|Oi:enable", kwlist, &file, &all_threads))
         return NULL;
 
-    file = faulthandler_get_fileno(file, &fd);
-    if (file == NULL)
+    fd = faulthandler_get_fileno(&file);
+    if (fd < 0)
         return NULL;
 
     tstate = get_thread_state();
@@ -348,7 +362,7 @@ faulthandler_enable(PyObject *self, PyObject *args, PyObject *kwargs)
         return NULL;
 
     Py_XDECREF(fatal_error.file);
-    Py_INCREF(file);
+    Py_XINCREF(file);
     fatal_error.file = file;
     fatal_error.fd = fd;
     fatal_error.all_threads = all_threads;
@@ -559,8 +573,8 @@ faulthandler_dump_traceback_later(PyObject *self,
     if (tstate == NULL)
         return NULL;
 
-    file = faulthandler_get_fileno(file, &fd);
-    if (file == NULL)
+    fd = faulthandler_get_fileno(&file);
+    if (fd < 0)
         return NULL;
 
     /* format the timeout */
@@ -573,7 +587,7 @@ faulthandler_dump_traceback_later(PyObject *self,
     cancel_dump_traceback_later();
 
     Py_XDECREF(thread.file);
-    Py_INCREF(file);
+    Py_XINCREF(file);
     thread.file = file;
     thread.fd = fd;
     thread.timeout_us = timeout_us;
@@ -744,8 +758,8 @@ faulthandler_register_py(PyObject *self,
     if (tstate == NULL)
         return NULL;
 
-    file = faulthandler_get_fileno(file, &fd);
-    if (file == NULL)
+    fd = faulthandler_get_fileno(&file);
+    if (fd < 0)
         return NULL;
 
     if (user_signals == NULL) {
@@ -767,7 +781,7 @@ faulthandler_register_py(PyObject *self,
     }
 
     Py_XDECREF(user->file);
-    Py_INCREF(file);
+    Py_XINCREF(file);
     user->file = file;
     user->fd = fd;
     user->all_threads = all_threads;
@@ -939,7 +953,14 @@ faulthandler_fatal_error_py(PyObject *self, PyObject *args)
 }
 
 #if defined(HAVE_SIGALTSTACK) && defined(HAVE_SIGACTION)
-static Py_uintptr_t
+#ifdef __INTEL_COMPILER
+   /* Issue #23654: Turn off ICC's tail call optimization for the
+    * stack_overflow generator. ICC turns the recursive tail call into
+    * a loop. */
+#  pragma intel optimization_level 0
+#endif
+static
+Py_uintptr_t
 stack_overflow(Py_uintptr_t min_sp, Py_uintptr_t max_sp, size_t *depth)
 {
     /* allocate 4096 bytes on the stack at each call */

@@ -9,10 +9,14 @@
 
 --------------
 
-The :mod:`linecache` module allows one to get any line from any file, while
+The :mod:`linecache` module allows one to get any line from a Python source file, while
 attempting to optimize internally, using a cache, the common case where many
 lines are read from a single file.  This is used by the :mod:`traceback` module
 to retrieve source lines for inclusion in  the formatted traceback.
+
+The :func:`tokenize.open` function is used to open files. This
+function uses :func:`tokenize.detect_encoding` to get the encoding of the
+file; in the absence of an encoding token, the file encoding defaults to UTF-8.
 
 The :mod:`linecache` module defines the following functions:
 
@@ -55,6 +59,5 @@ The :mod:`linecache` module defines the following functions:
 Example::
 
    >>> import linecache
-   >>> linecache.getline('/etc/passwd', 4)
-   'sys:x:3:3:sys:/dev:/bin/sh\n'
-
+   >>> linecache.getline(linecache.__file__, 8)
+   'import sys\n'

@@ -1055,7 +1055,7 @@ _buffered_readinto_generic(buffered *self, PyObject *args, char readinto1)
         }
         else
             n = 0;
-        
+
         if (n == 0 || (n == -2 && written > 0))
             break;
         if (n < 0) {
@@ -1065,7 +1065,7 @@ _buffered_readinto_generic(buffered *self, PyObject *args, char readinto1)
             }
             goto end;
         }
-        
+
         /* At most one read in readinto1 mode */
         if (readinto1) {
             written += n;
@@ -2413,12 +2413,18 @@ bufferedrwpair_writable(rwpair *self, PyObject *args)
 static PyObject *
 bufferedrwpair_close(rwpair *self, PyObject *args)
 {
+    PyObject *exc = NULL, *val = NULL, *tb = NULL;
     PyObject *ret = _forward_call(self->writer, &PyId_close, args);
     if (ret == NULL)
-        return NULL;
-    Py_DECREF(ret);
-
-    return _forward_call(self->reader, &PyId_close, args);
+        PyErr_Fetch(&exc, &val, &tb);
+    else
+        Py_DECREF(ret);
+    ret = _forward_call(self->reader, &PyId_close, args);
+    if (exc != NULL) {
+        _PyErr_ChainExceptions(exc, val, tb);
+        Py_CLEAR(ret);
+    }
+    return ret;
 }
 
 static PyObject *

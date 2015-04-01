@@ -763,9 +763,17 @@ class EnvironTests(mapping_tests.BasicTestMappingProtocol):
 class WalkTests(unittest.TestCase):
     """Tests for os.walk()."""
 
+    # Wrapper to hide minor differences between os.walk and os.fwalk
+    # to tests both functions with the same code base
+    def walk(self, directory, topdown=True, follow_symlinks=False):
+        walk_it = os.walk(directory,
+                          topdown=topdown,
+                          followlinks=follow_symlinks)
+        for root, dirs, files in walk_it:
+            yield (root, dirs, files)
+
     def setUp(self):
-        import os
-        from os.path import join
+        join = os.path.join
 
         # Build:
         #     TESTFN/
@@ -780,36 +788,39 @@ class WalkTests(unittest.TestCase):
         #           broken_link
         #       TEST2/
         #         tmp4              a lone file
-        walk_path = join(support.TESTFN, "TEST1")
-        sub1_path = join(walk_path, "SUB1")
-        sub11_path = join(sub1_path, "SUB11")
-        sub2_path = join(walk_path, "SUB2")
-        tmp1_path = join(walk_path, "tmp1")
-        tmp2_path = join(sub1_path, "tmp2")
+        self.walk_path = join(support.TESTFN, "TEST1")
+        self.sub1_path = join(self.walk_path, "SUB1")
+        self.sub11_path = join(self.sub1_path, "SUB11")
+        sub2_path = join(self.walk_path, "SUB2")
+        tmp1_path = join(self.walk_path, "tmp1")
+        tmp2_path = join(self.sub1_path, "tmp2")
         tmp3_path = join(sub2_path, "tmp3")
-        link_path = join(sub2_path, "link")
+        self.link_path = join(sub2_path, "link")
         t2_path = join(support.TESTFN, "TEST2")
         tmp4_path = join(support.TESTFN, "TEST2", "tmp4")
-        link_path = join(sub2_path, "link")
         broken_link_path = join(sub2_path, "broken_link")
 
         # Create stuff.
-        os.makedirs(sub11_path)
+        os.makedirs(self.sub11_path)
         os.makedirs(sub2_path)
         os.makedirs(t2_path)
+
         for path in tmp1_path, tmp2_path, tmp3_path, tmp4_path:
             f = open(path, "w")
             f.write("I'm " + path + " and proud of it.  Blame test_os.\n")
             f.close()
-        if support.can_symlink():
-            os.symlink(os.path.abspath(t2_path), link_path)
-            os.symlink('broken', broken_link_path, True)
-            sub2_tree = (sub2_path, ["link"], ["broken_link", "tmp3"])
-        else:
-            sub2_tree = (sub2_path, [], ["tmp3"])
 
+        if support.can_symlink():
+            os.symlink(os.path.abspath(t2_path), self.link_path)
+            os.symlink('broken', broken_link_path, True)
+            self.sub2_tree = (sub2_path, ["link"], ["broken_link", "tmp3"])
+        else:
+            self.sub2_tree = (sub2_path, [], ["tmp3"])
+
+    def test_walk_topdown(self):
         # Walk top-down.
-        all = list(os.walk(walk_path))
+        all = list(os.walk(self.walk_path))
+
         self.assertEqual(len(all), 4)
         # We can't know which order SUB1 and SUB2 will appear in.
         # Not flipped:  TESTFN, SUB1, SUB11, SUB2
@@ -817,26 +828,32 @@ class WalkTests(unittest.TestCase):
         flipped = all[0][1][0] != "SUB1"
         all[0][1].sort()
         all[3 - 2 * flipped][-1].sort()
-        self.assertEqual(all[0], (walk_path, ["SUB1", "SUB2"], ["tmp1"]))
-        self.assertEqual(all[1 + flipped], (sub1_path, ["SUB11"], ["tmp2"]))
-        self.assertEqual(all[2 + flipped], (sub11_path, [], []))
-        self.assertEqual(all[3 - 2 * flipped], sub2_tree)
+        self.assertEqual(all[0], (self.walk_path, ["SUB1", "SUB2"], ["tmp1"]))
+        self.assertEqual(all[1 + flipped], (self.sub1_path, ["SUB11"], ["tmp2"]))
+        self.assertEqual(all[2 + flipped], (self.sub11_path, [], []))
+        self.assertEqual(all[3 - 2 * flipped], self.sub2_tree)
 
+    def test_walk_prune(self):
         # Prune the search.
         all = []
-        for root, dirs, files in os.walk(walk_path):
+        for root, dirs, files in self.walk(self.walk_path):
             all.append((root, dirs, files))
             # Don't descend into SUB1.
             if 'SUB1' in dirs:
                 # Note that this also mutates the dirs we appended to all!
                 dirs.remove('SUB1')
-        self.assertEqual(len(all), 2)
-        self.assertEqual(all[0], (walk_path, ["SUB2"], ["tmp1"]))
-        all[1][-1].sort()
-        self.assertEqual(all[1], sub2_tree)
 
+        self.assertEqual(len(all), 2)
+        self.assertEqual(all[0],
+                         (self.walk_path, ["SUB2"], ["tmp1"]))
+
+        all[1][-1].sort()
+        self.assertEqual(all[1], self.sub2_tree)
+
+    def test_walk_bottom_up(self):
         # Walk bottom-up.
-        all = list(os.walk(walk_path, topdown=False))
+        all = list(self.walk(self.walk_path, topdown=False))
+
         self.assertEqual(len(all), 4)
         # We can't know which order SUB1 and SUB2 will appear in.
         # Not flipped:  SUB11, SUB1, SUB2, TESTFN
@@ -844,20 +861,28 @@ class WalkTests(unittest.TestCase):
         flipped = all[3][1][0] != "SUB1"
         all[3][1].sort()
         all[2 - 2 * flipped][-1].sort()
-        self.assertEqual(all[3], (walk_path, ["SUB1", "SUB2"], ["tmp1"]))
-        self.assertEqual(all[flipped], (sub11_path, [], []))
-        self.assertEqual(all[flipped + 1], (sub1_path, ["SUB11"], ["tmp2"]))
-        self.assertEqual(all[2 - 2 * flipped], sub2_tree)
+        self.assertEqual(all[3],
+                         (self.walk_path, ["SUB1", "SUB2"], ["tmp1"]))
+        self.assertEqual(all[flipped],
+                         (self.sub11_path, [], []))
+        self.assertEqual(all[flipped + 1],
+                         (self.sub1_path, ["SUB11"], ["tmp2"]))
+        self.assertEqual(all[2 - 2 * flipped],
+                         self.sub2_tree)
 
-        if support.can_symlink():
-            # Walk, following symlinks.
-            for root, dirs, files in os.walk(walk_path, followlinks=True):
-                if root == link_path:
-                    self.assertEqual(dirs, [])
-                    self.assertEqual(files, ["tmp4"])
-                    break
-            else:
-                self.fail("Didn't follow symlink with followlinks=True")
+    def test_walk_symlink(self):
+        if not support.can_symlink():
+            self.skipTest("need symlink support")
+
+        # Walk, following symlinks.
+        walk_it = self.walk(self.walk_path, follow_symlinks=True)
+        for root, dirs, files in walk_it:
+            if root == self.link_path:
+                self.assertEqual(dirs, [])
+                self.assertEqual(files, ["tmp4"])
+                break
+        else:
+            self.fail("Didn't follow symlink with followlinks=True")
 
     def tearDown(self):
         # Tear everything down.  This is a decent use for bottom-up on
@@ -879,6 +904,14 @@ class WalkTests(unittest.TestCase):
 @unittest.skipUnless(hasattr(os, 'fwalk'), "Test needs os.fwalk()")
 class FwalkTests(WalkTests):
     """Tests for os.fwalk()."""
+
+    def walk(self, directory, topdown=True, follow_symlinks=False):
+        walk_it = os.fwalk(directory,
+                           topdown=topdown,
+                           follow_symlinks=follow_symlinks)
+        for root, dirs, files, root_fd in walk_it:
+            yield (root, dirs, files)
+
 
     def _compare_to_walk(self, walk_kwargs, fwalk_kwargs):
         """
@@ -1166,9 +1199,12 @@ class URandomTests(unittest.TestCase):
 
 
 HAVE_GETENTROPY = (sysconfig.get_config_var('HAVE_GETENTROPY') == 1)
+HAVE_GETRANDOM = (sysconfig.get_config_var('HAVE_GETRANDOM_SYSCALL') == 1)
 
 @unittest.skipIf(HAVE_GETENTROPY,
                  "getentropy() does not use a file descriptor")
+@unittest.skipIf(HAVE_GETRANDOM,
+                 "getrandom() does not use a file descriptor")
 class URandomFDTests(unittest.TestCase):
     @unittest.skipUnless(resource, "test requires the resource module")
     def test_urandom_failure(self):
@@ -1199,8 +1235,10 @@ class URandomFDTests(unittest.TestCase):
         code = """if 1:
             import os
             import sys
+            import test.support
             os.urandom(4)
-            os.closerange(3, 256)
+            with test.support.SuppressCrashReport():
+                os.closerange(3, 256)
             sys.stdout.buffer.write(os.urandom(4))
             """
         rc, out, err = assert_python_ok('-Sc', code)
@@ -1214,16 +1252,18 @@ class URandomFDTests(unittest.TestCase):
         code = """if 1:
             import os
             import sys
+            import test.support
             os.urandom(4)
-            for fd in range(3, 256):
-                try:
-                    os.close(fd)
-                except OSError:
-                    pass
-                else:
-                    # Found the urandom fd (XXX hopefully)
-                    break
-            os.closerange(3, 256)
+            with test.support.SuppressCrashReport():
+                for fd in range(3, 256):
+                    try:
+                        os.close(fd)
+                    except OSError:
+                        pass
+                    else:
+                        # Found the urandom fd (XXX hopefully)
+                        break
+                os.closerange(3, 256)
             with open({TESTFN!r}, 'rb') as f:
                 os.dup2(f.fileno(), fd)
                 sys.stdout.buffer.write(os.urandom(4))
@@ -2696,6 +2736,230 @@ class ExportsTests(unittest.TestCase):
     def test_os_all(self):
         self.assertIn('open', os.__all__)
         self.assertIn('walk', os.__all__)
+
+
+class TestScandir(unittest.TestCase):
+    def setUp(self):
+        self.path = os.path.realpath(support.TESTFN)
+        self.addCleanup(support.rmtree, self.path)
+        os.mkdir(self.path)
+
+    def create_file(self, name="file.txt"):
+        filename = os.path.join(self.path, name)
+        with open(filename, "wb") as fp:
+            fp.write(b'python')
+        return filename
+
+    def get_entries(self, names):
+        entries = dict((entry.name, entry)
+                       for entry in os.scandir(self.path))
+        self.assertEqual(sorted(entries.keys()), names)
+        return entries
+
+    def assert_stat_equal(self, stat1, stat2, skip_fields):
+        if skip_fields:
+            for attr in dir(stat1):
+                if not attr.startswith("st_"):
+                    continue
+                if attr in ("st_dev", "st_ino", "st_nlink"):
+                    continue
+                self.assertEqual(getattr(stat1, attr),
+                                 getattr(stat2, attr),
+                                 (stat1, stat2, attr))
+        else:
+            self.assertEqual(stat1, stat2)
+
+    def check_entry(self, entry, name, is_dir, is_file, is_symlink):
+        self.assertEqual(entry.name, name)
+        self.assertEqual(entry.path, os.path.join(self.path, name))
+        self.assertEqual(entry.inode(),
+                         os.stat(entry.path, follow_symlinks=False).st_ino)
+
+        entry_stat = os.stat(entry.path)
+        self.assertEqual(entry.is_dir(),
+                         stat.S_ISDIR(entry_stat.st_mode))
+        self.assertEqual(entry.is_file(),
+                         stat.S_ISREG(entry_stat.st_mode))
+        self.assertEqual(entry.is_symlink(),
+                         os.path.islink(entry.path))
+
+        entry_lstat = os.stat(entry.path, follow_symlinks=False)
+        self.assertEqual(entry.is_dir(follow_symlinks=False),
+                         stat.S_ISDIR(entry_lstat.st_mode))
+        self.assertEqual(entry.is_file(follow_symlinks=False),
+                         stat.S_ISREG(entry_lstat.st_mode))
+
+        self.assert_stat_equal(entry.stat(),
+                               entry_stat,
+                               os.name == 'nt' and not is_symlink)
+        self.assert_stat_equal(entry.stat(follow_symlinks=False),
+                               entry_lstat,
+                               os.name == 'nt')
+
+    def test_attributes(self):
+        link = hasattr(os, 'link')
+        symlink = support.can_symlink()
+
+        dirname = os.path.join(self.path, "dir")
+        os.mkdir(dirname)
+        filename = self.create_file("file.txt")
+        if link:
+            os.link(filename, os.path.join(self.path, "link_file.txt"))
+        if symlink:
+            os.symlink(dirname, os.path.join(self.path, "symlink_dir"),
+                       target_is_directory=True)
+            os.symlink(filename, os.path.join(self.path, "symlink_file.txt"))
+
+        names = ['dir', 'file.txt']
+        if link:
+            names.append('link_file.txt')
+        if symlink:
+            names.extend(('symlink_dir', 'symlink_file.txt'))
+        entries = self.get_entries(names)
+
+        entry = entries['dir']
+        self.check_entry(entry, 'dir', True, False, False)
+
+        entry = entries['file.txt']
+        self.check_entry(entry, 'file.txt', False, True, False)
+
+        if link:
+            entry = entries['link_file.txt']
+            self.check_entry(entry, 'link_file.txt', False, True, False)
+
+        if symlink:
+            entry = entries['symlink_dir']
+            self.check_entry(entry, 'symlink_dir', True, False, True)
+
+            entry = entries['symlink_file.txt']
+            self.check_entry(entry, 'symlink_file.txt', False, True, True)
+
+    def get_entry(self, name):
+        entries = list(os.scandir(self.path))
+        self.assertEqual(len(entries), 1)
+
+        entry = entries[0]
+        self.assertEqual(entry.name, name)
+        return entry
+
+    def create_file_entry(self):
+        filename = self.create_file()
+        return self.get_entry(os.path.basename(filename))
+
+    def test_current_directory(self):
+        filename = self.create_file()
+        old_dir = os.getcwd()
+        try:
+            os.chdir(self.path)
+
+            # call scandir() without parameter: it must list the content
+            # of the current directory
+            entries = dict((entry.name, entry) for entry in os.scandir())
+            self.assertEqual(sorted(entries.keys()),
+                             [os.path.basename(filename)])
+        finally:
+            os.chdir(old_dir)
+
+    def test_repr(self):
+        entry = self.create_file_entry()
+        self.assertEqual(repr(entry), "<DirEntry 'file.txt'>")
+
+    def test_removed_dir(self):
+        path = os.path.join(self.path, 'dir')
+
+        os.mkdir(path)
+        entry = self.get_entry('dir')
+        os.rmdir(path)
+
+        # On POSIX, is_dir() result depends if scandir() filled d_type or not
+        if os.name == 'nt':
+            self.assertTrue(entry.is_dir())
+        self.assertFalse(entry.is_file())
+        self.assertFalse(entry.is_symlink())
+        if os.name == 'nt':
+            self.assertRaises(FileNotFoundError, entry.inode)
+            # don't fail
+            entry.stat()
+            entry.stat(follow_symlinks=False)
+        else:
+            self.assertGreater(entry.inode(), 0)
+            self.assertRaises(FileNotFoundError, entry.stat)
+            self.assertRaises(FileNotFoundError, entry.stat, follow_symlinks=False)
+
+    def test_removed_file(self):
+        entry = self.create_file_entry()
+        os.unlink(entry.path)
+
+        self.assertFalse(entry.is_dir())
+        # On POSIX, is_dir() result depends if scandir() filled d_type or not
+        if os.name == 'nt':
+            self.assertTrue(entry.is_file())
+        self.assertFalse(entry.is_symlink())
+        if os.name == 'nt':
+            self.assertRaises(FileNotFoundError, entry.inode)
+            # don't fail
+            entry.stat()
+            entry.stat(follow_symlinks=False)
+        else:
+            self.assertGreater(entry.inode(), 0)
+            self.assertRaises(FileNotFoundError, entry.stat)
+            self.assertRaises(FileNotFoundError, entry.stat, follow_symlinks=False)
+
+    def test_broken_symlink(self):
+        if not support.can_symlink():
+            return self.skipTest('cannot create symbolic link')
+
+        filename = self.create_file("file.txt")
+        os.symlink(filename,
+                   os.path.join(self.path, "symlink.txt"))
+        entries = self.get_entries(['file.txt', 'symlink.txt'])
+        entry = entries['symlink.txt']
+        os.unlink(filename)
+
+        self.assertGreater(entry.inode(), 0)
+        self.assertFalse(entry.is_dir())
+        self.assertFalse(entry.is_file())  # broken symlink returns False
+        self.assertFalse(entry.is_dir(follow_symlinks=False))
+        self.assertFalse(entry.is_file(follow_symlinks=False))
+        self.assertTrue(entry.is_symlink())
+        self.assertRaises(FileNotFoundError, entry.stat)
+        # don't fail
+        entry.stat(follow_symlinks=False)
+
+    def test_bytes(self):
+        if os.name == "nt":
+            # On Windows, os.scandir(bytes) must raise an exception
+            self.assertRaises(TypeError, os.scandir, b'.')
+            return
+
+        self.create_file("file.txt")
+
+        path_bytes = os.fsencode(self.path)
+        entries = list(os.scandir(path_bytes))
+        self.assertEqual(len(entries), 1, entries)
+        entry = entries[0]
+
+        self.assertEqual(entry.name, b'file.txt')
+        self.assertEqual(entry.path,
+                         os.fsencode(os.path.join(self.path, 'file.txt')))
+
+    def test_empty_path(self):
+        self.assertRaises(FileNotFoundError, os.scandir, '')
+
+    def test_consume_iterator_twice(self):
+        self.create_file("file.txt")
+        iterator = os.scandir(self.path)
+
+        entries = list(iterator)
+        self.assertEqual(len(entries), 1, entries)
+
+        # check than consuming the iterator twice doesn't raise exception
+        entries2 = list(iterator)
+        self.assertEqual(len(entries2), 0, entries2)
+
+    def test_bad_path_type(self):
+        for obj in [1234, 1.234, {}, []]:
+            self.assertRaises(TypeError, os.scandir, obj)
 
 
 if __name__ == "__main__":

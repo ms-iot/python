@@ -245,8 +245,8 @@ purposes.
    :const:`None`, this function can choose to trust the system's default
    CA certificates instead.
 
-   The settings in Python 3.4 are: :data:`PROTOCOL_SSLv23`, :data:`OP_NO_SSLv2`,
-   and :data:`OP_NO_SSLv3` with high encryption cipher suites without RC4 and
+   The settings are: :data:`PROTOCOL_SSLv23`, :data:`OP_NO_SSLv2`, and
+   :data:`OP_NO_SSLv3` with high encryption cipher suites without RC4 and
    without unauthenticated cipher suites. Passing :data:`~Purpose.SERVER_AUTH`
    as *purpose* sets :data:`~SSLContext.verify_mode` to :data:`CERT_REQUIRED`
    and either loads CA certificates (when at least one of *cafile*, *capath* or
@@ -275,6 +275,10 @@ purposes.
          ctx.options &= ~ssl.OP_NO_SSLv3
 
    .. versionadded:: 3.4
+
+   .. versionchanged:: 3.4.4
+
+     RC4 was dropped from the default cipher string.
 
 
 Random generation
@@ -335,6 +339,9 @@ Random generation
    parameter *entropy* (a float) is a lower bound on the entropy contained in
    string (so you can always use :const:`0.0`).  See :rfc:`1750` for more
    information on sources of entropy.
+
+   .. versionchanged: 3.5
+      Writable :term:`bytes-like object` is now accepted.
 
 Certificate handling
 ^^^^^^^^^^^^^^^^^^^^
@@ -556,7 +563,7 @@ Constants
    prefer trusted certificates when building the trust chain to validate a
    certificate. This flag is enabled by default.
 
-   .. versionadded:: 3.4.5
+   .. versionadded:: 3.4.4
 
 .. data:: PROTOCOL_SSLv23
 

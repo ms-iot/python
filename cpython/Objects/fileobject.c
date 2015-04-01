@@ -372,7 +372,7 @@ PyFile_NewStdPrinter(int fd)
 static PyObject *
 stdprinter_write(PyStdPrinter_Object *self, PyObject *args)
 {
-    char *c;
+    char *str;
     Py_ssize_t n;
 
     if (self->fd < 0) {
@@ -383,26 +383,16 @@ stdprinter_write(PyStdPrinter_Object *self, PyObject *args)
         Py_RETURN_NONE;
     }
 
-    if (!PyArg_ParseTuple(args, "s", &c)) {
+    /* encode Unicode to UTF-8 */
+    if (!PyArg_ParseTuple(args, "s", &str))
         return NULL;
-    }
-    n = strlen(c);
 
-    Py_BEGIN_ALLOW_THREADS
-    errno = 0;
-#ifdef MS_WINDOWS
-    if (n > INT_MAX)
-        n = INT_MAX;
-    n = write(self->fd, c, (int)n);
-#else
-    n = write(self->fd, c, n);
-#endif
-    Py_END_ALLOW_THREADS
-
-    if (n < 0) {
-        if (errno == EAGAIN)
+    n = _Py_write(self->fd, str, strlen(str));
+    if (n == -1) {
+        if (errno == EAGAIN) {
+            PyErr_Clear();
             Py_RETURN_NONE;
-        PyErr_SetFromErrno(PyExc_IOError);
+        }
         return NULL;
     }
 

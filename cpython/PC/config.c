@@ -18,7 +18,7 @@ extern PyObject* PyInit_gc(void);
 extern PyObject* PyInit_math(void);
 extern PyObject* PyInit__md5(void);
 #ifdef MS_WINRT
- extern PyObject* PyInit_winrt_os(void);
+extern PyObject* PyInit_winrt_os(void);
 #else
 extern PyObject* PyInit_nt(void);
 #endif

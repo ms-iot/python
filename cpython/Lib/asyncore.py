@@ -141,10 +141,7 @@ def poll(timeout=0.0, map=None):
             time.sleep(timeout)
             return
 
-        try:
-            r, w, e = select.select(r, w, e, timeout)
-        except InterruptedError:
-            return
+        r, w, e = select.select(r, w, e, timeout)
 
         for fd in r:
             obj = map.get(fd)
@@ -182,10 +179,8 @@ def poll2(timeout=0.0, map=None):
                 flags |= select.POLLOUT
             if flags:
                 pollster.register(fd, flags)
-        try:
-            r = pollster.poll(timeout)
-        except InterruptedError:
-            r = []
+
+        r = pollster.poll(timeout)
         for fd, flags in r:
             obj = map.get(fd)
             if obj is None:

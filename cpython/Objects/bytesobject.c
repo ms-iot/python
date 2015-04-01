@@ -433,7 +433,41 @@ formatfloat(PyObject *v, int flags, int prec, int type)
     return result;
 }
 
-Py_LOCAL_INLINE(int)
+static PyObject *
+formatlong(PyObject *v, int flags, int prec, int type)
+{
+    PyObject *result, *iobj;
+    if (type == 'i')
+        type = 'd';
+    if (PyLong_Check(v))
+        return _PyUnicode_FormatLong(v, flags & F_ALT, prec, type);
+    if (PyNumber_Check(v)) {
+        /* make sure number is a type of integer for o, x, and X */
+        if (type == 'o' || type == 'x' || type == 'X')
+            iobj = PyNumber_Index(v);
+        else
+            iobj = PyNumber_Long(v);
+        if (iobj == NULL) {
+            if (!PyErr_ExceptionMatches(PyExc_TypeError))
+                return NULL;
+        }
+        else if (!PyLong_Check(iobj))
+            Py_CLEAR(iobj);
+        if (iobj != NULL) {
+            result = _PyUnicode_FormatLong(iobj, flags & F_ALT, prec, type);
+            Py_DECREF(iobj);
+            return result;
+        }
+    }
+    PyErr_Format(PyExc_TypeError,
+        "%%%c format: %s is required, not %.200s", type,
+        (type == 'o' || type == 'x' || type == 'X') ? "an integer"
+                                                    : "a number",
+        Py_TYPE(v)->tp_name);
+    return NULL;
+}
+
+static int
 byte_converter(PyObject *arg, char *p)
 {
     if (PyBytes_Check(arg) && PyBytes_Size(arg) == 1) {
@@ -445,14 +479,31 @@ byte_converter(PyObject *arg, char *p)
         return 1;
     }
     else {
-        long ival = PyLong_AsLong(arg);
-        if (0 <= ival && ival <= 255) {
+        PyObject *iobj;
+        long ival;
+        int overflow;
+        /* make sure number is a type of integer */
+        if (PyLong_Check(arg)) {
+            ival = PyLong_AsLongAndOverflow(arg, &overflow);
+        }
+        else {
+            iobj = PyNumber_Index(arg);
+            if (iobj == NULL) {
+                if (!PyErr_ExceptionMatches(PyExc_TypeError))
+                    return 0;
+                goto onError;
+            }
+            ival = PyLong_AsLongAndOverflow(iobj, &overflow);
+            Py_DECREF(iobj);
+        }
+        if (!overflow && 0 <= ival && ival <= 255) {
             *p = (char)ival;
             return 1;
         }
     }
-            PyErr_SetString(PyExc_TypeError,
-                "%c requires an integer in range(256) or a single byte");
+  onError:
+    PyErr_SetString(PyExc_TypeError,
+        "%c requires an integer in range(256) or a single byte");
     return 0;
         }
 
@@ -561,7 +612,6 @@ _PyBytes_Format(PyObject *format, PyObject *args)
             int prec = -1;
             int c = '\0';
             int fill;
-            PyObject *iobj;
             PyObject *v = NULL;
             PyObject *temp = NULL;
             const char *pbuf = NULL;
@@ -720,6 +770,8 @@ _PyBytes_Format(PyObject *format, PyObject *args)
                 pbuf = "%";
                 len = 1;
                 break;
+            case 'r':
+                // %r is only for 2/3 code; 3 only code should use %a
             case 'a':
                 temp = PyObject_ASCII(v);
                 if (temp == NULL)
@@ -745,28 +797,7 @@ _PyBytes_Format(PyObject *format, PyObject *args)
             case 'o':
             case 'x':
             case 'X':
-                if (c == 'i')
-                    c = 'd';
-                iobj = NULL;
-                if (PyNumber_Check(v)) {
-                    if ((PyLong_Check(v))) {
-                        iobj = v;
-                        Py_INCREF(iobj);
-                    }
-                    else {
-                        iobj = PyNumber_Long(v);
-                        if (iobj != NULL && !PyLong_Check(iobj))
-                            Py_CLEAR(iobj);
-                    }
-                }
-                if (iobj == NULL) {
-                    PyErr_Format(PyExc_TypeError,
-                        "%%%c format: a number is required, "
-                        "not %.200s", c, Py_TYPE(v)->tp_name);
-                    goto error;
-                }
-                temp = _PyUnicode_FormatLong(iobj, flags & F_ALT, prec, c);
-                Py_DECREF(iobj);
+                temp = formatlong(v, flags, prec, c);
                 if (!temp)
                     goto error;
                 assert(PyUnicode_IS_ASCII(temp));
@@ -1383,14 +1414,23 @@ bytes_richcompare(PyBytesObject *a, PyBytesObject *b, int op)
 
     /* Make sure both arguments are strings. */
     if (!(PyBytes_Check(a) && PyBytes_Check(b))) {
-        if (Py_BytesWarningFlag && (op == Py_EQ || op == Py_NE) &&
-            (PyObject_IsInstance((PyObject*)a,
-                                 (PyObject*)&PyUnicode_Type) ||
-            PyObject_IsInstance((PyObject*)b,
-                                 (PyObject*)&PyUnicode_Type))) {
-            if (PyErr_WarnEx(PyExc_BytesWarning,
-                        "Comparison between bytes and string", 1))
-                return NULL;
+        if (Py_BytesWarningFlag && (op == Py_EQ || op == Py_NE)) {
+            if (PyObject_IsInstance((PyObject*)a,
+                                    (PyObject*)&PyUnicode_Type) ||
+                PyObject_IsInstance((PyObject*)b,
+                                    (PyObject*)&PyUnicode_Type)) {
+                if (PyErr_WarnEx(PyExc_BytesWarning,
+                            "Comparison between bytes and string", 1))
+                    return NULL;
+            }
+            else if (PyObject_IsInstance((PyObject*)a,
+                                    (PyObject*)&PyLong_Type) ||
+                PyObject_IsInstance((PyObject*)b,
+                                    (PyObject*)&PyLong_Type)) {
+                if (PyErr_WarnEx(PyExc_BytesWarning,
+                            "Comparison between bytes and int", 1))
+                    return NULL;
+            }
         }
         result = Py_NotImplemented;
     }
@@ -1903,7 +1943,7 @@ bytes_find_internal(PyBytesObject *self, PyObject *args, int dir)
     char byte;
     Py_buffer subbuf;
     const char *sub;
-    Py_ssize_t sub_len;
+    Py_ssize_t len, sub_len;
     Py_ssize_t start=0, end=PY_SSIZE_T_MAX;
     Py_ssize_t res;
 
@@ -1922,15 +1962,31 @@ bytes_find_internal(PyBytesObject *self, PyObject *args, int dir)
         sub = &byte;
         sub_len = 1;
     }
+    len = PyBytes_GET_SIZE(self);
 
-    if (dir > 0)
-        res = stringlib_find_slice(
-            PyBytes_AS_STRING(self), PyBytes_GET_SIZE(self),
-            sub, sub_len, start, end);
-    else
-        res = stringlib_rfind_slice(
-            PyBytes_AS_STRING(self), PyBytes_GET_SIZE(self),
-            sub, sub_len, start, end);
+    ADJUST_INDICES(start, end, len);
+    if (end - start < sub_len)
+        res = -1;
+    /* Issue #23573: FIXME, windows has no memrchr() */
+    else if (sub_len == 1 && dir > 0) {
+        unsigned char needle = *sub;
+        int mode = (dir > 0) ? FAST_SEARCH : FAST_RSEARCH;
+        res = stringlib_fastsearch_memchr_1char(
+            PyBytes_AS_STRING(self) + start, end - start,
+            needle, needle, mode);
+        if (res >= 0)
+            res += start;
+    }
+    else {
+        if (dir > 0)
+            res = stringlib_find_slice(
+                PyBytes_AS_STRING(self), len,
+                sub, sub_len, start, end);
+        else
+            res = stringlib_rfind_slice(
+                PyBytes_AS_STRING(self), len,
+                sub, sub_len, start, end);
+    }
 
     if (subobj)
         PyBuffer_Release(&subbuf);
@@ -3463,42 +3519,6 @@ bytes_fromhex_impl(PyTypeObject *type, PyObject *string)
     return NULL;
 }
 
-/*[clinic input]
-bytes.__sizeof__ as bytes_sizeof
-
-    self: self(type="PyBytesObject *")
-
-Returns the size of the bytes object in memory, in bytes.
-[clinic start generated code]*/
-
-PyDoc_STRVAR(bytes_sizeof__doc__,
-"__sizeof__($self, /)\n"
-"--\n"
-"\n"
-"Returns the size of the bytes object in memory, in bytes.");
-
-#define BYTES_SIZEOF_METHODDEF    \
-    {"__sizeof__", (PyCFunction)bytes_sizeof, METH_NOARGS, bytes_sizeof__doc__},
-
-static PyObject *
-bytes_sizeof_impl(PyBytesObject *self);
-
-static PyObject *
-bytes_sizeof(PyBytesObject *self, PyObject *Py_UNUSED(ignored))
-{
-    return bytes_sizeof_impl(self);
-}
-
-static PyObject *
-bytes_sizeof_impl(PyBytesObject *self)
-/*[clinic end generated code: output=44933279343f24ae input=bee4c64bb42078ed]*/
-{
-    Py_ssize_t res;
-    res = PyBytesObject_SIZE + Py_SIZE(self) * Py_TYPE(self)->tp_itemsize;
-    return PyLong_FromSsize_t(res);
-}
-
-
 static PyObject *
 bytes_getnewargs(PyBytesObject *v)
 {
@@ -3559,7 +3579,6 @@ bytes_methods[] = {
     BYTES_TRANSLATE_METHODDEF
     {"upper", (PyCFunction)stringlib_upper, METH_NOARGS, _Py_upper__doc__},
     {"zfill", (PyCFunction)stringlib_zfill, METH_VARARGS, zfill__doc__},
-    BYTES_SIZEOF_METHODDEF
     {NULL,     NULL}                         /* sentinel */
 };
 

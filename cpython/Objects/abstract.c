@@ -2074,24 +2074,26 @@ PyObject_CallObject(PyObject *o, PyObject *a)
 }
 
 PyObject*
-_Py_CheckFunctionResult(PyObject *result, const char *func_name)
+_Py_CheckFunctionResult(PyObject *func, PyObject *result, const char *where)
 {
     int err_occurred = (PyErr_Occurred() != NULL);
 
-#ifdef NDEBUG
-    /* In debug mode: abort() with an assertion error. Use two different
-       assertions, so if an assertion fails, it's possible to know
-       if result was set or not and if an exception was raised or not. */
-    if (result != NULL)
-        assert(!err_occurred);
-    else
-        assert(err_occurred);
-#endif
+    assert((func != NULL) ^ (where != NULL));
 
     if (result == NULL) {
         if (!err_occurred) {
-            PyErr_Format(PyExc_SystemError,
-                         "NULL result without error in %s", func_name);
+            if (func)
+                PyErr_Format(PyExc_SystemError,
+                             "%R returned NULL without setting an error",
+                             func);
+            else
+                PyErr_Format(PyExc_SystemError,
+                             "%s returned NULL without setting an error",
+                             where);
+#ifdef Py_DEBUG
+            /* Ensure that the bug is catched in debug mode */
+            Py_FatalError("a function returned NULL without setting an error");
+#endif
             return NULL;
         }
     }
@@ -2102,9 +2104,19 @@ _Py_CheckFunctionResult(PyObject *result, const char *func_name)
 
             Py_DECREF(result);
 
-            PyErr_Format(PyExc_SystemError,
-                         "result with error in %s", func_name);
+            if (func)
+                PyErr_Format(PyExc_SystemError,
+                             "%R returned a result with an error set",
+                             func);
+            else
+                PyErr_Format(PyExc_SystemError,
+                             "%s returned a result with an error set",
+                             where);
             _PyErr_ChainExceptions(exc, val, tb);
+#ifdef Py_DEBUG
+            /* Ensure that the bug is catched in debug mode */
+            Py_FatalError("a function returned a result with an error set");
+#endif
             return NULL;
         }
     }
@@ -2136,7 +2148,7 @@ PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw)
 
     Py_LeaveRecursiveCall();
 
-    return _Py_CheckFunctionResult(result, "PyObject_Call");
+    return _Py_CheckFunctionResult(func, result, NULL);
 }
 
 static PyObject*

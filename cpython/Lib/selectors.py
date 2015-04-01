@@ -310,10 +310,7 @@ class SelectSelector(_BaseSelectorImpl):
     def select(self, timeout=None):
         timeout = None if timeout is None else max(timeout, 0)
         ready = []
-        try:
-            r, w, _ = self._select(self._readers, self._writers, [], timeout)
-        except InterruptedError:
-            return ready
+        r, w, _ = self._select(self._readers, self._writers, [], timeout)
         r = set(r)
         w = set(w)
         for fd in r | w:
@@ -362,11 +359,10 @@ if hasattr(select, 'poll'):
                 # poll() has a resolution of 1 millisecond, round away from
                 # zero to wait *at least* timeout seconds.
                 timeout = math.ceil(timeout * 1e3)
+
+            fd_event_list = self._poll.poll(timeout)
+
             ready = []
-            try:
-                fd_event_list = self._poll.poll(timeout)
-            except InterruptedError:
-                return ready
             for fd, event in fd_event_list:
                 events = 0
                 if event & ~select.POLLIN:
@@ -427,11 +423,9 @@ if hasattr(select, 'epoll'):
             # FD is registered.
             max_ev = max(len(self._fd_to_key), 1)
 
+            fd_event_list = self._epoll.poll(timeout, max_ev)
+
             ready = []
-            try:
-                fd_event_list = self._epoll.poll(timeout, max_ev)
-            except InterruptedError:
-                return ready
             for fd, event in fd_event_list:
                 events = 0
                 if event & ~select.EPOLLIN:
@@ -485,11 +479,10 @@ if hasattr(select, 'devpoll'):
                 # devpoll() has a resolution of 1 millisecond, round away from
                 # zero to wait *at least* timeout seconds.
                 timeout = math.ceil(timeout * 1e3)
+
+            fd_event_list = self._devpoll.poll(timeout)
+
             ready = []
-            try:
-                fd_event_list = self._devpoll.poll(timeout)
-            except InterruptedError:
-                return ready
             for fd, event in fd_event_list:
                 events = 0
                 if event & ~select.POLLIN:
@@ -555,11 +548,9 @@ if hasattr(select, 'kqueue'):
         def select(self, timeout=None):
             timeout = None if timeout is None else max(timeout, 0)
             max_ev = len(self._fd_to_key)
+            kev_list = self._kqueue.control(None, max_ev, timeout)
+
             ready = []
-            try:
-                kev_list = self._kqueue.control(None, max_ev, timeout)
-            except InterruptedError:
-                return ready
             for kev in kev_list:
                 fd = kev.ident
                 flag = kev.filter

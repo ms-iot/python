@@ -315,7 +315,7 @@ getstring(PyObject* string, Py_ssize_t* p_length,
 
     /* get pointer to byte string buffer */
     if (PyObject_GetBuffer(string, view, PyBUF_SIMPLE) != 0) {
-        PyErr_SetString(PyExc_TypeError, "expected string or buffer");
+        PyErr_SetString(PyExc_TypeError, "expected string or bytes-like object");
         return NULL;
     }
 
@@ -359,12 +359,12 @@ state_init(SRE_STATE* state, PatternObject* pattern, PyObject* string,
 
     if (isbytes && pattern->isbytes == 0) {
         PyErr_SetString(PyExc_TypeError,
-                        "can't use a string pattern on a bytes-like object");
+                        "cannot use a string pattern on a bytes-like object");
         goto err;
     }
     if (!isbytes && pattern->isbytes > 0) {
         PyErr_SetString(PyExc_TypeError,
-                        "can't use a bytes pattern on a string-like object");
+                        "cannot use a bytes pattern on a string-like object");
         goto err;
     }
 
@@ -1384,12 +1384,24 @@ static PyMethodDef pattern_methods[] = {
     {NULL, NULL}
 };
 
+/* PatternObject's 'groupindex' method. */
+static PyObject *
+pattern_groupindex(PatternObject *self)
+{
+    return PyDictProxy_New(self->groupindex);
+}
+
+static PyGetSetDef pattern_getset[] = {
+    {"groupindex", (getter)pattern_groupindex, (setter)NULL,
+      "A dictionary mapping group names to group numbers."},
+    {NULL}  /* Sentinel */
+};
+
 #define PAT_OFF(x) offsetof(PatternObject, x)
 static PyMemberDef pattern_members[] = {
     {"pattern",    T_OBJECT,    PAT_OFF(pattern),       READONLY},
     {"flags",      T_INT,       PAT_OFF(flags),         READONLY},
     {"groups",     T_PYSSIZET,  PAT_OFF(groups),        READONLY},
-    {"groupindex", T_OBJECT,    PAT_OFF(groupindex),    READONLY},
     {NULL}  /* Sentinel */
 };
 
@@ -1422,6 +1434,7 @@ static PyTypeObject Pattern_Type = {
     0,                                  /* tp_iternext */
     pattern_methods,                    /* tp_methods */
     pattern_members,                    /* tp_members */
+    pattern_getset,                     /* tp_getset */
 };
 
 static int _validate(PatternObject *self); /* Forward */

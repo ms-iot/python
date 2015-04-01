@@ -534,7 +534,7 @@ newPySSLSocket(PySSLContext *sslctx, PySocketSockObject *sock,
     /* If the socket is in non-blocking mode or timeout mode, set the BIO
      * to non-blocking mode (blocking is the default)
      */
-    if (sock && sock->sock_timeout >= 0.0) {
+    if (sock && sock->sock_timeout >= 0) {
         BIO_set_nbio(SSL_get_rbio(self->ssl), 1);
         BIO_set_nbio(SSL_get_wbio(self->ssl), 1);
     }
@@ -576,7 +576,7 @@ static PyObject *PySSL_SSLdo_handshake(PySSLSocket *self)
         Py_INCREF(sock);
 
         /* just in case the blocking state of the socket has been changed */
-        nonblocking = (sock->sock_timeout >= 0.0);
+        nonblocking = (sock->sock_timeout >= 0);
         BIO_set_nbio(SSL_get_rbio(self->ssl), nonblocking);
         BIO_set_nbio(SSL_get_wbio(self->ssl), nonblocking);
     }
@@ -1616,9 +1616,9 @@ check_socket_and_wait_for_timeout(PySocketSockObject *s, int writing)
     int rc;
 
     /* Nothing to do unless we're in timeout mode (not non-blocking) */
-    if ((s == NULL) || (s->sock_timeout == 0.0))
+    if ((s == NULL) || (s->sock_timeout == 0))
         return SOCKET_IS_NONBLOCKING;
-    else if (s->sock_timeout < 0.0)
+    else if (s->sock_timeout < 0)
         return SOCKET_IS_BLOCKING;
 
     /* Guard against closed socket */
@@ -1636,7 +1636,9 @@ check_socket_and_wait_for_timeout(PySocketSockObject *s, int writing)
         pollfd.events = writing ? POLLOUT : POLLIN;
 
         /* s->sock_timeout is in seconds, timeout in ms */
-        timeout = (int)(s->sock_timeout * 1000 + 0.5);
+        timeout = (int)_PyTime_AsMilliseconds(s->sock_timeout,
+                                              _PyTime_ROUND_CEILING);
+
         PySSL_BEGIN_ALLOW_THREADS
         rc = poll(&pollfd, 1, timeout);
         PySSL_END_ALLOW_THREADS
@@ -1649,9 +1651,8 @@ check_socket_and_wait_for_timeout(PySocketSockObject *s, int writing)
     if (!_PyIsSelectable_fd(s->sock_fd))
         return SOCKET_TOO_LARGE_FOR_SELECT;
 
-    /* Construct the arguments to select */
-    tv.tv_sec = (int)s->sock_timeout;
-    tv.tv_usec = (int)((s->sock_timeout - tv.tv_sec) * 1e6);
+    _PyTime_AsTimeval_noraise(s->sock_timeout, &tv, _PyTime_ROUND_CEILING);
+
     FD_ZERO(&fds);
     FD_SET(s->sock_fd, &fds);
 
@@ -1704,7 +1705,7 @@ static PyObject *PySSL_SSLwrite(PySSLSocket *self, PyObject *args)
 
     if (sock != NULL) {
         /* just in case the blocking state of the socket has been changed */
-        nonblocking = (sock->sock_timeout >= 0.0);
+        nonblocking = (sock->sock_timeout >= 0);
         BIO_set_nbio(SSL_get_rbio(self->ssl), nonblocking);
         BIO_set_nbio(SSL_get_wbio(self->ssl), nonblocking);
     }
@@ -1836,7 +1837,7 @@ static PyObject *PySSL_SSLread(PySSLSocket *self, PyObject *args)
 
     if (sock != NULL) {
         /* just in case the blocking state of the socket has been changed */
-        nonblocking = (sock->sock_timeout >= 0.0);
+        nonblocking = (sock->sock_timeout >= 0);
         BIO_set_nbio(SSL_get_rbio(self->ssl), nonblocking);
         BIO_set_nbio(SSL_get_wbio(self->ssl), nonblocking);
     }
@@ -1915,7 +1916,7 @@ static PyObject *PySSL_SSLshutdown(PySSLSocket *self)
         Py_INCREF(sock);
 
         /* Just in case the blocking state of the socket has been changed */
-        nonblocking = (sock->sock_timeout >= 0.0);
+        nonblocking = (sock->sock_timeout >= 0);
         BIO_set_nbio(SSL_get_rbio(self->ssl), nonblocking);
         BIO_set_nbio(SSL_get_wbio(self->ssl), nonblocking);
     }
@@ -2941,11 +2942,9 @@ load_dh_params(PySSLContext *self, PyObject *filepath)
     DH *dh;
 
     f = _Py_fopen_obj(filepath, "rb");
-    if (f == NULL) {
-        if (!PyErr_Occurred())
-            PyErr_SetFromErrnoWithFilenameObject(PyExc_OSError, filepath);
+    if (f == NULL)
         return NULL;
-    }
+
     errno = 0;
     PySSL_BEGIN_ALLOW_THREADS
     dh = PEM_read_DHparams(f, NULL, NULL, NULL);
@@ -3674,18 +3673,22 @@ static PyTypeObject PySSLMemoryBIO_Type = {
 static PyObject *
 PySSL_RAND_add(PyObject *self, PyObject *args)
 {
-    char *buf;
+    Py_buffer view;
+    const char *buf;
     Py_ssize_t len, written;
     double entropy;
 
-    if (!PyArg_ParseTuple(args, "s#d:RAND_add", &buf, &len, &entropy))
+    if (!PyArg_ParseTuple(args, "s*d:RAND_add", &view, &entropy))
         return NULL;
+    buf = (const char *)view.buf;
+    len = view.len;
     do {
         written = Py_MIN(len, INT_MAX);
         RAND_add(buf, (int)written, entropy);
         buf += written;
         len -= written;
     } while (len);
+    PyBuffer_Release(&view);
     Py_INCREF(Py_None);
     return Py_None;
 }

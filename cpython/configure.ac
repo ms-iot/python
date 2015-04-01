@@ -4175,7 +4175,15 @@ AC_SUBST(SOABI)
 AC_MSG_CHECKING(ABIFLAGS)
 AC_MSG_RESULT($ABIFLAGS)
 AC_MSG_CHECKING(SOABI)
-SOABI='cpython-'`echo $VERSION | tr -d .`${ABIFLAGS}
+
+case $ac_sys_system in
+    Linux*|GNU*)
+        BITNESS_SUFFIX=-$(($ac_cv_sizeof_void_p * 8))b;;
+    *)
+        BITNESS_SUFFIX=;;
+esac
+SOABI='cpython-'`echo $VERSION | tr -d .`${ABIFLAGS}${BITNESS_SUFFIX}
+
 AC_MSG_RESULT($SOABI)
 
 AC_SUBST(EXT_SUFFIX)
@@ -4943,6 +4951,50 @@ AS_CASE($with_ensurepip,
     [AC_MSG_ERROR([--with-ensurepip=upgrade|install|no])])
 AC_MSG_RESULT($ENSUREPIP)
 AC_SUBST(ENSUREPIP)
+
+# check if the dirent structure of a d_type field and DT_UNKNOWN is defined
+AC_MSG_CHECKING(if the dirent structure of a d_type field)
+AC_LINK_IFELSE(
+[
+  AC_LANG_SOURCE([[
+    #include <dirent.h>
+
+    int main() {
+      struct dirent entry;
+      return entry.d_type == DT_UNKNOWN;
+    }
+  ]])
+],[have_dirent_d_type=yes],[have_dirent_d_type=no])
+AC_MSG_RESULT($have_dirent_d_type)
+
+if test "$have_dirent_d_type" = yes; then
+    AC_DEFINE(HAVE_DIRENT_D_TYPE, 1,
+              [Define to 1 if the dirent structure has a d_type field])
+fi
+
+# check if the Linux getrandom() syscall is available
+AC_MSG_CHECKING(for the Linux getrandom() syscall)
+AC_LINK_IFELSE(
+[
+  AC_LANG_SOURCE([[
+    #include <sys/syscall.h>
+
+    int main() {
+        const int flags = 0;
+        char buffer[1];
+        int n;
+        /* ignore the result, Python checks for ENOSYS at runtime */
+        (void)syscall(SYS_getrandom, buffer, sizeof(buffer), flags);
+        return 0;
+    }
+  ]])
+],[have_getrandom_syscall=yes],[have_getrandom_syscall=no])
+AC_MSG_RESULT($have_getrandom_syscall)
+
+if test "$have_getrandom_syscall" = yes; then
+    AC_DEFINE(HAVE_GETRANDOM_SYSCALL, 1,
+              [Define to 1 if the Linux getrandom() syscall is available])
+fi
 
 # generate output files
 AC_CONFIG_FILES(Makefile.pre Modules/Setup.config Misc/python.pc Misc/python-config.sh)

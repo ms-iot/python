@@ -3253,7 +3253,7 @@ exit_eval_frame:
     f->f_executing = 0;
     tstate->frame = f->f_back;
 
-    return _Py_CheckFunctionResult(retval, "PyEval_EvalFrameEx");
+    return _Py_CheckFunctionResult(NULL, retval, "PyEval_EvalFrameEx");
 }
 
 static void
@@ -4118,6 +4118,13 @@ PyEval_CallObjectWithKeywords(PyObject *func, PyObject *arg, PyObject *kw)
 {
     PyObject *result;
 
+#ifdef Py_DEBUG
+    /* PyEval_CallObjectWithKeywords() must not be called with an exception
+       set. It raises a new exception if parameters are invalid or if
+       PyTuple_New() fails, and so the original exception is lost. */
+    assert(!PyErr_Occurred());
+#endif
+
     if (arg == NULL) {
         arg = PyTuple_New(0);
         if (arg == NULL)
@@ -4244,14 +4251,14 @@ call_function(PyObject ***pp_stack, int oparg
             if (flags & METH_NOARGS && na == 0) {
                 C_TRACE(x, (*meth)(self,NULL));
 
-                x = _Py_CheckFunctionResult(x, "call_function");
+                x = _Py_CheckFunctionResult(func, x, NULL);
             }
             else if (flags & METH_O && na == 1) {
                 PyObject *arg = EXT_POP(*pp_stack);
                 C_TRACE(x, (*meth)(self,arg));
                 Py_DECREF(arg);
 
-                x = _Py_CheckFunctionResult(x, "call_function");
+                x = _Py_CheckFunctionResult(func, x, NULL);
             }
             else {
                 err_args(func, flags, na);

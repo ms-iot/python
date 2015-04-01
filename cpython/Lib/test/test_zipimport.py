@@ -450,7 +450,9 @@ class BadFileZipImportTestCase(unittest.TestCase):
         fd = os.open(TESTMOD, os.O_CREAT, 000)
         try:
             os.close(fd)
-            self.assertZipFailure(TESTMOD)
+
+            with self.assertRaises(zipimport.ZipImportError) as cm:
+                zipimport.zipimporter(TESTMOD)
         finally:
             # If we leave "the read-only bit" set on Windows, nothing can
             # delete TESTMOD, and later tests suffer bogus failures.

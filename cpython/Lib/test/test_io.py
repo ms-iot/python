@@ -1649,6 +1649,53 @@ class BufferedRWPairTest(unittest.TestCase):
         pair.close()
         self.assertTrue(pair.closed)
 
+    def test_reader_close_error_on_close(self):
+        def reader_close():
+            reader_non_existing
+        reader = self.MockRawIO()
+        reader.close = reader_close
+        writer = self.MockRawIO()
+        pair = self.tp(reader, writer)
+        with self.assertRaises(NameError) as err:
+            pair.close()
+        self.assertIn('reader_non_existing', str(err.exception))
+        self.assertTrue(pair.closed)
+        self.assertFalse(reader.closed)
+        self.assertTrue(writer.closed)
+
+    def test_writer_close_error_on_close(self):
+        def writer_close():
+            writer_non_existing
+        reader = self.MockRawIO()
+        writer = self.MockRawIO()
+        writer.close = writer_close
+        pair = self.tp(reader, writer)
+        with self.assertRaises(NameError) as err:
+            pair.close()
+        self.assertIn('writer_non_existing', str(err.exception))
+        self.assertFalse(pair.closed)
+        self.assertTrue(reader.closed)
+        self.assertFalse(writer.closed)
+
+    def test_reader_writer_close_error_on_close(self):
+        def reader_close():
+            reader_non_existing
+        def writer_close():
+            writer_non_existing
+        reader = self.MockRawIO()
+        reader.close = reader_close
+        writer = self.MockRawIO()
+        writer.close = writer_close
+        pair = self.tp(reader, writer)
+        with self.assertRaises(NameError) as err:
+            pair.close()
+        self.assertIn('reader_non_existing', str(err.exception))
+        self.assertIsInstance(err.exception.__context__, NameError)
+        self.assertIn('writer_non_existing', str(err.exception.__context__))
+        self.assertFalse(pair.closed)
+        self.assertFalse(reader.closed)
+        self.assertFalse(writer.closed)
+
     def test_isatty(self):
         class SelectableIsAtty(MockRawIO):
             def __init__(self, isatty):
@@ -3431,6 +3478,7 @@ class SignalsTest(unittest.TestCase):
         t.daemon = True
         r, w = os.pipe()
         fdopen_kwargs["closefd"] = False
+        large_data = item * (support.PIPE_MAX_SIZE // len(item) + 1)
         try:
             wio = self.io.open(w, **fdopen_kwargs)
             t.start()
@@ -3442,8 +3490,7 @@ class SignalsTest(unittest.TestCase):
             # handlers, which in this case will invoke alarm_interrupt().
             signal.alarm(1)
             try:
-                self.assertRaises(ZeroDivisionError,
-                            wio.write, item * (support.PIPE_MAX_SIZE // len(item) + 1))
+                self.assertRaises(ZeroDivisionError, wio.write, large_data)
             finally:
                 signal.alarm(0)
             t.join()
@@ -3544,21 +3591,28 @@ class SignalsTest(unittest.TestCase):
         returning a partial result or EINTR), properly invokes the signal
         handler and retries if the latter returned successfully."""
         select = support.import_module("select")
+
         # A quantity that exceeds the buffer size of an anonymous pipe's
         # write end.
         N = support.PIPE_MAX_SIZE
         r, w = os.pipe()
         fdopen_kwargs["closefd"] = False
+
         # We need a separate thread to read from the pipe and allow the
         # write() to finish.  This thread is started after the SIGALRM is
         # received (forcing a first EINTR in write()).
         read_results = []
         write_finished = False
+        error = None
         def _read():
-            while not write_finished:
-                while r in select.select([r], [], [], 1.0)[0]:
-                    s = os.read(r, 1024)
-                    read_results.append(s)
+            try:
+                while not write_finished:
+                    while r in select.select([r], [], [], 1.0)[0]:
+                        s = os.read(r, 1024)
+                        read_results.append(s)
+            except BaseException as exc:
+                nonlocal error
+                error = exc
         t = threading.Thread(target=_read)
         t.daemon = True
         def alarm1(sig, frame):
@@ -3566,6 +3620,8 @@ class SignalsTest(unittest.TestCase):
             signal.alarm(1)
         def alarm2(sig, frame):
             t.start()
+
+        large_data = item * N
         signal.signal(signal.SIGALRM, alarm1)
         try:
             wio = self.io.open(w, **fdopen_kwargs)
@@ -3575,10 +3631,14 @@ class SignalsTest(unittest.TestCase):
             #   and the first alarm)
             # - second raw write() returns EINTR (because of the second alarm)
             # - subsequent write()s are successful (either partial or complete)
-            self.assertEqual(N, wio.write(item * N))
+            written = wio.write(large_data)
+            self.assertEqual(N, written)
+
             wio.flush()
             write_finished = True
             t.join()
+
+            self.assertIsNone(error)
             self.assertEqual(N, sum(len(x) for x in read_results))
         finally:
             write_finished = True

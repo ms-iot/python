@@ -667,6 +667,26 @@ class _SharedFile:
             self._file = None
             self._close(fileobj)
 
+# Provide the tell method for unseekable stream
+class _Tellable:
+    def __init__(self, fp):
+        self.fp = fp
+        self.offset = 0
+
+    def write(self, data):
+        n = self.fp.write(data)
+        self.offset += n
+        return n
+
+    def tell(self):
+        return self.offset
+
+    def flush(self):
+        self.fp.flush()
+
+    def close(self):
+        self.fp.close()
+
 
 class ZipExtFile(io.BufferedIOBase):
     """File-like object for reading an archive member.
@@ -942,7 +962,8 @@ class ZipFile:
 
     file: Either the path to the file, or a file-like object.
           If it is a path, the file will be opened and closed by ZipFile.
-    mode: The mode can be either read "r", write "w" or append "a".
+    mode: The mode can be either read 'r', write 'w', exclusive create 'x',
+          or append 'a'.
     compression: ZIP_STORED (no compression), ZIP_DEFLATED (requires zlib),
                  ZIP_BZIP2 (requires bz2) or ZIP_LZMA (requires lzma).
     allowZip64: if True ZipFile will create files with ZIP64 extensions when
@@ -955,9 +976,10 @@ class ZipFile:
     _windows_illegal_name_trans_table = None
 
     def __init__(self, file, mode="r", compression=ZIP_STORED, allowZip64=True):
-        """Open the ZIP file with mode read "r", write "w" or append "a"."""
-        if mode not in ("r", "w", "a"):
-            raise RuntimeError('ZipFile() requires mode "r", "w", or "a"')
+        """Open the ZIP file with mode read 'r', write 'w', exclusive create 'x',
+        or append 'a'."""
+        if mode not in ('r', 'w', 'x', 'a'):
+            raise RuntimeError("ZipFile requires mode 'r', 'w', 'x', or 'a'")
 
         _check_compression(compression)
 
@@ -976,8 +998,8 @@ class ZipFile:
             # No, it's a filename
             self._filePassed = 0
             self.filename = file
-            modeDict = {'r' : 'rb', 'w': 'w+b', 'a' : 'r+b',
-                        'r+b': 'w+b', 'w+b': 'wb'}
+            modeDict = {'r' : 'rb', 'w': 'w+b', 'x': 'x+b', 'a' : 'r+b',
+                        'r+b': 'w+b', 'w+b': 'wb', 'x+b': 'xb'}
             filemode = modeDict[mode]
             while True:
                 try:
@@ -994,21 +1016,33 @@ class ZipFile:
             self.filename = getattr(file, 'name', None)
         self._fileRefCnt = 1
         self._lock = threading.RLock()
+        self._seekable = True
 
         try:
             if mode == 'r':
                 self._RealGetContents()
-            elif mode == 'w':
+            elif mode in ('w', 'x'):
                 # set the modified flag so central directory gets written
                 # even if no files are added to the archive
                 self._didModify = True
-                self.start_dir = self.fp.tell()
+                try:
+                    self.start_dir = self.fp.tell()
+                except (AttributeError, OSError):
+                    self.fp = _Tellable(self.fp)
+                    self.start_dir = 0
+                    self._seekable = False
+                else:
+                    # Some file-like objects can provide tell() but not seek()
+                    try:
+                        self.fp.seek(self.start_dir)
+                    except (AttributeError, OSError):
+                        self._seekable = False
             elif mode == 'a':
                 try:
                     # See if file is a zip file
                     self._RealGetContents()
                     # seek to start of directory and overwrite
-                    self.fp.seek(self.start_dir, 0)
+                    self.fp.seek(self.start_dir)
                 except BadZipFile:
                     # file is not a zip file, just append
                     self.fp.seek(0, 2)
@@ -1018,7 +1052,7 @@ class ZipFile:
                     self._didModify = True
                     self.start_dir = self.fp.tell()
             else:
-                raise RuntimeError('Mode must be "r", "w" or "a"')
+                raise RuntimeError("Mode must be 'r', 'w', 'x', or 'a'")
         except:
             fp = self.fp
             self.fp = None
@@ -1368,8 +1402,8 @@ class ZipFile:
         if zinfo.filename in self.NameToInfo:
             import warnings
             warnings.warn('Duplicate name: %r' % zinfo.filename, stacklevel=3)
-        if self.mode not in ("w", "a"):
-            raise RuntimeError('write() requires mode "w" or "a"')
+        if self.mode not in ('w', 'x', 'a'):
+            raise RuntimeError("write() requires mode 'w', 'x', or 'a'")
         if not self.fp:
             raise RuntimeError(
                 "Attempt to write ZIP archive that was already closed")
@@ -1415,7 +1449,8 @@ class ZipFile:
         zinfo.file_size = st.st_size
         zinfo.flag_bits = 0x00
         with self._lock:
-            self.fp.seek(self.start_dir, 0)
+            if self._seekable:
+                self.fp.seek(self.start_dir)
             zinfo.header_offset = self.fp.tell()    # Start of header bytes
             if zinfo.compress_type == ZIP_LZMA:
                 # Compressed data includes an end-of-stream (EOS) marker
@@ -1436,6 +1471,8 @@ class ZipFile:
                 return
 
             cmpr = _get_compressor(zinfo.compress_type)
+            if not self._seekable:
+                zinfo.flag_bits |= 0x08
             with open(filename, "rb") as fp:
                 # Must overwrite CRC and sizes with correct data later
                 zinfo.CRC = CRC = 0
@@ -1464,17 +1501,24 @@ class ZipFile:
                 zinfo.compress_size = file_size
             zinfo.CRC = CRC
             zinfo.file_size = file_size
-            if not zip64 and self._allowZip64:
-                if file_size > ZIP64_LIMIT:
-                    raise RuntimeError('File size has increased during compressing')
-                if compress_size > ZIP64_LIMIT:
-                    raise RuntimeError('Compressed size larger than uncompressed size')
-            # Seek backwards and write file header (which will now include
-            # correct CRC and file sizes)
-            self.start_dir = self.fp.tell()       # Preserve current position in file
-            self.fp.seek(zinfo.header_offset, 0)
-            self.fp.write(zinfo.FileHeader(zip64))
-            self.fp.seek(self.start_dir, 0)
+            if zinfo.flag_bits & 0x08:
+                # Write CRC and file sizes after the file data
+                fmt = '<LQQ' if zip64 else '<LLL'
+                self.fp.write(struct.pack(fmt, zinfo.CRC, zinfo.compress_size,
+                                          zinfo.file_size))
+                self.start_dir = self.fp.tell()
+            else:
+                if not zip64 and self._allowZip64:
+                    if file_size > ZIP64_LIMIT:
+                        raise RuntimeError('File size has increased during compressing')
+                    if compress_size > ZIP64_LIMIT:
+                        raise RuntimeError('Compressed size larger than uncompressed size')
+                # Seek backwards and write file header (which will now include
+                # correct CRC and file sizes)
+                self.start_dir = self.fp.tell() # Preserve current position in file
+                self.fp.seek(zinfo.header_offset)
+                self.fp.write(zinfo.FileHeader(zip64))
+                self.fp.seek(self.start_dir)
             self.filelist.append(zinfo)
             self.NameToInfo[zinfo.filename] = zinfo
 
@@ -1504,11 +1548,8 @@ class ZipFile:
 
         zinfo.file_size = len(data)            # Uncompressed size
         with self._lock:
-            try:
+            if self._seekable:
                 self.fp.seek(self.start_dir)
-            except (AttributeError, io.UnsupportedOperation):
-                # Some file-like objects can provide tell() but not seek()
-                pass
             zinfo.header_offset = self.fp.tell()    # Start of header data
             if compress_type is not None:
                 zinfo.compress_type = compress_type
@@ -1549,19 +1590,16 @@ class ZipFile:
         self.close()
 
     def close(self):
-        """Close the file, and for mode "w" and "a" write the ending
+        """Close the file, and for mode 'w', 'x' and 'a' write the ending
         records."""
         if self.fp is None:
             return
 
         try:
-            if self.mode in ("w", "a") and self._didModify: # write ending records
+            if self.mode in ('w', 'x', 'a') and self._didModify: # write ending records
                 with self._lock:
-                    try:
+                    if self._seekable:
                         self.fp.seek(self.start_dir)
-                    except (AttributeError, io.UnsupportedOperation):
-                        # Some file-like objects can provide tell() but not seek()
-                        pass
                     self._write_end_record()
         finally:
             fp = self.fp
