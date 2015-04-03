@@ -186,20 +186,6 @@ static char *GetPythonImport (HINSTANCE hModule)
     return NULL;
 }
 
-#ifdef MS_WINRT
-size_t winrt_getinstallpath(wchar_t *buffer, size_t cch);
-WINBASEAPI
-_Ret_maybenull_
-HMODULE
-WINAPI
-LoadLibraryExW(
-_In_ LPCWSTR lpLibFileName,
-_Reserved_ HANDLE hFile,
-_In_ DWORD dwFlags
-);
-#define LOAD_PACKAGED_LIBRARY 0x00000004
-#endif
-
 dl_funcptr _PyImport_GetDynLoadWindows(const char *shortname,
                                        PyObject *pathname, FILE *fp)
 {
@@ -253,11 +239,11 @@ dl_funcptr _PyImport_GetDynLoadWindows(const char *shortname,
         {
             if (wpathname[len] == '\\' || wpathname[len] == '/')
                 len++;
-			hDLL = LoadLibraryExW(&wpathname[len], 0, LOAD_PACKAGED_LIBRARY);
+			hDLL = LoadPackagedLibrary(&wpathname[len], 0);
         }
         else
         {
-			hDLL = LoadLibraryExW(wpathname, 0, LOAD_PACKAGED_LIBRARY);
+			hDLL = LoadPackagedLibrary(wpathname, 0);
         }
 #endif
         if (hDLL==NULL){

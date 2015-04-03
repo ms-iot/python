@@ -822,19 +822,6 @@ Py_GetProgramFullPath(void)
     return progpath;
 }
 
-#ifdef MS_WINRT
-WINBASEAPI
-_Ret_maybenull_
-HMODULE
-WINAPI
-LoadLibraryExW(
-_In_ LPCWSTR lpLibFileName,
-_Reserved_ HANDLE hFile,
-_In_ DWORD dwFlags
-);
-#define LOAD_PACKAGED_LIBRARY 0x00000004
-#endif
-
 /* Load python3.dll before loading any extension module that might refer
    to it. That way, we can be sure that always the python3.dll corresponding
    to this python DLL is loaded, not a python3.dll that might be on the path
@@ -862,7 +849,7 @@ _Py_CheckPython3()
 #ifndef MS_WINRT
     hPython3 = LoadLibraryExW(py3path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
 #else
-	hPython3 = LoadLibraryExW(py3path, 0, LOAD_PACKAGED_LIBRARY);
+    hPython3 = LoadPackagedLibrary(py3path, 0);
 #endif
     if (hPython3 != NULL)
         return 1;
@@ -873,7 +860,7 @@ _Py_CheckPython3()
 #ifndef MS_WINRT
     hPython3 = LoadLibraryExW(py3path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
 #else
-	hPython3 = LoadLibraryExW(py3path, 0, LOAD_PACKAGED_LIBRARY);
+    hPython3 = LoadPackagedLibrary(py3path, 0);
 #endif
     return hPython3 != NULL;
 }

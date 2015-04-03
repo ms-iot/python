@@ -71,9 +71,11 @@
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
       <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
     </ClCompile>
+    <!--
     <Link Condition="'$(ApplicationTypeRevision)'=='8.2'">
       <IgnoreSpecificDefaultLibraries>LIBC;ole32.lib;kernel32.lib;msvcrt.lib%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
+    -->
     <Link>
       <AdditionalDependencies>%(AdditionalDependencies);ws2_32.lib</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
