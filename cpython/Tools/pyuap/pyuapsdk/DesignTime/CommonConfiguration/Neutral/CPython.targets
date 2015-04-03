@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <PtvsdFiles Include="$(PtvsLocation)\ptvsd\**\*" />
-    <VisualStudioPyFiles Include="$(PtvsLocation)\visualstudio_py_*launcher.py" />
+    <VisualStudioPyFiles Include="$(PtvsLocation)\visualstudio_py_*.py" />
     <SDKReference Include="Microsoft.VCLibs.AppLocal, Version=14.0">
       <Name>Microsoft Visual C++ 14 Runtime Package for Windows UAP</Name>
     </SDKReference>

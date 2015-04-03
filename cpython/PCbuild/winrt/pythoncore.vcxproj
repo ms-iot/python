@@ -77,9 +77,12 @@
     </Link>
     -->
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);ws2_32.lib</AdditionalDependencies>
+      <AdditionalDependencies>ws2_32.lib</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
       <ImageHasSafeExceptionHandlers />
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">vccorlibd.lib msvcrtd.lib vcruntimed.lib ucrtd.lib /defaultlib:windowsapp.lib %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">vccorlibd.lib msvcrtd.lib vcruntimed.lib ucrtd.lib /defaultlib:windowsapp.lib %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">vccorlibd.lib msvcrtd.lib vcruntimed.lib ucrtd.lib /defaultlib:windowsapp.lib %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -32,6 +32,9 @@ int RunPython(
 
     Py_Initialize();
 
+    // _set_invalid_parameter_handler();
+    // _CrtSetReportMode()
+
     if (InitStdListeners())
     {
         SetStdOutCallback(stdOutFunc);

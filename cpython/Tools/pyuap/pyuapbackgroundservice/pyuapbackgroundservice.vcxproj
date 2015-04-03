@@ -140,9 +140,11 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir)..\..;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
+      <AdditionalOptions>vccorlibd.lib msvcrtd.lib vcruntimed.lib ucrtd.lib /defaultlib:windowsapp.lib %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -180,9 +182,11 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir)..\..;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
+      <AdditionalOptions>vccorlibd.lib msvcrtd.lib vcruntimed.lib ucrtd.lib /defaultlib:windowsapp.lib %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
@@ -221,10 +225,12 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>runtimeobject.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <AdditionalLibraryDirectories>$(OutDir)..\..;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
+      <AdditionalOptions>vccorlibd.lib msvcrtd.lib vcruntimed.lib ucrtd.lib /defaultlib:windowsapp.lib %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

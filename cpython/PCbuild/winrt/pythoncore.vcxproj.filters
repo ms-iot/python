@@ -966,5 +966,6 @@
       <Filter>Python</Filter>
     </ClCompile>
     <ClCompile Include="..\..\PC\pythonwinrt.cpp" />
+    <ClCompile Include="..\..\PC\invalid_parameter_handler.c" />
   </ItemGroup>
 </Project>
