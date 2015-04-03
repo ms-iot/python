@@ -77,7 +77,7 @@
     </Link>
     -->
     <Link>
-      <AdditionalDependencies>ws2_32.lib</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);ws2_32.lib</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
       <ImageHasSafeExceptionHandlers />
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">vccorlibd.lib msvcrtd.lib vcruntimed.lib ucrtd.lib /defaultlib:windowsapp.lib %(AdditionalOptions)</AdditionalOptions>
