@@ -2,7 +2,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <PlatformToolsetVersion Condition="'$(PlatformToolsetVersion)' == ''">140</PlatformToolsetVersion>
-    <TargetPlatformIdentifier>Windows</TargetPlatformIdentifier>
     <WinMDAssembly>false</WinMDAssembly>
     <AppxPackage>true</AppxPackage>
     <WindowsAppContainer>true</WindowsAppContainer>
@@ -10,7 +9,7 @@
     <_ApplicationTypeDefaultPropsPath>$(VCTargetsPath)\Application Type\Windows Store\Default.props</_ApplicationTypeDefaultPropsPath>
     <_ApplicationTypeRevisionDefaultPropsPath Condition="'$(ApplicationTypeRevision)' != ''">$(VCTargetsPath)\Application Type\Windows Store\$(ApplicationTypeRevision)\Default.props</_ApplicationTypeRevisionDefaultPropsPath>
   </PropertyGroup>
-
+    
   <PropertyGroup>
     <CreateCleanLayout>false</CreateCleanLayout>
     <AllowLocalNetworkLoopback>true</AllowLocalNetworkLoopback>

@@ -2,10 +2,10 @@
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Common">
-      <UniqueIdentifier>616efb13-5e39-44a3-876b-9d9dfaacc583</UniqueIdentifier>
+      <UniqueIdentifier>98e552fa-8a1c-4916-b63b-ffa88936248c</UniqueIdentifier>
     </Filter>
     <Filter Include="Assets">
-      <UniqueIdentifier>ce845ad7-089d-45ac-83c5-4a68a175c7be</UniqueIdentifier>
+      <UniqueIdentifier>947a3328-b966-463a-b8e4-5f9045ca7499</UniqueIdentifier>
       <Extensions>bmp;fbx;gif;jpg;jpeg;tga;tiff;tif;png</Extensions>
     </Filter>
     <Image Include="Assets\Logo.scale-100.png">
@@ -20,37 +20,25 @@
     <Image Include="Assets\SplashScreen.scale-100.png">
       <Filter>Assets</Filter>
     </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <ApplicationDefinition Include="App.xaml" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="App.xaml.cpp" />
-    <ClCompile Include="MainPage.xaml.cpp" />
-    <ClCompile Include="pch.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="pch.h" />
-    <ClInclude Include="App.xaml.h" />
-    <ClInclude Include="MainPage.xaml.h" />
-  </ItemGroup>
-  <ItemGroup>
     <Image Include="Assets\WideLogo.scale-100.png">
       <Filter>Assets</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="StartupTask.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="StartupTask.h" />
+  </ItemGroup>
+  <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="pyuapstartup_TemporaryKey.pfx" />
+    <None Include="pyuapbackgroundservice_TemporaryKey.pfx" />
+    <None Include="StartupTask.py" />
     <None Include="lib.zip" />
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="MainPage.xaml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Xsd Include="StartupTask.py" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="startupinfo.xml" />

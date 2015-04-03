@@ -2,8 +2,8 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <CPythonSDKPath>$(MSBuildThisFileDirectory)..\..\..\</CPythonSDKPath>
-    <PtvsLocation>$(MSBuildExtensionsPath32)\Microsoft\Python Tools for Visual Studio\$(PtvsVersion)\</PtvsLocation>
-    <PtvsLocation Condition="'$(PtvsLocation)' == '' or !Exists('$(PtvsLocation)')">$(LocalAppData)\Microsoft\VisualStudio\$(VisualStudioVersion)Exp\Extensions\Microsoft\Python Tools for Visual Studio\$(PtvsVersion)\</PtvsLocation>
+    <PtvsLocation>$(LocalAppData)\Microsoft\VisualStudio\$(VisualStudioVersion)Exp\Extensions\Microsoft\Python Tools for Visual Studio\$(PtvsVersion)\</PtvsLocation>
+    <PtvsLocation Condition="'$(PtvsLocation)' == '' or !Exists('$(PtvsLocation)')">$(MSBuildProgramFiles32)\Microsoft Visual Studio $(VisualStudioVersion)\Common7\IDE\Extensions\Microsoft\Python Tools for Visual Studio\$(PtvsVersion)\</PtvsLocation>
     <RedistPlatform Condition="'$(Platform)'=='x64'">x64</RedistPlatform>
     <RedistPlatform Condition="'$(Platform)'=='ARM'">arm</RedistPlatform>
     <RedistPlatform Condition="'$(RedistPlatform)'==''">x86</RedistPlatform>
@@ -19,15 +19,15 @@
 
   <ItemGroup>
     <PtvsdFiles Include="$(PtvsLocation)\ptvsd\**\*" />
-    <VisualStudioPyFiles Include="$(PtvsLocation)\visualstudio_py_*.py" />
+    <VisualStudioPyFiles Include="$(PtvsLocation)\visualstudio_py_*launcher.py" />
     <SDKReference Include="Microsoft.VCLibs.AppLocal, Version=14.0">
-      <Name>Microsoft Visual C++ 14 AppLocal Runtime Package for Windows UAP</Name>
+      <Name>Microsoft Visual C++ 14 Runtime Package for Windows UAP</Name>
     </SDKReference>
   </ItemGroup>
 
   <ItemGroup>
     <PythonHost Include="$(CPythonSDKPath)\Redist\$(RedistConfiguration)\$(RedistPlatform)\*"/>
-    <PythonHost Include="$(CPythonSDKPath)\References\CommonConfiguration\Neutral\lib.zip" />
+    <PythonHost Include="$(CPythonSDKPath)\References\CommonConfiguration\Neutral\**\*" />
   </ItemGroup>
   
   <PropertyGroup>
@@ -41,14 +41,6 @@
   <PropertyGroup>
     <PythonArguments Condition="'$(PythonArguments)'==''">$(StartupFile)</PythonArguments>
   </PropertyGroup>
-
-  <Target Name="VisualStudioPyCopy" BeforeTargets="CoreCompile">
-    <Message Text="PTVS Location: $(PtvsLocation)" />
-    <Copy SourceFiles="@(VisualStudioPyFiles->'%(FullPath)')" DestinationFiles="$(OutputPath)\ptvsd\%(VisualStudioPyFiles.FileName)%(VisualStudioPyFiles.Extension)" />
-    <ItemGroup>
-      <OutputPyFiles Include="$(OutputPath)\ptvsd\*" />
-    </ItemGroup>
-  </Target>
 
   <Target Name="ReferenceCopy" BeforeTargets="CoreCompile">
     <Message Text="Reference copy" />
@@ -68,7 +60,7 @@
     <AssignTargetPath Files="@(PtvsdFiles->'%(FullPath)')" RootFolder="$(PtvsLocation)" Condition="Exists('$(PtvsLocation)')">
       <Output TaskParameter="AssignedFiles" ItemName="CustomOutputGroupForPackagingOutput" />
     </AssignTargetPath>
-    <AssignTargetPath Files="@(OutputPyFiles->'%(FullPath)')" RootFolder="$(OutputPath)" Condition="Exists('$(OutputPath)ptvsd')">
+    <AssignTargetPath Files="@(VisualStudioPyFiles->'%(FullPath)')" RootFolder="$(PtvsLocation)" Condition="Exists('$(PtvsLocation)')">
       <Output TaskParameter="AssignedFiles" ItemName="CustomOutputGroupForPackagingOutput" />
     </AssignTargetPath>
     <AssignTargetPath Files="@(OutputReferences->'%(FullPath)')" RootFolder="$(OutputPath)references" Condition="Exists('$(OutputPath)references')">
