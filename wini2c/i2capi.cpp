@@ -18,7 +18,9 @@ extern "C" {
 		ComPtr<IInspectable> spInspectable = nullptr;
 		I2cConnectionSettings^ settings = ref new I2cConnectionSettings(slaveAddress);
 		String^ deviceName = ref new String(name);
-		String^ id = I2cDevice::GetDeviceSelector(deviceName);
+        String^ querySyntax = I2cDevice::GetDeviceSelector(deviceName);
+        auto info = create_task(Windows::Devices::Enumeration::DeviceInformation::FindAllAsync(querySyntax)).get();
+        String^ id = info->GetAt(0)->Id;
 
 		switch (busSpeed)
 		{
@@ -44,10 +46,11 @@ extern "C" {
 			return NULL;
 		}
 
-		create_task(I2cDevice::FromIdAsync(id, settings)).then(
-				[&spInspectable](I2cDevice^ device) {
-			spInspectable = I2CDEVICE_TOPOINTER(device);
-		}).wait();
+		auto getdevicetask = create_task(I2cDevice::FromIdAsync(id, settings));
+		
+        auto i2cdevice = getdevicetask.get();
+
+        spInspectable = I2CDEVICE_TOPOINTER(i2cdevice);
 
 		return spInspectable.Detach();
     }
