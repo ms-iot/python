@@ -28,23 +28,22 @@ extern "C" {
 	typedef struct {
 		PyObject_HEAD
 		void *ob_device;
-	} PyI2cDeviceObject;
+	} PySpiDeviceObject;
 
-    void *new_i2cdevice(wchar_t *name, int slaveAddress, int busSpeed, int shareMode);
-	void delete_i2cdevice(void *device);
-	void write_i2cdevice(void *device, char* data, unsigned int count);
-	void read_i2cdevice(void *device, char* buffer, unsigned int length);
-	void writeread_i2cdevice(void *device, char* data, unsigned int count, char* buffer, unsigned int length);
-	int getbusspeed_i2cdevice(void *device);
-	int getsharingmode_i2cdevice(void *device);
-	int getaddress_i2cdevice(void *device);
-
+	void *new_spidevice(wchar_t *name, int chipSelectLine, int clockFrequency, int dataBitLength, int mode, int sharingMode);
+	void delete_spidevice(void *device);
+	void write_spidevice(void *device, char* data, unsigned int count);
+	void read_spidevice(void *device, char* buffer, unsigned int length);
+	void transfersequential_spidevice(void *device, char* data, unsigned int count, char* buffer, unsigned int length);
+	void transferfullduplex_spidevice(void *device, char* data, unsigned int count, char* buffer, unsigned int length);
 #ifdef __cplusplus
 }
 #endif
 
-#define STANDARDSPEED 0
-#define FASTSPEED 1
+#define MODE0 0
+#define MODE1 1
+#define MODE2 2
+#define MODE3 3
 
 #define EXCLUSIVEMODE 0
 #define SHAREDMODE 1

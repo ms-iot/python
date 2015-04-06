@@ -30,7 +30,7 @@ extern "C" {
 		void *ob_device;
 	} PyI2cDeviceObject;
 
-    void *new_i2cdevice(wchar_t *name, int slaveAddress, int busSpeed, int shareMode);
+    void *new_i2cdevice(wchar_t *name, int slaveAddress, int busSpeed, int sharingMode);
 	void delete_i2cdevice(void *device);
 	void write_i2cdevice(void *device, char* data, unsigned int count);
 	void read_i2cdevice(void *device, char* buffer, unsigned int length);

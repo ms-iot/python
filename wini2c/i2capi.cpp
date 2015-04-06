@@ -14,7 +14,7 @@ using namespace Microsoft::WRL;
 #define I2CDEVICE_FROMPOINTER(p) ((I2cDevice^)reinterpret_cast<Object^>(reinterpret_cast<IInspectable*>(p)))
 
 extern "C" {
-	void *new_i2cdevice(wchar_t *name, int slaveAddress, int busSpeed, int shareMode) {
+	void *new_i2cdevice(wchar_t *name, int slaveAddress, int busSpeed, int sharingMode) {
 		ComPtr<IInspectable> spInspectable = nullptr;
 		I2cConnectionSettings^ settings = ref new I2cConnectionSettings(slaveAddress);
 		String^ deviceName = ref new String(name);
@@ -34,7 +34,7 @@ extern "C" {
 			return NULL;
 		}
 
-		switch (shareMode)
+		switch (sharingMode)
 		{
 		case SHAREDMODE:
 			settings->SharingMode = I2cSharingMode::Shared;

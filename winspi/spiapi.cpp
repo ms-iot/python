@@ -2,136 +2,114 @@
 #include <collection.h>
 #include "python.h"
 #include "constants.h"
-#include "i2capi.h"
+#include "spiapi.h"
 
 using namespace concurrency;
-using namespace Windows::Devices::I2c;
+using namespace Windows::Devices::Spi;
 using namespace Platform;
 using namespace Platform::Collections;
 using namespace Microsoft::WRL;
 
-#define I2CDEVICE_TOPOINTER(d) (reinterpret_cast<IInspectable*>((Object^)d))
-#define I2CDEVICE_FROMPOINTER(p) ((I2cDevice^)reinterpret_cast<Object^>(reinterpret_cast<IInspectable*>(p)))
+#define SPIDEVICE_TOPOINTER(d) (reinterpret_cast<IInspectable*>((Object^)d))
+#define SPIDEVICE_FROMPOINTER(p) ((SpiDevice^)reinterpret_cast<Object^>(reinterpret_cast<IInspectable*>(p)))
 
 extern "C" {
-	void *new_i2cdevice(wchar_t *name, int slaveAddress, int busSpeed, int shareMode) {
+	void *new_spidevice(wchar_t *name, int chipSelectLine, int clockFrequency, int dataBitLength, int mode, int sharingMode) {
 		ComPtr<IInspectable> spInspectable = nullptr;
-		I2cConnectionSettings^ settings = ref new I2cConnectionSettings(slaveAddress);
+		SpiConnectionSettings^ settings = ref new SpiConnectionSettings(chipSelectLine);
 		String^ deviceName = ref new String(name);
-        String^ querySyntax = I2cDevice::GetDeviceSelector(deviceName);
+        String^ querySyntax = SpiDevice::GetDeviceSelector(deviceName);
         auto info = create_task(Windows::Devices::Enumeration::DeviceInformation::FindAllAsync(querySyntax)).get();
         String^ id = info->GetAt(0)->Id;
 
-		switch (busSpeed)
+		if (clockFrequency != -1) {
+			settings->ClockFrequency = clockFrequency;
+		}
+
+		if (dataBitLength != -1) {
+			settings->DataBitLength = dataBitLength;
+		}
+
+		switch (mode)
 		{
-		case FASTSPEED:
-			settings->BusSpeed = I2cBusSpeed::FastMode;
+		case MODE0:
+			settings->Mode = SpiMode::Mode0;
 			break;
-		case STANDARDSPEED:
-			settings->BusSpeed = I2cBusSpeed::StandardMode;
+		case MODE1:
+			settings->Mode = SpiMode::Mode1;
+			break;
+		case MODE2:
+			settings->Mode = SpiMode::Mode2;
+			break;
+		case MODE3:
+			settings->Mode = SpiMode::Mode3;
 			break;
 		default:
 			return NULL;
 		}
 
-		switch (shareMode)
+		switch (sharingMode)
 		{
 		case SHAREDMODE:
-			settings->SharingMode = I2cSharingMode::Shared;
+			settings->SharingMode = SpiSharingMode::Shared;
 			break;
 		case EXCLUSIVEMODE:
-			settings->SharingMode = I2cSharingMode::Exclusive;
+			settings->SharingMode = SpiSharingMode::Exclusive;
 			break;
 		default:
 			return NULL;
 		}
 
-		auto getdevicetask = create_task(I2cDevice::FromIdAsync(id, settings));
+		auto getdevicetask = create_task(SpiDevice::FromIdAsync(id, settings));
 		
-        auto i2cdevice = getdevicetask.get();
+        auto spidevice = getdevicetask.get();
 
-        spInspectable = I2CDEVICE_TOPOINTER(i2cdevice);
+        spInspectable = SPIDEVICE_TOPOINTER(spidevice);
 
 		return spInspectable.Detach();
     }
 
-	void delete_i2cdevice(void *device) {
+	void delete_spidevice(void *device) {
 		if (device != NULL) {
 			ComPtr<IInspectable> realDevice;
 			realDevice.Attach((IInspectable*)device);
 		}
 	}
 
-	void write_i2cdevice(void *device, char* data, unsigned int count) {
+	void write_spidevice(void *device, char* data, unsigned int count) {
 		if (device != NULL) {
-			I2cDevice^ i2cDevice = I2CDEVICE_FROMPOINTER(device);
+			SpiDevice^ deviceObj = SPIDEVICE_FROMPOINTER(device);
 			unsigned char* udata = reinterpret_cast<unsigned char*>(data);
-			i2cDevice->Write(ArrayReference<unsigned char>(udata, count));
+			deviceObj->Write(ArrayReference<unsigned char>(udata, count));
 		}
 	}
 
-	void read_i2cdevice(void *device, char* buffer, unsigned int length) {
+	void read_spidevice(void *device, char* buffer, unsigned int length) {
 		if (device != NULL) {
-			I2cDevice^ i2cDevice = I2CDEVICE_FROMPOINTER(device);
+			SpiDevice^ deviceObj = SPIDEVICE_FROMPOINTER(device);
 			unsigned char* ubuffer = reinterpret_cast<unsigned char*>(buffer);
 
-			i2cDevice->Read(ArrayReference<unsigned char>(ubuffer, length));
+			deviceObj->Read(ArrayReference<unsigned char>(ubuffer, length));
 		}
 	}
 
-	void writeread_i2cdevice(void *device, char* data, unsigned int count, char* buffer, unsigned int length) {
+	void transfersequential_spidevice(void *device, char* data, unsigned int count, char* buffer, unsigned int length) {
 		if (device != NULL) {
-			I2cDevice^ i2cDevice = I2CDEVICE_FROMPOINTER(device);
+			SpiDevice^ deviceObj = SPIDEVICE_FROMPOINTER(device);
 			unsigned char* udata = reinterpret_cast<unsigned char*>(data);
 			unsigned char* ubuffer = reinterpret_cast<unsigned char*>(buffer);
 
-			i2cDevice->WriteRead(ArrayReference<unsigned char>(udata, count), ArrayReference<unsigned char>(ubuffer, length));
+			deviceObj->TransferSequential(ArrayReference<unsigned char>(udata, count), ArrayReference<unsigned char>(ubuffer, length));
 		}
 	}
 
-	int getbusspeed_i2cdevice(void *device) {
+	void transferfullduplex_spidevice(void *device, char* data, unsigned int count, char* buffer, unsigned int length) {
 		if (device != NULL) {
-			I2cDevice^ i2cDevice = I2CDEVICE_FROMPOINTER(device);
+			SpiDevice^ deviceObj = SPIDEVICE_FROMPOINTER(device);
+			unsigned char* udata = reinterpret_cast<unsigned char*>(data);
+			unsigned char* ubuffer = reinterpret_cast<unsigned char*>(buffer);
 
-			switch (i2cDevice->ConnectionSettings->BusSpeed)
-			{
-			case I2cBusSpeed::FastMode:
-				return FASTSPEED;
-			case I2cBusSpeed::StandardMode:
-				return STANDARDSPEED;
-			default:
-				return -1;
-			}
+			deviceObj->TransferFullDuplex(ArrayReference<unsigned char>(udata, count), ArrayReference<unsigned char>(ubuffer, length));
 		}
-
-		return -1;
-	}
-
-	int getsharingmode_i2cdevice(void *device) {
-		if (device != NULL) {
-			I2cDevice^ i2cDevice = I2CDEVICE_FROMPOINTER(device);
-
-			switch (i2cDevice->ConnectionSettings->SharingMode)
-			{
-			case I2cSharingMode::Exclusive:
-				return EXCLUSIVEMODE;
-			case I2cSharingMode::Shared:
-				return SHAREDMODE;
-			default:
-				return -1;
-			}
-		}
-
-		return -1;
-	}
-
-	int getaddress_i2cdevice(void *device) {
-		if (device != NULL) {
-			I2cDevice^ i2cDevice = I2CDEVICE_FROMPOINTER(device);
-
-			return (int)i2cDevice->ConnectionSettings->SlaveAddress;
-		}
-
-		return -1;
 	}
 }

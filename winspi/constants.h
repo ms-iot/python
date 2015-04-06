@@ -24,8 +24,10 @@ SOFTWARE.
 
 void define_constants(PyObject *module);
 
-PyObject* fastspeed;
-PyObject* standardspeed;
+PyObject* mode0;
+PyObject* mode1;
+PyObject* mode2;
+PyObject* mode3;
 
 PyObject* exclusivemode;
 PyObject* sharedmode;

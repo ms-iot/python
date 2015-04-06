@@ -4,7 +4,7 @@
 #include "structmember.h"
 
 #define VALIDATE_I2C(d) \
-    if (!(d) && !((d)->ob_device)) { \
+    if (!(d) || !((d)->ob_device)) { \
         PyErr_SetString(PyExc_ValueError, \
              "I2C device is not initialized"); \
         return NULL; \
@@ -179,10 +179,10 @@ static PyTypeObject i2cdevice_type = {
 static int
 i2cdevice_init(PyI2cDeviceObject *self, PyObject *args, PyObject *kwds)
 {
-	static char *keywords[] = { "name", "slaveaddress", "busspeed", "sharemode", NULL };
+	static char *keywords[] = { "name", "slaveaddress", "busspeed", "sharingmode", NULL };
 	PyObject *name = NULL, *tmp = NULL;
 	int slaveAddress = 0;
-	int shareMode = EXCLUSIVEMODE;
+	int sharingMode = EXCLUSIVEMODE;
 	int busSpeed = STANDARDSPEED;
 	wchar_t* nameString = NULL;
 
@@ -193,13 +193,13 @@ i2cdevice_init(PyI2cDeviceObject *self, PyObject *args, PyObject *kwds)
 		&name, 
 		&slaveAddress,
 		&busSpeed,
-		&shareMode))
+		&sharingMode))
 		return -1;
 
 	nameString = PyUnicode_AsWideCharString(name, NULL);
 
     Py_BEGIN_ALLOW_THREADS
-	self->ob_device = new_i2cdevice(nameString, slaveAddress, busSpeed, shareMode);
+	self->ob_device = new_i2cdevice(nameString, slaveAddress, busSpeed, sharingMode);
     Py_END_ALLOW_THREADS
 	if (self->ob_device == NULL)
 		return -1;
