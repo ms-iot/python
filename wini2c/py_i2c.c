@@ -50,7 +50,10 @@ static PyObject *py_i2cdevice_read(PyI2cDeviceObject *self, PyObject *args, PyOb
 	result = PyBytes_FromStringAndSize(NULL, count);
 
     Py_BEGIN_ALLOW_THREADS
-	read_i2cdevice(self->ob_device, PyBytes_AsString(result), count);
+    if (FAILURE == read_i2cdevice(self->ob_device, PyBytes_AsString(result), count)) {
+        Py_DECREF(result);
+        result = NULL;
+    }
     Py_END_ALLOW_THREADS
 
 	return result;
@@ -61,6 +64,7 @@ static PyObject *py_i2cdevice_write(PyI2cDeviceObject *self, PyObject *args, PyO
 	static char *kwlist[] = { "data", NULL };
 	PyObject* data = NULL;
 	PyBytesObject* bytes = NULL;
+    PyObject* result = Py_None;
 
 	VALIDATE_I2C(self);
 
@@ -72,10 +76,12 @@ static PyObject *py_i2cdevice_write(PyI2cDeviceObject *self, PyObject *args, PyO
 		return NULL;
 
     Py_BEGIN_ALLOW_THREADS
-	write_i2cdevice(self->ob_device, PyBytes_AsString(bytes), PyBytes_Size(bytes));
+    if (FAILURE == write_i2cdevice(self->ob_device, PyBytes_AsString(bytes), PyBytes_Size(bytes))) {
+        result = NULL;
+    }
     Py_END_ALLOW_THREADS
 
-	Py_RETURN_NONE;
+	return result;
 }
 
 static PyObject *py_i2cdevice_writeread(PyI2cDeviceObject *self, PyObject *args, PyObject *kwargs)
@@ -98,58 +104,73 @@ static PyObject *py_i2cdevice_writeread(PyI2cDeviceObject *self, PyObject *args,
 	result = PyBytes_FromStringAndSize(NULL, count);
 
     Py_BEGIN_ALLOW_THREADS
-	writeread_i2cdevice(self->ob_device, PyBytes_AsString(byteArray), PyBytes_Size(byteArray), PyBytes_AsString(result), count);
+    if (FAILURE == writeread_i2cdevice(self->ob_device, PyBytes_AsString(byteArray), PyBytes_Size(byteArray), PyBytes_AsString(result), count)) {
+        Py_DECREF(result);
+        result = NULL;
+    }
     Py_END_ALLOW_THREADS
 
 	return result;
 }
 
+static PyObject *
+py_spidevice_deviceid(PyI2cDeviceObject *self, PyObject *args) {
+    char id[_MAX_FNAME];
+    PyObject* result = NULL;
+    VALIDATE_SPIDEVICE(self);
+
+    Py_BEGIN_ALLOW_THREADS
+    if (SUCCESS == get_deviceid_i2cdevice(self->ob_device, &id, _MAX_FNAME)) {
+        result = PyUnicode_FromString(id);
+    }
+    Py_END_ALLOW_THREADS
+
+    return result;
+}
+
 static PyObject *py_i2cdevice_slaveaddress(PyI2cDeviceObject *self, PyObject *args)
 {
 	VALIDATE_I2C(self);
-    long val = 0;
+    PyObject* result = NULL;
+    int val = 0;
 
     Py_BEGIN_ALLOW_THREADS
-	val = getaddress_i2cdevice(self->ob_device);
+    if (SUCCESS == get_address_i2cdevice(self->ob_device, &val)) {
+        result = PyLong_FromLong(val);
+    }
     Py_END_ALLOW_THREADS
 
-	if (val != -1) {
-		return PyLong_FromLong(val);
-	}
-
-	return NULL;
+	return result;
 }
 
 static PyObject *py_i2cdevice_busspeed(PyI2cDeviceObject *self, PyObject *args)
 {
 	VALIDATE_I2C(self);
-    long val = 0;
+    PyObject* result = NULL;
+    int val = 0;
 
     Py_BEGIN_ALLOW_THREADS
-    val = getbusspeed_i2cdevice(self->ob_device);
+    if (SUCCESS == get_busspeed_i2cdevice(self->ob_device, &val)) {
+        result = PyLong_FromLong(val);
+    }
     Py_END_ALLOW_THREADS
 
-	if (val != -1) {
-		return PyLong_FromLong(val);
-	}
-
-	return NULL;
+	return result;
 }
 
 static PyObject *py_i2cdevice_sharingmode(PyI2cDeviceObject *self, PyObject *args)
 {
     VALIDATE_I2C(self);
-    long val = 0;
+    PyObject* result = NULL;
+    int val = 0;
 
     Py_BEGIN_ALLOW_THREADS
-        val = getsharingmode_i2cdevice(self->ob_device);
+    if (SUCCESS == get_sharingmode_i2cdevice(self->ob_device, &val)) {
+        result = PyLong_FromLong(val);
+    }
     Py_END_ALLOW_THREADS
 
-        if (val != -1) {
-            return PyLong_FromLong(val);
-        }
-
-    return NULL;
+    return result;
 }
 
 static PyMethodDef i2cdevice_methods[] = {
