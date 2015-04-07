@@ -26,14 +26,17 @@ SOFTWARE.
 extern "C" {
 #endif
     void init_gpio(PyObject* module);
-    void setup_gpio_channel(int channel, int direction, int pull_up_down, int initial);
-    void output_gpio_channel(int channel, int value);
-    int input_gpio_channel(int channel);
+    int setup_gpio_channel(int channel, int direction, int pull_up_down, int initial);
+    int output_gpio_channel(int channel, int value);
+    int input_gpio_channel(int channel, int *value);
     void cleanup_gpio_channel(int channel);
     void cleanup_gpio_channels();
 #ifdef __cplusplus
 }
 #endif
+
+#define SUCCESS 0
+#define FAILURE -1
 
 #define SETUP_OK          0
 #define SETUP_DEVMEM_FAIL 1

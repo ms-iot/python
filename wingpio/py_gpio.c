@@ -59,7 +59,10 @@ static PyObject *py_setup_channel(PyObject *self, PyObject *args, PyObject *kwar
 		chancount = PyTuple_Size(chantuple);
 	}
 	else {
-        setup_gpio_channel(channel, direction, pud, initial);
+        if (FAILURE == setup_gpio_channel(channel, direction, pud, initial)) {
+            PyErr_Format(PyExc_RuntimeError, "Setup of channel %d failed", channel);
+            return NULL;
+        }
 		Py_RETURN_NONE;
 	}
 
@@ -86,7 +89,10 @@ static PyObject *py_setup_channel(PyObject *self, PyObject *args, PyObject *kwar
 			return NULL;
 		}
 
-        setup_gpio_channel(channel, direction, pud, initial);
+        if (FAILURE == setup_gpio_channel(channel, direction, pud, initial)) {
+            PyErr_Format(PyExc_RuntimeError, "Setup of channel %d failed", channel);
+            return NULL;
+        }
 	}
 
 	Py_RETURN_NONE;
@@ -214,7 +220,11 @@ static PyObject *py_output_gpio(PyObject *self, PyObject *args)
                 return NULL;
             }
         }
-        output_gpio_channel(channel, value);
+
+        if (FAILURE == output_gpio_channel(channel, value)) {
+            PyErr_Format(PyExc_RuntimeError, "Output to channel %d failed", channel);
+            return NULL;
+        }
     }
 
     Py_RETURN_NONE;
@@ -225,14 +235,15 @@ static PyObject *py_input_gpio(PyObject *self, PyObject *args)
 {
     unsigned int gpio;
     int channel;
-    PyObject *value;
+    PyObject *value = NULL;
+    int result = 0;
 
     if (!PyArg_ParseTuple(args, "i", &channel))
         return NULL;
 
-    int result = input_gpio_channel(channel);
-
-    value = Py_BuildValue("i", result);
+    if (SUCCESS == input_gpio_channel(channel, &result)) {
+        value = Py_BuildValue("i", result);
+    }
 
     return value;
 }

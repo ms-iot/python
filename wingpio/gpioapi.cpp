@@ -29,7 +29,8 @@ extern "C" {
 		}
     }
 
-    void setup_gpio_channel(int channel, int direction, int pull_up_down, int initial) {
+    int setup_gpio_channel(int channel, int direction, int pull_up_down, int initial) {
+        int ret = FAILURE;
         GpioPin^ pin = nullptr;
 
         if (channel >= 0 && channel < (int)gpioPins->Size) {
@@ -47,13 +48,18 @@ extern "C" {
                 pin->SetDriveMode(GpioPinDriveMode::Output);
             }
 
+            ret = SUCCESS;
+
             if (pin->GetDriveMode() == GpioPinDriveMode::Output) {
-                output_gpio_channel(channel, initial);
+                ret = output_gpio_channel(channel, initial);
             }
         }
+
+        return ret;
     }
 
-    void output_gpio_channel(int channel, int value) {
+    int output_gpio_channel(int channel, int value) {
+        int ret = FAILURE;
         GpioPin^ pin = nullptr;
 
         if (channel >= 0 && channel < (int)gpioPins->Size) {
@@ -66,13 +72,17 @@ extern "C" {
                 else if (value == LOW) {
                     pin->Write(GpioPinValue::Low);
                 }
+
+                ret = SUCCESS;
             }
         }
+
+        return ret;
     }
 
-    int input_gpio_channel(int channel) {
+    int input_gpio_channel(int channel, int* value) {
         GpioPin^ pin = nullptr;
-        int value = -1;
+        int ret = FAILURE;
 
         if (channel >= 0 && channel < (int)gpioPins->Size) {
             pin = gpioPins->GetAt(channel);
@@ -81,15 +91,17 @@ extern "C" {
                 auto pinValue = pin->Read();
 
                 if (pinValue == GpioPinValue::High) {
-                    value = HIGH;
+                    *value = HIGH;
                 }
                 else if (pinValue == GpioPinValue::Low) {
-                    value = LOW;
+                    *value = LOW;
                 }
+
+                ret = SUCCESS;
             }
         }
 
-        return value;
+        return ret;
     }
 
     void cleanup_gpio_channel(int channel) {
