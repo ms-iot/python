@@ -23,7 +23,7 @@ PyDoc_STRVAR(spidevice_doc,
 PyDoc_STRVAR(spibusinfo_doc,
     "spibusinfo(friendlyname) -> spibusinfo\n");
 
-static const char moduledocstring[] = "SPI functionality of a Windows \"Athens\" device using Python";
+static const char moduledocstring[] = "SPI functionality of a Windows 10 IoT Core device using Python";
 
 static void
 spidevice_dealloc(PySpiDeviceObject *d)

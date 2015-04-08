@@ -327,7 +327,7 @@ static PyObject *py_cleanup(PyObject *self, PyObject *args, PyObject *kwargs)
     Py_RETURN_NONE;
 }
 
-static const char moduledocstring[] = "GPIO functionality of a Windows \"Athens\" device using Python";
+static const char moduledocstring[] = "GPIO functionality of a Windows 10 IoT Core device using Python";
 
 PyMethodDef win_gpio_methods[] = {
 	{ "setup", (PyCFunction)py_setup_channel, METH_VARARGS | METH_KEYWORDS, "Set up a GPIO channel or list of channels with a direction and (optional) pull/up down control\nchannel        - either board pin number or BCM number depending on which mode is set.\ndirection      - IN or OUT\n[pull_up_down] - PUD_OFF (default), PUD_UP or PUD_DOWN\n[initial]      - Initial value for an output channel" },

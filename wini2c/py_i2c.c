@@ -11,9 +11,9 @@
     }
 
 PyDoc_STRVAR(i2cdevice_doc,
-"i2cdevice(deviceId=<deviceid>, address=<address>) -> i2cdevice\n");
+"i2cdevice(friendlyname, slaveaddress=<slaveaddress>) -> i2cdevice\n");
 
-static const char moduledocstring[] = "I2C functionality of a Windows \"Athens\" device using Python";
+static const char moduledocstring[] = "I2C functionality of a Windows 10 IoT Core device using Python";
 
 static void
 i2cdevice_dealloc(PyI2cDeviceObject *d) 
