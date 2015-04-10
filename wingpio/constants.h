@@ -20,6 +20,5 @@ PyObject *pud_down;
 PyObject *rising_edge;
 PyObject *falling_edge;
 PyObject *both_edge;
-PyObject *version;
 
 void define_constants(PyObject *module);

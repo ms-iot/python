@@ -17,13 +17,7 @@
         return NULL; \
     }
 
-PyDoc_STRVAR(spidevice_doc,
-    "spidevice(friendlyname, chipselectline=<chipselectline>) -> spidevice\n");
-
-PyDoc_STRVAR(spibusinfo_doc,
-    "spibusinfo(friendlyname) -> spibusinfo\n");
-
-static const char moduledocstring[] = "SPI functionality of a Windows 10 IoT Core device using Python";
+static const char moduledocstring[] = "SPI functionality of a Windows 10 IoT Core device";
 
 static void
 spidevice_dealloc(PySpiDeviceObject *d)
@@ -67,6 +61,13 @@ spibusinfo_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     return (PyObject*)self;
 }
 
+PyDoc_STRVAR(read_doc,
+    "read(count) -> bytes\n"
+    "\n"
+    "Reads from the device the specified number of bytes\n"
+    "\n"
+    "count=Number of bytes to read\n"
+    );
 static PyObject *
 py_spidevice_read(PySpiDeviceObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -91,6 +92,13 @@ py_spidevice_read(PySpiDeviceObject *self, PyObject *args, PyObject *kwargs)
     return result;
 }
 
+PyDoc_STRVAR(write_doc,
+    "write(bytes)\n"
+    "\n"
+    "Writes the bytes to the device\n"
+    "\n"
+    "bytes=Byte array to be written to the device\n"
+    );
 static PyObject *
 py_spidevice_write(PySpiDeviceObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -117,6 +125,15 @@ py_spidevice_write(PySpiDeviceObject *self, PyObject *args, PyObject *kwargs)
     return result;
 }
 
+PyDoc_STRVAR(transfer_doc,
+    "transfer(bytes, count) -> bytes\n"
+    "\n"
+    "Writes the bytes to the device and reads the expected number of bytes in full duplex\n"
+    "\n"
+    "bytes=Byte array to be written to the device\n"
+    "\n",
+    "count=Number of bytes expected to be read\n"
+    );
 static PyObject *
 py_spidevice_transfer(PySpiDeviceObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -146,6 +163,15 @@ py_spidevice_transfer(PySpiDeviceObject *self, PyObject *args, PyObject *kwargs)
     return result;
 }
 
+PyDoc_STRVAR(transfersequential_doc,
+    "transfersequential(bytes, count) -> bytes\n"
+    "\n"
+    "Writes the bytes to the device and reads the expected number of bytes in sequential mode\n"
+    "\n"
+    "bytes=Byte array to be written to the device\n"
+    "\n",
+    "count=Number of bytes expected to be read\n"
+    );
 static PyObject *
 py_spidevice_transfersequential(PySpiDeviceObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -175,6 +201,12 @@ py_spidevice_transfersequential(PySpiDeviceObject *self, PyObject *args, PyObjec
     return result;
 }
 
+PyDoc_STRVAR(deviceid_doc,
+    "deviceid() -> string\n"
+    "\n"
+    "Retrieves the device id for the SPI device\n"
+    "\n"
+    );
 static PyObject *
 py_spidevice_deviceid(PySpiDeviceObject *self, PyObject *args) {
     char id[_MAX_FNAME];
@@ -190,6 +222,12 @@ py_spidevice_deviceid(PySpiDeviceObject *self, PyObject *args) {
     return result;
 }
 
+PyDoc_STRVAR(csl_doc,
+    "chipselectline() -> int\n"
+    "\n"
+    "Retrieves the chip select line for the SPI device\n"
+    "\n"
+    );
 static PyObject *
 py_spidevice_chipselectline(PySpiDeviceObject *self, PyObject *args) {
     int val = 0;
@@ -205,6 +243,12 @@ py_spidevice_chipselectline(PySpiDeviceObject *self, PyObject *args) {
     return result;
 }
 
+PyDoc_STRVAR(clockfrequency_doc,
+    "clockfrequency() -> int\n"
+    "\n"
+    "Retrieves the clock frequency for the SPI device\n"
+    "\n"
+    );
 static PyObject *
 py_spidevice_clockfrequency(PySpiDeviceObject *self, PyObject *args) {
     int val = 0;
@@ -220,6 +264,12 @@ py_spidevice_clockfrequency(PySpiDeviceObject *self, PyObject *args) {
     return result;
 }
 
+PyDoc_STRVAR(databitlength_doc,
+    "databitlength() -> int\n"
+    "\n"
+    "Retrieves the data bit length for the SPI device\n"
+    "\n"
+    );
 static PyObject *
 py_spidevice_databitlength(PySpiDeviceObject *self, PyObject *args) {
     int val = 0;
@@ -235,6 +285,12 @@ py_spidevice_databitlength(PySpiDeviceObject *self, PyObject *args) {
     return result;
 }
 
+PyDoc_STRVAR(mode_doc,
+    "mode() -> int (MODE0,MODE1,MODE2 or MODE3)\n"
+    "\n"
+    "Retrieves the mode for the SPI device\n"
+    "\n"
+    );
 static PyObject *
 py_spidevice_mode(PySpiDeviceObject *self, PyObject *args) {
     int val = 0;
@@ -250,6 +306,12 @@ py_spidevice_mode(PySpiDeviceObject *self, PyObject *args) {
     return result;
 }
 
+PyDoc_STRVAR(sharingmode_doc,
+    "sharingmode() -> int (EXCLUSIVEMODE or SHAREDMODE)\n"
+    "\n"
+    "Retrieves the sharing mode for the SPI device\n"
+    "\n"
+    );
 static PyObject *
 py_spidevice_sharingmode(PySpiDeviceObject *self, PyObject *args) {
     int val = 0;
@@ -265,6 +327,12 @@ py_spidevice_sharingmode(PySpiDeviceObject *self, PyObject *args) {
     return result;
 }
 
+PyDoc_STRVAR(chipselectlinecount_doc,
+    "chipselectlinecount() -> int\n"
+    "\n"
+    "Retrieves the chip select line count for the SPI bus\n"
+    "\n"
+    );
 static PyObject *
 py_spibusinfo_chipselectlinecount(PySpiBusInfoObject *self, PyObject *args) {
     int val = 0;
@@ -280,6 +348,12 @@ py_spibusinfo_chipselectlinecount(PySpiBusInfoObject *self, PyObject *args) {
     return result;
 }
 
+PyDoc_STRVAR(maxclockfrequency_doc,
+    "maxclockfrequency() -> int\n"
+    "\n"
+    "Retrieves the max clock frequency for the SPI bus\n"
+    "\n"
+    );
 static PyObject *
 py_spibusinfo_maxclockfrequency(PySpiBusInfoObject *self, PyObject *args) {
     int val = 0;
@@ -295,6 +369,12 @@ py_spibusinfo_maxclockfrequency(PySpiBusInfoObject *self, PyObject *args) {
     return result;
 }
 
+PyDoc_STRVAR(minclockfrequency_doc,
+    "minclockfrequency() -> int\n"
+    "\n"
+    "Retrieves the min clock frequency for the SPI bus\n"
+    "\n"
+    );
 static PyObject *
 py_spibusinfo_minclockfrequency(PySpiBusInfoObject *self, PyObject *args) {
     int val = 0;
@@ -310,6 +390,12 @@ py_spibusinfo_minclockfrequency(PySpiBusInfoObject *self, PyObject *args) {
     return result;
 }
 
+PyDoc_STRVAR(supporteddatalengthbits_doc,
+    "supporteddatalengthbits() -> list(int)\n"
+    "\n"
+    "Retrieves the supported data length bits for the SPI bus\n"
+    "\n"
+    );
 static PyObject *
 py_spibusinfo_supporteddatalengthbits(PySpiBusInfoObject *self, PyObject *args) {
     int count = 0;
@@ -335,24 +421,24 @@ py_spibusinfo_supporteddatalengthbits(PySpiBusInfoObject *self, PyObject *args) 
 }
 
 static PyMethodDef spidevice_methods[] = {
-	{ "read", (PyCFunction)py_spidevice_read, METH_VARARGS | METH_KEYWORDS, "Reads data from SPI device" },
-	{ "write", (PyCFunction)py_spidevice_write, METH_VARARGS | METH_KEYWORDS, "Writes data to SPI device" },
-    { "transfer", (PyCFunction)py_spidevice_transfer, METH_VARARGS | METH_KEYWORDS, "Transfers full duplex to SPI device" },
-    { "transfersequential", (PyCFunction)py_spidevice_transfersequential, METH_VARARGS | METH_KEYWORDS, "Transfers full duplex to SPI device" },
-    { "deviceid", (PyCFunction)py_spidevice_deviceid, METH_NOARGS, "Gets device id for SPI device" },
-    { "chipselectline", (PyCFunction)py_spidevice_chipselectline, METH_NOARGS, "Gets the device id" },
-    { "clockfrequency", (PyCFunction)py_spidevice_clockfrequency, METH_NOARGS, "Gets the chip select line" },
-    { "databitlength", (PyCFunction)py_spidevice_databitlength, METH_NOARGS, "Gets the clock frequency" },
-    { "mode", (PyCFunction)py_spidevice_mode, METH_NOARGS, "Gets the device mode" },
-    { "sharingmode", (PyCFunction)py_spidevice_sharingmode, METH_NOARGS, "Gets the device sharing mode" },
+	{ "read", (PyCFunction)py_spidevice_read, METH_VARARGS | METH_KEYWORDS, read_doc },
+	{ "write", (PyCFunction)py_spidevice_write, METH_VARARGS | METH_KEYWORDS, write_doc },
+    { "transfer", (PyCFunction)py_spidevice_transfer, METH_VARARGS | METH_KEYWORDS, transfer_doc },
+    { "transfersequential", (PyCFunction)py_spidevice_transfersequential, METH_VARARGS | METH_KEYWORDS, transfersequential_doc },
+    { "deviceid", (PyCFunction)py_spidevice_deviceid, METH_NOARGS, deviceid_doc },
+    { "chipselectline", (PyCFunction)py_spidevice_chipselectline, METH_NOARGS, csl_doc },
+    { "clockfrequency", (PyCFunction)py_spidevice_clockfrequency, METH_NOARGS, clockfrequency_doc },
+    { "databitlength", (PyCFunction)py_spidevice_databitlength, METH_NOARGS, databitlength_doc },
+    { "mode", (PyCFunction)py_spidevice_mode, METH_NOARGS, mode_doc },
+    { "sharingmode", (PyCFunction)py_spidevice_sharingmode, METH_NOARGS, sharingmode_doc },
     { NULL, NULL, 0, NULL }
 };
 
 static PyMethodDef spibusinfo_methods[] = {
-    { "chipselectlinecount", (PyCFunction)py_spibusinfo_chipselectlinecount, METH_VARARGS | METH_KEYWORDS, "Gets the chip select line count" },
-    { "maxclockfrequency", (PyCFunction)py_spibusinfo_maxclockfrequency, METH_VARARGS | METH_KEYWORDS, "Gets the max clock frequency" },
-    { "minclockfrequency", (PyCFunction)py_spibusinfo_minclockfrequency, METH_VARARGS | METH_KEYWORDS, "Gets the min clock frequency" },
-    { "supporteddatalengthbits", (PyCFunction)py_spibusinfo_supporteddatalengthbits, METH_VARARGS | METH_KEYWORDS, "Gets the supported data length bits" },
+    { "chipselectlinecount", (PyCFunction)py_spibusinfo_chipselectlinecount, METH_VARARGS | METH_KEYWORDS, chipselectlinecount_doc },
+    { "maxclockfrequency", (PyCFunction)py_spibusinfo_maxclockfrequency, METH_VARARGS | METH_KEYWORDS, maxclockfrequency_doc },
+    { "minclockfrequency", (PyCFunction)py_spibusinfo_minclockfrequency, METH_VARARGS | METH_KEYWORDS, minclockfrequency_doc },
+    { "supporteddatalengthbits", (PyCFunction)py_spibusinfo_supporteddatalengthbits, METH_VARARGS | METH_KEYWORDS, supporteddatalengthbits_doc },
     { NULL, NULL, 0, NULL }
 };
 
@@ -377,6 +463,10 @@ static PyTypeObject spibusinfo_type = {
     0
 };
 
+PyDoc_STRVAR(spidevice_doc,
+    "spidevice(friendlyname, chipselectline, clockfrequency=<default>, databitlength=<default>, mode=MODE0, sharingmode=EXCLUSIVEMODE) -> spidevice\n"
+    "\n"
+    "Creates a new instance of SPI device");
 static int
 spidevice_init(PySpiDeviceObject *self, PyObject *args, PyObject *kwds)
 {
@@ -412,6 +502,10 @@ spidevice_init(PySpiDeviceObject *self, PyObject *args, PyObject *kwds)
     return 0;
 }
 
+PyDoc_STRVAR(spibusinfo_doc,
+    "spibusinfo(friendlyname) -> spibusinfo\n"
+    "\n"
+    "Creates a new instance of a SPI bus info object");
 static int
 spibusinfo_init(PySpiDeviceObject *self, PyObject *args, PyObject *kwds)
 {

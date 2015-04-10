@@ -24,7 +24,4 @@ void define_constants(PyObject *module)
 
 	pud_down = Py_BuildValue("i", PUD_DOWN + PY_PUD_CONST_OFFSET);
 	PyModule_AddObject(module, "PUD_DOWN", pud_down);
-
-	version = Py_BuildValue("s", "0.5.11");
-	PyModule_AddObject(module, "VERSION", version);
 }

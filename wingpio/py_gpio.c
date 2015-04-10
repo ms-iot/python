@@ -2,6 +2,18 @@
 #include "gpioapi.h"
 #include "constants.h"
 
+PyDoc_STRVAR(setup_doc,
+"setup(channel(s), direction, pull_up_down=OFF, initial=None)\n"
+"\n"
+"Setup a GPIO channel or multiple GPIO channels for use.\n"
+"channel(s) is a single channel pin number or list of channel\n"
+"pins to setup.\n"
+"\n"
+"direction is either IN or OUT depending on how the pins are used\n"
+"\n"
+"pull_up_down is either PUD_OFF, PUD_UP or PUD_DOWN.\n"
+"\n"
+"initial is an initial value (HIGH or LOW) for the pin after setup\n");
 // python function setup(channel(s), direction, pull_up_down=PUD_OFF, initial=None)
 static PyObject *py_setup_channel(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -98,6 +110,15 @@ static PyObject *py_setup_channel(PyObject *self, PyObject *args, PyObject *kwar
 	Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(output_doc,
+    "output(channels, values)\n"
+    "\n"
+    "Outputs to GPIO pins the corresponding values specified\n"
+    "\n"
+    "channels - A single channel or list of channel pins\n"
+    "\n"
+    "values - HIGH or LOW for every corresponding channel\n"
+    );
 // python function output(channel(s), value(s))
 static PyObject *py_output_gpio(PyObject *self, PyObject *args)
 {
@@ -230,6 +251,13 @@ static PyObject *py_output_gpio(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(input_doc,
+    "input(channel) -> HIGH/LOW\n"
+    "\n"
+    "Gets the current state of the GPIO pin specified\n"
+    "\n"
+    "channel=A single pin number\n"
+    );
 // python function value = input(channel)
 static PyObject *py_input_gpio(PyObject *self, PyObject *args)
 {
@@ -248,6 +276,13 @@ static PyObject *py_input_gpio(PyObject *self, PyObject *args)
     return value;
 }
 
+PyDoc_STRVAR(cleanup_doc,
+"cleanup(channel=None)\n"
+"\n"
+"Resets GPIO channels specified or all if none specified\n"
+"\n"
+"channel=A single channel or list of channels to cleanup\n"
+);
 // python function cleanup(channel=None)
 static PyObject *py_cleanup(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -327,13 +362,13 @@ static PyObject *py_cleanup(PyObject *self, PyObject *args, PyObject *kwargs)
     Py_RETURN_NONE;
 }
 
-static const char moduledocstring[] = "GPIO functionality of a Windows 10 IoT Core device using Python";
+static const char moduledocstring[] = "GPIO functionality of a Windows 10 IoT Core device";
 
 PyMethodDef win_gpio_methods[] = {
-	{ "setup", (PyCFunction)py_setup_channel, METH_VARARGS | METH_KEYWORDS, "Set up a GPIO channel or list of channels with a direction and (optional) pull/up down control\nchannel        - either board pin number or BCM number depending on which mode is set.\ndirection      - IN or OUT\n[pull_up_down] - PUD_OFF (default), PUD_UP or PUD_DOWN\n[initial]      - Initial value for an output channel" },
-	{ "cleanup", (PyCFunction)py_cleanup, METH_VARARGS | METH_KEYWORDS, "Clean up by resetting all GPIO channels that have been used by this program to INPUT with no pullup/pulldown and no event detection\n[channel] - individual channel or list/tuple of channels to clean up.  Default - clean every channel that has been used." },
-	{ "output", py_output_gpio, METH_VARARGS, "Output to a GPIO channel or list of channels\nchannel - either board pin number or BCM number depending on which mode is set.\nvalue   - 0/1 or False/True or LOW/HIGH" },
-	{ "input", py_input_gpio, METH_VARARGS, "Input from a GPIO channel.  Returns HIGH=1=True or LOW=0=False\nchannel - either board pin number or BCM number depending on which mode is set." },
+	{ "setup", (PyCFunction)py_setup_channel, METH_VARARGS | METH_KEYWORDS, setup_doc },
+	{ "cleanup", (PyCFunction)py_cleanup, METH_VARARGS | METH_KEYWORDS, cleanup_doc },
+	{ "output", py_output_gpio, METH_VARARGS, output_doc },
+	{ "input", py_input_gpio, METH_VARARGS, input_doc },
 	{ NULL, NULL, 0, NULL }
 };
 
