@@ -1,10 +1,10 @@
-#include <ppltasks.h>
 #include <collection.h>
 #include "python.h"
 #include "constants.h"
 #include "i2capi.h"
 
-using namespace concurrency;
+using namespace Windows::Foundation;
+using namespace Windows::Devices::Enumeration;
 using namespace Windows::Devices::I2c;
 using namespace Platform;
 using namespace Platform::Collections;
@@ -26,41 +26,71 @@ return FAILURE; \
 extern "C" {
 	void *new_i2cdevice(wchar_t *name, int slaveAddress, int busSpeed, int sharingMode) {
 		ComPtr<IInspectable> spInspectable = nullptr;
-		I2cConnectionSettings^ settings = ref new I2cConnectionSettings(slaveAddress);
-		String^ deviceName = ref new String(name);
-        String^ querySyntax = I2cDevice::GetDeviceSelector(deviceName);
-        auto info = create_task(Windows::Devices::Enumeration::DeviceInformation::FindAllAsync(querySyntax)).get();
-        String^ id = info->GetAt(0)->Id;
+        try {
+            I2cConnectionSettings^ settings = ref new I2cConnectionSettings(slaveAddress);
+            String^ deviceName = ref new String(name);
+            String^ querySyntax = I2cDevice::GetDeviceSelector(deviceName);
+			auto asyncop = DeviceInformation::FindAllAsync(querySyntax);
+			while (asyncop->Status != AsyncStatus::Completed) {
+				if (asyncop->Status == AsyncStatus::Error) {
+					PyErr_Format(PyExc_RuntimeError, "Could not find information for device '%S': %d", name, asyncop->ErrorCode);
+					return NULL;
+				}
+				Sleep(50);
+			}
+			auto info = asyncop->GetResults();
+			if (info == nullptr || info->Size == 0) {
+				PyErr_Format(PyExc_RuntimeError, "Could not find information for device '%S'", name);
+				return NULL;
+			}
+			String^ id = info->GetAt(0)->Id;
 
-		switch (busSpeed)
-		{
-		case FASTSPEED:
-			settings->BusSpeed = I2cBusSpeed::FastMode;
-			break;
-		case STANDARDSPEED:
-			settings->BusSpeed = I2cBusSpeed::StandardMode;
-			break;
-		default:
-			return NULL;
-		}
+            switch (busSpeed)
+            {
+            case FASTSPEED:
+                settings->BusSpeed = I2cBusSpeed::FastMode;
+                break;
+            case STANDARDSPEED:
+                settings->BusSpeed = I2cBusSpeed::StandardMode;
+                break;
+            default:
+                PyErr_Format(PyExc_TypeError, "Invalid I2C bus speed specified '%d'", busSpeed);
+                return NULL;
+            }
 
-		switch (sharingMode)
-		{
-		case SHAREDMODE:
-			settings->SharingMode = I2cSharingMode::Shared;
-			break;
-		case EXCLUSIVEMODE:
-			settings->SharingMode = I2cSharingMode::Exclusive;
-			break;
-		default:
-			return NULL;
-		}
+            switch (sharingMode)
+            {
+            case SHAREDMODE:
+                settings->SharingMode = I2cSharingMode::Shared;
+                break;
+            case EXCLUSIVEMODE:
+                settings->SharingMode = I2cSharingMode::Exclusive;
+                break;
+            default:
+                PyErr_Format(PyExc_TypeError, "Invalid I2C sharing mode specified '%d'", sharingMode);
+                return NULL;
+            }
 
-		auto getdevicetask = create_task(I2cDevice::FromIdAsync(id, settings));
-		
-        auto i2cdevice = getdevicetask.get();
+			auto i2cop = I2cDevice::FromIdAsync(id, settings);
+			while (i2cop->Status != AsyncStatus::Completed) {
+				if (i2cop->Status == AsyncStatus::Error) {
+					PyErr_Format(PyExc_RuntimeError, "Could get I2C device: %d", i2cop->ErrorCode);
+					return NULL;
+				}
+				Sleep(50);
+			}
 
-        spInspectable = I2CDEVICE_TOPOINTER(i2cdevice);
+			auto i2cdevice = i2cop->GetResults();
+            if (i2cdevice == nullptr) {
+                PyErr_SetString(PyExc_RuntimeError, "Could not find I2C device specified");
+                return NULL;
+            }
+
+            spInspectable = I2CDEVICE_TOPOINTER(i2cdevice);
+        } catch (Exception^ e) {
+            PyErr_Format(PyExc_RuntimeError, "An unexpected exception occurred during I2C device creation: %S", e->Message->Data());
+            return NULL;
+        }
 
 		return spInspectable.Detach();
     }

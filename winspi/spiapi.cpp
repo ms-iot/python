@@ -1,11 +1,11 @@
-#include <ppltasks.h>
 #include <collection.h>
 #include "python.h"
 #include "constants.h"
 #include "spiapi.h"
 
-using namespace concurrency;
 using namespace Windows::Devices::Spi;
+using namespace Windows::Devices::Enumeration;
+using namespace Windows::Foundation;
 using namespace Platform;
 using namespace Platform::Collections;
 using namespace Microsoft::WRL;
@@ -28,71 +28,116 @@ return FAILURE; \
 extern "C" {
     void *new_spidevice(wchar_t *name, int chipSelectLine, int clockFrequency, int dataBitLength, int mode, int sharingMode) {
         ComPtr<IInspectable> spInspectable = nullptr;
-        SpiConnectionSettings^ settings = ref new SpiConnectionSettings(chipSelectLine);
-        String^ deviceName = ref new String(name);
-        String^ querySyntax = SpiDevice::GetDeviceSelector(deviceName);
-        auto info = create_task(Windows::Devices::Enumeration::DeviceInformation::FindAllAsync(querySyntax)).get();
-        String^ id = info->GetAt(0)->Id;
+        try {
+            SpiConnectionSettings^ settings = ref new SpiConnectionSettings(chipSelectLine);
+            String^ deviceName = ref new String(name);
+            String^ querySyntax = SpiDevice::GetDeviceSelector(deviceName);
+			auto asyncop = DeviceInformation::FindAllAsync(querySyntax);
+			while (asyncop->Status != AsyncStatus::Completed) {
+				if (asyncop->Status == AsyncStatus::Error) {
+					PyErr_Format(PyExc_RuntimeError, "Could not find information for device '%S': %d", name, asyncop->ErrorCode);
+					return NULL;
+				}
+				Sleep(50);
+			}
+            auto info = asyncop->GetResults();
+            if (info == nullptr || info->Size == 0) {
+                PyErr_Format(PyExc_RuntimeError, "Could not find information for device '%S'", name);
+                return NULL;
+            }
+            String^ id = info->GetAt(0)->Id;
 
-        if (clockFrequency != -1) {
-            settings->ClockFrequency = clockFrequency;
-        }
+            if (clockFrequency != -1) {
+                settings->ClockFrequency = clockFrequency;
+            }
 
-        if (dataBitLength != -1) {
-            settings->DataBitLength = dataBitLength;
-        }
+            if (dataBitLength != -1) {
+                settings->DataBitLength = dataBitLength;
+            }
 
-        switch (mode)
-        {
-        case MODE0:
-            settings->Mode = SpiMode::Mode0;
-            break;
-        case MODE1:
-            settings->Mode = SpiMode::Mode1;
-            break;
-        case MODE2:
-            settings->Mode = SpiMode::Mode2;
-            break;
-        case MODE3:
-            settings->Mode = SpiMode::Mode3;
-            break;
-        default:
-            PyErr_Format(PyExc_TypeError, "Invalid SPI mode specified '%d'", mode);
+            switch (mode)
+            {
+            case MODE0:
+                settings->Mode = SpiMode::Mode0;
+                break;
+            case MODE1:
+                settings->Mode = SpiMode::Mode1;
+                break;
+            case MODE2:
+                settings->Mode = SpiMode::Mode2;
+                break;
+            case MODE3:
+                settings->Mode = SpiMode::Mode3;
+                break;
+            default:
+                PyErr_Format(PyExc_TypeError, "Invalid SPI mode specified '%d'", mode);
+                return NULL;
+            }
+
+            switch (sharingMode)
+            {
+            case SHAREDMODE:
+                settings->SharingMode = SpiSharingMode::Shared;
+                break;
+            case EXCLUSIVEMODE:
+                settings->SharingMode = SpiSharingMode::Exclusive;
+                break;
+            default:
+                PyErr_Format(PyExc_TypeError, "Invalid SPI sharing mode specified '%d'", sharingMode);
+                return NULL;
+            }
+
+			auto spideviceop = SpiDevice::FromIdAsync(id, settings);
+			while (spideviceop->Status != AsyncStatus::Completed) {
+				if (spideviceop->Status == AsyncStatus::Error) {
+					PyErr_Format(PyExc_RuntimeError, "Could get SPI device: %d", spideviceop->ErrorCode);
+					return NULL;
+				}
+				Sleep(50);
+			}
+
+			auto spidevice = spideviceop->GetResults();
+            if (spidevice == nullptr) {
+                PyErr_SetString(PyExc_RuntimeError, "Could not find SPI device specified");
+                return NULL;
+            }
+
+            spInspectable = SPIDEVICE_TOPOINTER(spidevice);
+        } catch (Exception^ e) {
+            PyErr_Format(PyExc_RuntimeError, "An unexpected exception occurred during SPI device creation: %S", e->Message->Data());
             return NULL;
         }
-
-        switch (sharingMode)
-        {
-        case SHAREDMODE:
-            settings->SharingMode = SpiSharingMode::Shared;
-            break;
-        case EXCLUSIVEMODE:
-            settings->SharingMode = SpiSharingMode::Exclusive;
-            break;
-        default:
-            PyErr_Format(PyExc_TypeError, "Invalid SPI sharing mode specified '%d'", sharingMode);
-            return NULL;
-        }
-
-        auto getdevicetask = create_task(SpiDevice::FromIdAsync(id, settings));
-
-        auto spidevice = getdevicetask.get();
-
-        spInspectable = SPIDEVICE_TOPOINTER(spidevice);
 
         return spInspectable.Detach();
     }
 
     void *new_spibusinfo(wchar_t *name) {
         ComPtr<IInspectable> spInspectable = nullptr;
-        String^ deviceName = ref new String(name);
-        String^ querySyntax = SpiDevice::GetDeviceSelector(deviceName);
-        auto info = create_task(Windows::Devices::Enumeration::DeviceInformation::FindAllAsync(querySyntax)).get();
-        String^ id = info->GetAt(0)->Id;
+        try {
+            String^ deviceName = ref new String(name);
+            String^ querySyntax = SpiDevice::GetDeviceSelector(deviceName);
+			auto asyncop = DeviceInformation::FindAllAsync(querySyntax);
+			while (asyncop->Status != AsyncStatus::Completed) {
+				if (asyncop->Status == AsyncStatus::Error) {
+					PyErr_Format(PyExc_RuntimeError, "Could not find information for device '%S': %d", name, asyncop->ErrorCode);
+					return NULL;
+				}
+				Sleep(50);
+			}
+			auto info = asyncop->GetResults();
+            if (info == nullptr || info->Size == 0) {
+                PyErr_Format(PyExc_RuntimeError, "Could not find information for device '%S'", name);
+                return NULL;
+            }
+            String^ id = info->GetAt(0)->Id;
 
-        auto spibusinfo = SpiDevice::GetBusInfo(id);
+            auto spibusinfo = SpiDevice::GetBusInfo(id);
 
-        spInspectable = SPIBUSINFO_TOPOINTER(spibusinfo);
+            spInspectable = SPIBUSINFO_TOPOINTER(spibusinfo);
+        } catch (Exception^ e) {
+            PyErr_Format(PyExc_RuntimeError, "An unexpected exception occurred during SPI bus info creation: %S", e->Message->Data());
+            return NULL;
+        }
 
         return spInspectable.Detach();
     }

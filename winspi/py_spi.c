@@ -494,9 +494,9 @@ spidevice_init(PySpiDeviceObject *self, PyObject *args, PyObject *kwds)
     nameString = PyUnicode_AsWideCharString(name, NULL);
 
     Py_BEGIN_ALLOW_THREADS
-        self->ob_device = new_spidevice(nameString, chipselectline, clockfrequency, databitlength, mode, shareMode);
+    self->ob_device = new_spidevice(nameString, chipselectline, clockfrequency, databitlength, mode, shareMode);
     Py_END_ALLOW_THREADS
-        if (self->ob_device == NULL)
+    if (self->ob_device == NULL)
         return -1;
 
     return 0;
@@ -552,7 +552,7 @@ PyInit_winspi(void)
     if (PyType_Ready(&spidevice_type) < 0)
         return NULL;
 
-    // Initialize the device type
+    // Initialize the bus info type
     spibusinfo_type.tp_dealloc = (destructor)spibusinfo_dealloc;
     spibusinfo_type.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
     spibusinfo_type.tp_doc = spibusinfo_doc;

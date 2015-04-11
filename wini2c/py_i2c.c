@@ -280,11 +280,11 @@ i2cdevice_init(PyI2cDeviceObject *self, PyObject *args, PyObject *kwds)
 PyMODINIT_FUNC 
 PyInit_wini2c(void)
 {
-	PyObject *module = NULL;
+    PyObject *module = NULL;
 
-	// Initialize the device type
-	i2cdevice_type.tp_dealloc = (destructor)i2cdevice_dealloc;
-	i2cdevice_type.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
+    // Initialize the device type
+    i2cdevice_type.tp_dealloc = (destructor)i2cdevice_dealloc;
+    i2cdevice_type.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
 	i2cdevice_type.tp_doc = i2cdevice_doc;
 	i2cdevice_type.tp_methods = i2cdevice_methods;
 	i2cdevice_type.tp_init = (initproc)i2cdevice_init;
