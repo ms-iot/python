@@ -218,9 +218,9 @@ static PyObject *py_i2cdevice_sharingmode(PyI2cDeviceObject *self, PyObject *arg
 }
 
 static PyMethodDef i2cdevice_methods[] = {
-	{ "read", (PyCFunction)py_i2cdevice_read, METH_VARARGS | METH_KEYWORDS, read_doc },
-	{ "write", (PyCFunction)py_i2cdevice_write, METH_VARARGS | METH_KEYWORDS, write_doc },
-	{ "writeread", (PyCFunction)py_i2cdevice_writeread, METH_VARARGS | METH_KEYWORDS, writeread_doc },
+	{ "read", (PyCFunctionWithKeywords)py_i2cdevice_read, METH_VARARGS | METH_KEYWORDS, read_doc },
+	{ "write", (PyCFunctionWithKeywords)py_i2cdevice_write, METH_VARARGS | METH_KEYWORDS, write_doc },
+	{ "writeread", (PyCFunctionWithKeywords)py_i2cdevice_writeread, METH_VARARGS | METH_KEYWORDS, writeread_doc },
     { "deviceid", (PyCFunction)py_i2cdevice_deviceid, METH_NOARGS, deviceid_doc },
 	{ "slaveaddress", (PyCFunction)py_i2cdevice_slaveaddress, METH_NOARGS, slaveaddress_doc },
 	{ "busspeed", (PyCFunction)py_i2cdevice_busspeed, METH_NOARGS, busspeed_doc },
@@ -258,7 +258,7 @@ i2cdevice_init(PyI2cDeviceObject *self, PyObject *args, PyObject *kwds)
 
 	if (!PyArg_ParseTupleAndKeywords(args, 
 		kwds, 
-		"Oi|ii", 
+		"Oi|ii:i2cdevice", 
 		keywords, 
 		&name, 
 		&slaveAddress,

@@ -421,10 +421,10 @@ py_spibusinfo_supporteddatalengthbits(PySpiBusInfoObject *self, PyObject *args) 
 }
 
 static PyMethodDef spidevice_methods[] = {
-	{ "read", (PyCFunction)py_spidevice_read, METH_VARARGS | METH_KEYWORDS, read_doc },
-	{ "write", (PyCFunction)py_spidevice_write, METH_VARARGS | METH_KEYWORDS, write_doc },
-    { "transfer", (PyCFunction)py_spidevice_transfer, METH_VARARGS | METH_KEYWORDS, transfer_doc },
-    { "transfersequential", (PyCFunction)py_spidevice_transfersequential, METH_VARARGS | METH_KEYWORDS, transfersequential_doc },
+	{ "read", (PyCFunctionWithKeywords)py_spidevice_read, METH_VARARGS | METH_KEYWORDS, read_doc },
+	{ "write", (PyCFunctionWithKeywords)py_spidevice_write, METH_VARARGS | METH_KEYWORDS, write_doc },
+    { "transfer", (PyCFunctionWithKeywords)py_spidevice_transfer, METH_VARARGS | METH_KEYWORDS, transfer_doc },
+    { "transfersequential", (PyCFunctionWithKeywords)py_spidevice_transfersequential, METH_VARARGS | METH_KEYWORDS, transfersequential_doc },
     { "deviceid", (PyCFunction)py_spidevice_deviceid, METH_NOARGS, deviceid_doc },
     { "chipselectline", (PyCFunction)py_spidevice_chipselectline, METH_NOARGS, csl_doc },
     { "clockfrequency", (PyCFunction)py_spidevice_clockfrequency, METH_NOARGS, clockfrequency_doc },
@@ -435,10 +435,10 @@ static PyMethodDef spidevice_methods[] = {
 };
 
 static PyMethodDef spibusinfo_methods[] = {
-    { "chipselectlinecount", (PyCFunction)py_spibusinfo_chipselectlinecount, METH_VARARGS | METH_KEYWORDS, chipselectlinecount_doc },
-    { "maxclockfrequency", (PyCFunction)py_spibusinfo_maxclockfrequency, METH_VARARGS | METH_KEYWORDS, maxclockfrequency_doc },
-    { "minclockfrequency", (PyCFunction)py_spibusinfo_minclockfrequency, METH_VARARGS | METH_KEYWORDS, minclockfrequency_doc },
-    { "supporteddatalengthbits", (PyCFunction)py_spibusinfo_supporteddatalengthbits, METH_VARARGS | METH_KEYWORDS, supporteddatalengthbits_doc },
+    { "chipselectlinecount", (PyCFunction)py_spibusinfo_chipselectlinecount, METH_NOARGS, chipselectlinecount_doc },
+    { "maxclockfrequency", (PyCFunction)py_spibusinfo_maxclockfrequency, METH_NOARGS, maxclockfrequency_doc },
+    { "minclockfrequency", (PyCFunction)py_spibusinfo_minclockfrequency, METH_NOARGS, minclockfrequency_doc },
+    { "supporteddatalengthbits", (PyCFunction)py_spibusinfo_supporteddatalengthbits, METH_NOARGS, supporteddatalengthbits_doc },
     { NULL, NULL, 0, NULL }
 };
 
@@ -481,7 +481,7 @@ spidevice_init(PySpiDeviceObject *self, PyObject *args, PyObject *kwds)
 
     if (!PyArg_ParseTupleAndKeywords(args,
         kwds,
-        "Oi|iiii",
+        "Oi|iiii:spidevice",
         keywords,
         &name,
         &chipselectline,
@@ -515,7 +515,7 @@ spibusinfo_init(PySpiDeviceObject *self, PyObject *args, PyObject *kwds)
 
     if (!PyArg_ParseTupleAndKeywords(args,
         kwds,
-        "O",
+        "O:spibusinfo",
         keywords,
         &name))
         return -1;

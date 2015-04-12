@@ -23,7 +23,7 @@ static PyObject *py_setup_channel(PyObject *self, PyObject *args, PyObject *kwar
 	PyObject *chanlist = NULL;
 	PyObject *chantuple = NULL;
 	PyObject *tempobj;
-	int pud = PUD_OFF + PY_PUD_CONST_OFFSET;
+	int pud = PUD_OFF;
 	int initial = -1;
 	static char *kwlist[] = { "channel", "direction", "pull_up_down", "initial", NULL };
 
@@ -56,9 +56,8 @@ static PyObject *py_setup_channel(PyObject *self, PyObject *args, PyObject *kwar
 	}
 
 	if (direction == OUTPUT)
-		pud = PUD_OFF + PY_PUD_CONST_OFFSET;
+		pud = PUD_OFF;
 
-	pud -= PY_PUD_CONST_OFFSET;
 	if (pud != PUD_OFF && pud != PUD_DOWN && pud != PUD_UP) {
 		PyErr_SetString(PyExc_ValueError, "Invalid value for pull_up_down - should be either PUD_OFF, PUD_UP or PUD_DOWN");
 		return NULL;
@@ -365,8 +364,8 @@ static PyObject *py_cleanup(PyObject *self, PyObject *args, PyObject *kwargs)
 static const char moduledocstring[] = "GPIO functionality of a Windows 10 IoT Core device";
 
 PyMethodDef win_gpio_methods[] = {
-	{ "setup", (PyCFunction)py_setup_channel, METH_VARARGS | METH_KEYWORDS, setup_doc },
-	{ "cleanup", (PyCFunction)py_cleanup, METH_VARARGS | METH_KEYWORDS, cleanup_doc },
+	{ "setup", (PyCFunctionWithKeywords)py_setup_channel, METH_VARARGS | METH_KEYWORDS, setup_doc },
+	{ "cleanup", (PyCFunctionWithKeywords)py_cleanup, METH_VARARGS | METH_KEYWORDS, cleanup_doc },
 	{ "output", py_output_gpio, METH_VARARGS, output_doc },
 	{ "input", py_input_gpio, METH_VARARGS, input_doc },
 	{ NULL, NULL, 0, NULL }

@@ -5,15 +5,22 @@
 #include "gpioapi.h"
 
 using namespace concurrency;
+using namespace Windows::Foundation;
 using namespace Windows::Devices::Gpio;
 using namespace Platform::Collections;
 
+void OnPinValueChanged(GpioPin ^sender, GpioPinValueChangedEventArgs ^args);
+
 static GpioController^ gpioController;
 static Vector<GpioPin^>^ gpioPins;
+static Vector<int>^ fallingEventPins;
+static Vector<int>^ risingEventPins;
 
 extern "C" {
     void init_gpio(PyObject* module) {
         gpioPins = ref new Vector<GpioPin^>();
+        fallingEventPins = ref new Vector<int>();
+        risingEventPins = ref new Vector<int>();
 
 		gpioController = GpioController::GetDefault();
 
@@ -32,26 +39,52 @@ extern "C" {
     int setup_gpio_channel(int channel, int direction, int pull_up_down, int initial) {
         int ret = FAILURE;
         GpioPin^ pin = nullptr;
+        GpioPinDriveMode driveMode;
 
         if (channel >= 0 && channel < (int)gpioPins->Size) {
             pin = gpioPins->GetAt(channel);
 
             if (pin == nullptr) {
                 pin = gpioController->OpenPin(channel);
+                pin->ValueChanged += ref new TypedEventHandler<GpioPin ^, GpioPinValueChangedEventArgs ^>(&OnPinValueChanged);
                 gpioPins->SetAt(channel, pin);
             }
 
             if (direction == INPUT) {
-                pin->SetDriveMode(GpioPinDriveMode::Input);
+                switch (pull_up_down) {
+                case PUD_UP:
+                    driveMode = GpioPinDriveMode::InputPullUp;
+                    break;
+                case PUD_DOWN:
+                    driveMode = GpioPinDriveMode::InputPullDown;
+                    break;
+                default:
+                    driveMode = GpioPinDriveMode::Input;
+                    break;
+                }
             }
             else {
-                pin->SetDriveMode(GpioPinDriveMode::Output);
+                switch (pull_up_down) {
+                case PUD_UP:
+                    driveMode = GpioPinDriveMode::OutputStrongLowPullUp;
+                    break;
+                case PUD_DOWN:
+                    driveMode = GpioPinDriveMode::OutputStrongHighPullDown;
+                    break;
+                default:
+                    driveMode = GpioPinDriveMode::Output;
+                    break;
+                }
             }
 
-            ret = SUCCESS;
+            if (pin->IsDriveModeSupported(driveMode)) {
+                ret = SUCCESS;
 
-            if (pin->GetDriveMode() == GpioPinDriveMode::Output) {
-                ret = output_gpio_channel(channel, initial);
+                if (pin->GetDriveMode() == GpioPinDriveMode::Output) {
+                    ret = output_gpio_channel(channel, initial);
+                }
+            } else {
+                PyErr_Format(PyExc_RuntimeError, "Invalid mode specified for pin %d", pin->PinNumber);
             }
         }
 
@@ -113,6 +146,21 @@ extern "C" {
     void cleanup_gpio_channels() {
         for (auto i = 0; i < (int)gpioPins->Size; i++) {
             gpioPins->SetAt(i, nullptr);
+        }
+    }
+}
+
+void OnPinValueChanged(GpioPin ^sender, GpioPinValueChangedEventArgs ^args)
+{
+    if (sender != nullptr) {
+        unsigned int eventPinIndex = 0;
+
+        if (args->Edge == GpioPinEdge::RisingEdge && risingEventPins->IndexOf(sender->PinNumber, &eventPinIndex)) {
+            // TODO: Notify we hit rising edge
+        }
+
+        if (args->Edge == GpioPinEdge::FallingEdge && fallingEventPins->IndexOf(sender->PinNumber, &eventPinIndex)) {
+            // TODO: Notify we hit falling edge
         }
     }
 }

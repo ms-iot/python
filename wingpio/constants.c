@@ -16,12 +16,21 @@ void define_constants(PyObject *module)
 	input = Py_BuildValue("i", INPUT);
 	PyModule_AddObject(module, "IN", input);
 
-	pud_off = Py_BuildValue("i", PUD_OFF + PY_PUD_CONST_OFFSET);
+	pud_off = Py_BuildValue("i", PUD_OFF);
 	PyModule_AddObject(module, "PUD_OFF", pud_off);
 
-	pud_up = Py_BuildValue("i", PUD_UP + PY_PUD_CONST_OFFSET);
+	pud_up = Py_BuildValue("i", PUD_UP);
 	PyModule_AddObject(module, "PUD_UP", pud_up);
 
-	pud_down = Py_BuildValue("i", PUD_DOWN + PY_PUD_CONST_OFFSET);
+	pud_down = Py_BuildValue("i", PUD_DOWN);
 	PyModule_AddObject(module, "PUD_DOWN", pud_down);
+
+    rising_edge = Py_BuildValue("i", RISING_EDGE);
+    PyModule_AddObject(module, "RISING", rising_edge);
+
+    falling_edge = Py_BuildValue("i", FALLING_EDGE);
+    PyModule_AddObject(module, "FALLING", falling_edge);
+
+    both_edge = Py_BuildValue("i", BOTH_EDGE);
+    PyModule_AddObject(module, "BOTH", both_edge);
 }
