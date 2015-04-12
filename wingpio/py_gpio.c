@@ -3,7 +3,7 @@
 #include "constants.h"
 
 PyDoc_STRVAR(setup_doc,
-"setup(channel(s), direction, pull_up_down=OFF, initial=None)\n"
+"setup(channel(s), direction, pull_up_down=PUD_OFF, initial=None)\n"
 "\n"
 "Setup a GPIO channel or multiple GPIO channels for use.\n"
 "channel(s) is a single channel pin number or list of channel\n"
