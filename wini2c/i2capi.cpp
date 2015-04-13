@@ -1,6 +1,5 @@
 #include <collection.h>
 #include "python.h"
-#include "constants.h"
 #include "i2capi.h"
 
 using namespace Windows::Foundation;

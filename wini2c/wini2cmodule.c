@@ -1,7 +1,12 @@
 #include "python.h"
 #include "i2capi.h"
-#include "constants.h"
 #include "structmember.h"
+
+static PyObject* fastspeed;
+static PyObject* standardspeed;
+
+static PyObject* exclusivemode;
+static PyObject* sharedmode;
 
 #define VALIDATE_I2C(d) \
     if (!(d) || !((d)->ob_device)) { \
@@ -11,6 +16,20 @@
     }
 
 static const char moduledocstring[] = "I2C functionality of a Windows 10 IoT Core device";
+
+void define_constants(PyObject *module) {
+    fastspeed = Py_BuildValue("i", FASTSPEED);
+    PyModule_AddObject(module, "FASTSPEED", fastspeed);
+
+    standardspeed = Py_BuildValue("i", STANDARDSPEED);
+    PyModule_AddObject(module, "STANDARDSPEED", standardspeed);
+
+    exclusivemode = Py_BuildValue("i", EXCLUSIVEMODE);
+    PyModule_AddObject(module, "EXCLUSIVEMODE", exclusivemode);
+
+    sharedmode = Py_BuildValue("i", SHAREDMODE);
+    PyModule_AddObject(module, "SHAREDMODE", sharedmode);
+}
 
 static void
 i2cdevice_dealloc(PyI2cDeviceObject *d) 
@@ -40,7 +59,8 @@ PyDoc_STRVAR(read_doc,
     "\n"
     "count=Number of bytes to read\n"
     );
-static PyObject *py_i2cdevice_read(PyI2cDeviceObject *self, PyObject *args, PyObject *kwargs)
+static PyObject *
+wingpio_i2cdevice_read(PyI2cDeviceObject *self, PyObject *args, PyObject *kwargs)
 {
 	static char *kwlist[] = { "count", NULL };
 	int* count = 1;
@@ -70,12 +90,13 @@ PyDoc_STRVAR(write_doc,
     "\n"
     "bytes=Byte array to be written to the device\n"
     );
-static PyObject *py_i2cdevice_write(PyI2cDeviceObject *self, PyObject *args, PyObject *kwargs)
+static PyObject *
+wingpio_i2cdevice_write(PyI2cDeviceObject *self, PyObject *args, PyObject *kwargs)
 {
 	static char *kwlist[] = { "data", NULL };
 	PyObject* data = NULL;
 	PyBytesObject* bytes = NULL;
-    PyObject* result = Py_None;
+    int writeresult = FAILURE;
 
 	VALIDATE_I2C(self);
 
@@ -87,12 +108,14 @@ static PyObject *py_i2cdevice_write(PyI2cDeviceObject *self, PyObject *args, PyO
 		return NULL;
 
     Py_BEGIN_ALLOW_THREADS
-    if (FAILURE == write_i2cdevice(self->ob_device, PyBytes_AsString(bytes), PyBytes_Size(bytes))) {
-        result = NULL;
-    }
+    writeresult = write_i2cdevice(self->ob_device, PyBytes_AsString(bytes), PyBytes_Size(bytes));
     Py_END_ALLOW_THREADS
+    
+    if (writeresult == FAILURE) {
+        return NULL;
+    }
 
-	return result;
+    Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(writeread_doc,
@@ -104,7 +127,8 @@ PyDoc_STRVAR(writeread_doc,
     "\n",
     "count=Number of bytes expected to be read\n"
     );
-static PyObject *py_i2cdevice_writeread(PyI2cDeviceObject *self, PyObject *args, PyObject *kwargs)
+static PyObject *
+wingpio_i2cdevice_writeread(PyI2cDeviceObject *self, PyObject *args, PyObject *kwargs)
 {
 	static char *kwlist[] = { "data", "count", NULL };
 	PyObject* data = NULL;
@@ -140,7 +164,7 @@ PyDoc_STRVAR(deviceid_doc,
     "\n"
     );
 static PyObject *
-py_i2cdevice_deviceid(PyI2cDeviceObject *self, PyObject *args) {
+wingpio_i2cdevice_deviceid(PyI2cDeviceObject *self, PyObject *args) {
     char id[_MAX_FNAME];
     PyObject* result = NULL;
     VALIDATE_I2C(self);
@@ -160,7 +184,8 @@ PyDoc_STRVAR(slaveaddress_doc,
     "Retrieves the slave address for the I2C device\n"
     "\n"
     );
-static PyObject *py_i2cdevice_slaveaddress(PyI2cDeviceObject *self, PyObject *args)
+static PyObject *
+wingpio_i2cdevice_slaveaddress(PyI2cDeviceObject *self, PyObject *args)
 {
 	VALIDATE_I2C(self);
     PyObject* result = NULL;
@@ -181,7 +206,8 @@ PyDoc_STRVAR(busspeed_doc,
     "Retrieves the bus speed for the I2C device\n"
     "\n"
     );
-static PyObject *py_i2cdevice_busspeed(PyI2cDeviceObject *self, PyObject *args)
+static PyObject *
+wingpio_i2cdevice_busspeed(PyI2cDeviceObject *self, PyObject *args)
 {
 	VALIDATE_I2C(self);
     PyObject* result = NULL;
@@ -202,7 +228,8 @@ PyDoc_STRVAR(sharingmode_doc,
     "Retrieves the sharing mode for the I2C device\n"
     "\n"
     );
-static PyObject *py_i2cdevice_sharingmode(PyI2cDeviceObject *self, PyObject *args)
+static PyObject *
+wingpio_i2cdevice_sharingmode(PyI2cDeviceObject *self, PyObject *args)
 {
     VALIDATE_I2C(self);
     PyObject* result = NULL;
@@ -218,26 +245,26 @@ static PyObject *py_i2cdevice_sharingmode(PyI2cDeviceObject *self, PyObject *arg
 }
 
 static PyMethodDef i2cdevice_methods[] = {
-	{ "read", (PyCFunctionWithKeywords)py_i2cdevice_read, METH_VARARGS | METH_KEYWORDS, read_doc },
-	{ "write", (PyCFunctionWithKeywords)py_i2cdevice_write, METH_VARARGS | METH_KEYWORDS, write_doc },
-	{ "writeread", (PyCFunctionWithKeywords)py_i2cdevice_writeread, METH_VARARGS | METH_KEYWORDS, writeread_doc },
-    { "deviceid", (PyCFunction)py_i2cdevice_deviceid, METH_NOARGS, deviceid_doc },
-	{ "slaveaddress", (PyCFunction)py_i2cdevice_slaveaddress, METH_NOARGS, slaveaddress_doc },
-	{ "busspeed", (PyCFunction)py_i2cdevice_busspeed, METH_NOARGS, busspeed_doc },
-	{ "sharingmode", (PyCFunction)py_i2cdevice_sharingmode, METH_NOARGS, sharingmode_doc },
+	{ "read", (PyCFunctionWithKeywords)wingpio_i2cdevice_read, METH_VARARGS | METH_KEYWORDS, read_doc },
+	{ "write", (PyCFunctionWithKeywords)wingpio_i2cdevice_write, METH_VARARGS | METH_KEYWORDS, write_doc },
+	{ "writeread", (PyCFunctionWithKeywords)wingpio_i2cdevice_writeread, METH_VARARGS | METH_KEYWORDS, writeread_doc },
+    { "deviceid", (PyCFunction)wingpio_i2cdevice_deviceid, METH_NOARGS, deviceid_doc },
+	{ "slaveaddress", (PyCFunction)wingpio_i2cdevice_slaveaddress, METH_NOARGS, slaveaddress_doc },
+	{ "busspeed", (PyCFunction)wingpio_i2cdevice_busspeed, METH_NOARGS, busspeed_doc },
+	{ "sharingmode", (PyCFunction)wingpio_i2cdevice_sharingmode, METH_NOARGS, sharingmode_doc },
 	{ NULL, NULL, 0, NULL }
 };
 
-static struct PyModuleDef wini2cmodule = {
+static struct PyModuleDef wini2c_module = {
 	PyModuleDef_HEAD_INIT,
-	"wini2c",       // name of module
+	"_wini2c",       // name of module
 	moduledocstring,  // module documentation, may be NULL
 	-1,               // size of per-interpreter state of the module, or -1 if the module keeps state in global variables.
 };
 
 static PyTypeObject i2cdevice_type = {
 	PyVarObject_HEAD_INIT(0, 0)
-	"wini2c.i2cdevice",
+	"_wini2c.i2cdevice",
 	sizeof(PyI2cDeviceObject),
 	0
 };
@@ -278,7 +305,7 @@ i2cdevice_init(PyI2cDeviceObject *self, PyObject *args, PyObject *kwds)
 }
 
 PyMODINIT_FUNC 
-PyInit_wini2c(void)
+PyInit__wini2c(void)
 {
     PyObject *module = NULL;
 
@@ -298,7 +325,7 @@ PyInit_wini2c(void)
 	if (PyType_Ready(&i2cdevice_type) < 0)
 		return NULL;
 
-	if ((module = PyModule_Create(&wini2cmodule)) == NULL)
+	if ((module = PyModule_Create(&wini2c_module)) == NULL)
 		return NULL;
 
 	Py_INCREF(&i2cdevice_type);

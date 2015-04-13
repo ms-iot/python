@@ -1,7 +1,14 @@
 #include "python.h"
 #include "spiapi.h"
-#include "constants.h"
 #include "structmember.h"
+
+static PyObject* mode0;
+static PyObject* mode1;
+static PyObject* mode2;
+static PyObject* mode3;
+
+static PyObject* exclusivemode;
+static PyObject* sharedmode;
 
 #define VALIDATE_SPIDEVICE(d) \
     if (!(d) || !((d)->ob_device)) { \
@@ -18,6 +25,26 @@
     }
 
 static const char moduledocstring[] = "SPI functionality of a Windows 10 IoT Core device";
+
+void define_constants(PyObject *module) {
+    mode0 = Py_BuildValue("i", MODE0);
+    PyModule_AddObject(module, "MODE0", mode0);
+
+    mode1 = Py_BuildValue("i", MODE1);
+    PyModule_AddObject(module, "MODE1", mode1);
+
+    mode2 = Py_BuildValue("i", MODE2);
+    PyModule_AddObject(module, "MODE2", mode2);
+
+    mode3 = Py_BuildValue("i", MODE3);
+    PyModule_AddObject(module, "MODE3", mode3);
+
+    exclusivemode = Py_BuildValue("i", EXCLUSIVEMODE);
+    PyModule_AddObject(module, "EXCLUSIVEMODE", exclusivemode);
+
+    sharedmode = Py_BuildValue("i", SHAREDMODE);
+    PyModule_AddObject(module, "SHAREDMODE", sharedmode);
+}
 
 static void
 spidevice_dealloc(PySpiDeviceObject *d)
@@ -69,7 +96,7 @@ PyDoc_STRVAR(read_doc,
     "count=Number of bytes to read\n"
     );
 static PyObject *
-py_spidevice_read(PySpiDeviceObject *self, PyObject *args, PyObject *kwargs)
+winspi_spidevice_read(PySpiDeviceObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *kwlist[] = { "count", NULL };
     int* count = 1;
@@ -100,12 +127,12 @@ PyDoc_STRVAR(write_doc,
     "bytes=Byte array to be written to the device\n"
     );
 static PyObject *
-py_spidevice_write(PySpiDeviceObject *self, PyObject *args, PyObject *kwargs)
+winspi_spidevice_write(PySpiDeviceObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *kwlist[] = { "data", NULL };
     PyObject* data = NULL;
     PyBytesObject* bytes = NULL;
-    PyObject* result = Py_None;
+    int writeresult = FAILURE;
 
     VALIDATE_SPIDEVICE(self);
 
@@ -117,12 +144,14 @@ py_spidevice_write(PySpiDeviceObject *self, PyObject *args, PyObject *kwargs)
         return NULL;
 
     Py_BEGIN_ALLOW_THREADS
-    if (FAILURE == write_spidevice(self->ob_device, PyBytes_AsString(bytes), PyBytes_Size(bytes))) {
-        result = NULL;
-    }
+    writeresult = write_spidevice(self->ob_device, PyBytes_AsString(bytes), PyBytes_Size(bytes));
     Py_END_ALLOW_THREADS
 
-    return result;
+    if (writeresult == FAILURE) {
+        return NULL;
+    }
+
+    Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(transfer_doc,
@@ -135,7 +164,7 @@ PyDoc_STRVAR(transfer_doc,
     "count=Number of bytes expected to be read\n"
     );
 static PyObject *
-py_spidevice_transfer(PySpiDeviceObject *self, PyObject *args, PyObject *kwargs)
+winspi_spidevice_transfer(PySpiDeviceObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *kwlist[] = { "data", "count", NULL };
     PyObject* data = NULL;
@@ -173,7 +202,7 @@ PyDoc_STRVAR(transfersequential_doc,
     "count=Number of bytes expected to be read\n"
     );
 static PyObject *
-py_spidevice_transfersequential(PySpiDeviceObject *self, PyObject *args, PyObject *kwargs)
+winspi_spidevice_transfersequential(PySpiDeviceObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *kwlist[] = { "data", "count", NULL };
     PyObject* data = NULL;
@@ -208,7 +237,7 @@ PyDoc_STRVAR(deviceid_doc,
     "\n"
     );
 static PyObject *
-py_spidevice_deviceid(PySpiDeviceObject *self, PyObject *args) {
+winspi_spidevice_deviceid(PySpiDeviceObject *self, PyObject *args) {
     char id[_MAX_FNAME];
     PyObject* result = NULL;
     VALIDATE_SPIDEVICE(self);
@@ -229,7 +258,7 @@ PyDoc_STRVAR(csl_doc,
     "\n"
     );
 static PyObject *
-py_spidevice_chipselectline(PySpiDeviceObject *self, PyObject *args) {
+winspi_spidevice_chipselectline(PySpiDeviceObject *self, PyObject *args) {
     int val = 0;
     PyObject* result = NULL;
     VALIDATE_SPIDEVICE(self);
@@ -250,7 +279,7 @@ PyDoc_STRVAR(clockfrequency_doc,
     "\n"
     );
 static PyObject *
-py_spidevice_clockfrequency(PySpiDeviceObject *self, PyObject *args) {
+winspi_spidevice_clockfrequency(PySpiDeviceObject *self, PyObject *args) {
     int val = 0;
     PyObject* result = NULL;
     VALIDATE_SPIDEVICE(self);
@@ -271,7 +300,7 @@ PyDoc_STRVAR(databitlength_doc,
     "\n"
     );
 static PyObject *
-py_spidevice_databitlength(PySpiDeviceObject *self, PyObject *args) {
+winspi_spidevice_databitlength(PySpiDeviceObject *self, PyObject *args) {
     int val = 0;
     PyObject* result = NULL;
     VALIDATE_SPIDEVICE(self);
@@ -292,7 +321,7 @@ PyDoc_STRVAR(mode_doc,
     "\n"
     );
 static PyObject *
-py_spidevice_mode(PySpiDeviceObject *self, PyObject *args) {
+winspi_spidevice_mode(PySpiDeviceObject *self, PyObject *args) {
     int val = 0;
     PyObject* result = NULL;
     VALIDATE_SPIDEVICE(self);
@@ -313,7 +342,7 @@ PyDoc_STRVAR(sharingmode_doc,
     "\n"
     );
 static PyObject *
-py_spidevice_sharingmode(PySpiDeviceObject *self, PyObject *args) {
+winspi_spidevice_sharingmode(PySpiDeviceObject *self, PyObject *args) {
     int val = 0;
     PyObject* result = NULL;
     VALIDATE_SPIDEVICE(self);
@@ -334,7 +363,7 @@ PyDoc_STRVAR(chipselectlinecount_doc,
     "\n"
     );
 static PyObject *
-py_spibusinfo_chipselectlinecount(PySpiBusInfoObject *self, PyObject *args) {
+winspi_spibusinfo_chipselectlinecount(PySpiBusInfoObject *self, PyObject *args) {
     int val = 0;
     PyObject* result = NULL;
     VALIDATE_SPIBUSINFO(self);
@@ -355,7 +384,7 @@ PyDoc_STRVAR(maxclockfrequency_doc,
     "\n"
     );
 static PyObject *
-py_spibusinfo_maxclockfrequency(PySpiBusInfoObject *self, PyObject *args) {
+winspi_spibusinfo_maxclockfrequency(PySpiBusInfoObject *self, PyObject *args) {
     int val = 0;
     PyObject* result = NULL;
     VALIDATE_SPIBUSINFO(self);
@@ -376,7 +405,7 @@ PyDoc_STRVAR(minclockfrequency_doc,
     "\n"
     );
 static PyObject *
-py_spibusinfo_minclockfrequency(PySpiBusInfoObject *self, PyObject *args) {
+winspi_spibusinfo_minclockfrequency(PySpiBusInfoObject *self, PyObject *args) {
     int val = 0;
     PyObject* result = NULL;
     VALIDATE_SPIBUSINFO(self);
@@ -397,7 +426,7 @@ PyDoc_STRVAR(supporteddatalengthbits_doc,
     "\n"
     );
 static PyObject *
-py_spibusinfo_supporteddatalengthbits(PySpiBusInfoObject *self, PyObject *args) {
+winspi_spibusinfo_supporteddatalengthbits(PySpiBusInfoObject *self, PyObject *args) {
     int count = 0;
     PyObject* result = NULL;
     VALIDATE_SPIBUSINFO(self);
@@ -421,44 +450,44 @@ py_spibusinfo_supporteddatalengthbits(PySpiBusInfoObject *self, PyObject *args) 
 }
 
 static PyMethodDef spidevice_methods[] = {
-	{ "read", (PyCFunctionWithKeywords)py_spidevice_read, METH_VARARGS | METH_KEYWORDS, read_doc },
-	{ "write", (PyCFunctionWithKeywords)py_spidevice_write, METH_VARARGS | METH_KEYWORDS, write_doc },
-    { "transfer", (PyCFunctionWithKeywords)py_spidevice_transfer, METH_VARARGS | METH_KEYWORDS, transfer_doc },
-    { "transfersequential", (PyCFunctionWithKeywords)py_spidevice_transfersequential, METH_VARARGS | METH_KEYWORDS, transfersequential_doc },
-    { "deviceid", (PyCFunction)py_spidevice_deviceid, METH_NOARGS, deviceid_doc },
-    { "chipselectline", (PyCFunction)py_spidevice_chipselectline, METH_NOARGS, csl_doc },
-    { "clockfrequency", (PyCFunction)py_spidevice_clockfrequency, METH_NOARGS, clockfrequency_doc },
-    { "databitlength", (PyCFunction)py_spidevice_databitlength, METH_NOARGS, databitlength_doc },
-    { "mode", (PyCFunction)py_spidevice_mode, METH_NOARGS, mode_doc },
-    { "sharingmode", (PyCFunction)py_spidevice_sharingmode, METH_NOARGS, sharingmode_doc },
+	{ "read", (PyCFunctionWithKeywords)winspi_spidevice_read, METH_VARARGS | METH_KEYWORDS, read_doc },
+	{ "write", (PyCFunctionWithKeywords)winspi_spidevice_write, METH_VARARGS | METH_KEYWORDS, write_doc },
+    { "transfer", (PyCFunctionWithKeywords)winspi_spidevice_transfer, METH_VARARGS | METH_KEYWORDS, transfer_doc },
+    { "transfersequential", (PyCFunctionWithKeywords)winspi_spidevice_transfersequential, METH_VARARGS | METH_KEYWORDS, transfersequential_doc },
+    { "deviceid", (PyCFunction)winspi_spidevice_deviceid, METH_NOARGS, deviceid_doc },
+    { "chipselectline", (PyCFunction)winspi_spidevice_chipselectline, METH_NOARGS, csl_doc },
+    { "clockfrequency", (PyCFunction)winspi_spidevice_clockfrequency, METH_NOARGS, clockfrequency_doc },
+    { "databitlength", (PyCFunction)winspi_spidevice_databitlength, METH_NOARGS, databitlength_doc },
+    { "mode", (PyCFunction)winspi_spidevice_mode, METH_NOARGS, mode_doc },
+    { "sharingmode", (PyCFunction)winspi_spidevice_sharingmode, METH_NOARGS, sharingmode_doc },
     { NULL, NULL, 0, NULL }
 };
 
 static PyMethodDef spibusinfo_methods[] = {
-    { "chipselectlinecount", (PyCFunction)py_spibusinfo_chipselectlinecount, METH_NOARGS, chipselectlinecount_doc },
-    { "maxclockfrequency", (PyCFunction)py_spibusinfo_maxclockfrequency, METH_NOARGS, maxclockfrequency_doc },
-    { "minclockfrequency", (PyCFunction)py_spibusinfo_minclockfrequency, METH_NOARGS, minclockfrequency_doc },
-    { "supporteddatalengthbits", (PyCFunction)py_spibusinfo_supporteddatalengthbits, METH_NOARGS, supporteddatalengthbits_doc },
+    { "chipselectlinecount", (PyCFunction)winspi_spibusinfo_chipselectlinecount, METH_NOARGS, chipselectlinecount_doc },
+    { "maxclockfrequency", (PyCFunction)winspi_spibusinfo_maxclockfrequency, METH_NOARGS, maxclockfrequency_doc },
+    { "minclockfrequency", (PyCFunction)winspi_spibusinfo_minclockfrequency, METH_NOARGS, minclockfrequency_doc },
+    { "supporteddatalengthbits", (PyCFunction)winspi_spibusinfo_supporteddatalengthbits, METH_NOARGS, supporteddatalengthbits_doc },
     { NULL, NULL, 0, NULL }
 };
 
-static struct PyModuleDef winspimodule = {
+static struct PyModuleDef winspi_module = {
 	PyModuleDef_HEAD_INIT,
-	"winspi",       // name of module
+	"_winspi",       // name of module
 	moduledocstring,  // module documentation, may be NULL
 	-1,               // size of per-interpreter state of the module, or -1 if the module keeps state in global variables.
 };
 
 static PyTypeObject spidevice_type = {
     PyVarObject_HEAD_INIT(0, 0)
-    "winspi.spidevice",
+    "_winspi.spidevice",
     sizeof(PySpiDeviceObject),
     0
 };
 
 static PyTypeObject spibusinfo_type = {
     PyVarObject_HEAD_INIT(0, 0)
-    "winspi.spibusinfo",
+    "_winspi.spibusinfo",
     sizeof(PySpiBusInfoObject),
     0
 };
@@ -532,7 +561,7 @@ spibusinfo_init(PySpiDeviceObject *self, PyObject *args, PyObject *kwds)
 }
 
 PyMODINIT_FUNC
-PyInit_winspi(void)
+PyInit__winspi(void)
 {
 	PyObject *module = NULL;
 
@@ -568,7 +597,7 @@ PyInit_winspi(void)
     if (PyType_Ready(&spibusinfo_type) < 0)
         return NULL;
 
-    if ((module = PyModule_Create(&winspimodule)) == NULL)
+    if ((module = PyModule_Create(&winspi_module)) == NULL)
 		return NULL;
 
     Py_INCREF(&spidevice_type);

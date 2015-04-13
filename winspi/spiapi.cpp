@@ -1,6 +1,5 @@
 #include <collection.h>
 #include "python.h"
-#include "constants.h"
 #include "spiapi.h"
 
 using namespace Windows::Devices::Spi;

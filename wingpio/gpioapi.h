@@ -3,12 +3,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    void init_gpio(PyObject* module);
+    int init_gpio(PyObject* module, void(*event_callback)(int, int));
     int setup_gpio_channel(int channel, int direction, int pull_up_down, int initial);
     int output_gpio_channel(int channel, int value);
     int input_gpio_channel(int channel, int *value);
     void cleanup_gpio_channel(int channel);
     void cleanup_gpio_channels();
+    int enable_event_detect_gpio_channel(int channel, int debounce_timeout_ms, long long* token);
+    int disable_event_detect_gpio_channel(int channel, long long token);
 #ifdef __cplusplus
 }
 #endif
@@ -16,14 +18,8 @@ extern "C" {
 #define SUCCESS 0
 #define FAILURE -1
 
-#define SETUP_OK          0
-#define SETUP_DEVMEM_FAIL 1
-#define SETUP_MALLOC_FAIL 2
-#define SETUP_MMAP_FAIL   3
-
 #define INPUT  1 // is really 0 for control register!
 #define OUTPUT 0 // is really 1 for control register!
-#define ALT0   4
 
 #define HIGH 1
 #define LOW  0
