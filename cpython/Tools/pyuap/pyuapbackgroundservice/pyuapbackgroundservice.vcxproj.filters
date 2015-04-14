@@ -39,6 +39,9 @@
     <None Include="pyuapbackgroundservice_TemporaryKey.pfx" />
     <None Include="StartupTask.py" />
     <None Include="lib.zip" />
+    <None Include="ExtensionScraper.py" />
+    <None Include="BuiltinScraper.py" />
+    <None Include="PythonScraper.py" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="startupinfo.xml" />

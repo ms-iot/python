@@ -262,6 +262,15 @@
     <None Include="StartupTask.py">
       <DeploymentContent>true</DeploymentContent>
     </None>
+    <None Include="ExtensionScraper.py">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
+    <None Include="BuiltinScraper.py">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
+    <None Include="PythonScraper.py">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
     <None Include="lib.zip">
       <DeploymentContent>true</DeploymentContent>
       <Visible>false</Visible>
