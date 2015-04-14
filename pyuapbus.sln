@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.22730.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wingpio", "wingpio\wingpio.vcxproj", "{046FEA20-20F5-43C3-AD29-634A37AD8D00}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_wingpio", "wingpio\_wingpio.vcxproj", "{046FEA20-20F5-43C3-AD29-634A37AD8D00}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pythoncore", "cpython\PCbuild\winrt\pythoncore.vcxproj", "{91C36924-3E30-4482-BE39-4A780305C187}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wini2c", "wini2c\wini2c.vcxproj", "{29E22DBD-4753-4A2F-93C6-3F093C0CCBF9}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_wini2c", "wini2c\_wini2c.vcxproj", "{29E22DBD-4753-4A2F-93C6-3F093C0CCBF9}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "winspi", "winspi\winspi.vcxproj", "{732CAD16-FF19-42FA-9871-A3898D3BC77C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_winspi", "winspi\_winspi.vcxproj", "{732CAD16-FF19-42FA-9871-A3898D3BC77C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependencies", "Dependencies", "{846BE7D6-5A11-4FAC-A0AF-BB9C03428EC3}"
 EndProject
