@@ -15,14 +15,15 @@ extern "C" {
 }
 #endif
 
+// Defines
 #define SUCCESS 0
 #define FAILURE -1
 
-#define INPUT  1 // is really 0 for control register!
-#define OUTPUT 0 // is really 1 for control register!
+#define DRIVEMODE_IN  1
+#define DRIVEMODE_OUT 0
 
-#define HIGH 1
-#define LOW  0
+#define PINVALUE_HIGH 1
+#define PINVALUE_LOW  0
 
 #define PUD_OFF  0
 #define PUD_DOWN 1

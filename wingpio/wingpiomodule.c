@@ -1,20 +1,7 @@
 #include "python.h"
 #include "gpioapi.h"
 
-static PyObject *high;
-static PyObject *low;
-
-static PyObject *input;
-static PyObject *output;
-
-static PyObject *pud_off;
-static PyObject *pud_up;
-static PyObject *pud_down;
-
-static PyObject *rising_edge;
-static PyObject *falling_edge;
-static PyObject *both_edge;
-
+// Callback structures
 struct gpio_event_callback {
     PyObject *gpio_callback;
     struct gpio_event_callback *next;
@@ -29,21 +16,36 @@ struct gpio_event_handler_info {
     struct gpio_event_handler_info* next;
 };
 
+// Statics
+static PyObject *high;
+static PyObject *low;
+
+static PyObject *input;
+static PyObject *output;
+
+static PyObject *pud_off;
+static PyObject *pud_up;
+static PyObject *pud_down;
+
+static PyObject *rising_edge;
+static PyObject *falling_edge;
+static PyObject *both_edge;
+
 static struct gpio_event_handler_info *event_handlers;
 
 void 
-define_constants(PyObject *module)
+define_gpio_constants(PyObject *module)
 {
-    high = Py_BuildValue("i", HIGH);
+    high = Py_BuildValue("i", PINVALUE_HIGH);
     PyModule_AddObject(module, "HIGH", high);
 
-    low = Py_BuildValue("i", LOW);
+    low = Py_BuildValue("i", PINVALUE_LOW);
     PyModule_AddObject(module, "LOW", low);
 
-    output = Py_BuildValue("i", OUTPUT);
+    output = Py_BuildValue("i", DRIVEMODE_OUT);
     PyModule_AddObject(module, "OUT", output);
 
-    input = Py_BuildValue("i", INPUT);
+    input = Py_BuildValue("i", DRIVEMODE_IN);
     PyModule_AddObject(module, "IN", input);
 
     pud_off = Py_BuildValue("i", PUD_OFF);
@@ -148,12 +150,12 @@ wingpio_setup(PyObject *self, PyObject *args, PyObject *kwargs)
 		return NULL;
 	}
 
-	if (direction != INPUT && direction != OUTPUT) {
+	if (direction != DRIVEMODE_IN && direction != DRIVEMODE_OUT) {
 		PyErr_SetString(PyExc_ValueError, "An invalid direction was passed to setup()");
 		return 0;
 	}
 
-	if (direction == OUTPUT)
+	if (direction == DRIVEMODE_OUT)
 		pud = PUD_OFF;
 
 	if (pud != PUD_OFF && pud != PUD_DOWN && pud != PUD_UP) {
@@ -727,8 +729,6 @@ wingpio_add_event_callback(PyObject *self, PyObject *args, PyObject *kwargs) {
     Py_RETURN_NONE;
 }
 
-static const char moduledocstring[] = "GPIO functionality of a Windows 10 IoT Core device";
-
 PyMethodDef wingpio_methods[] = {
 	{ "setup", (PyCFunctionWithKeywords)wingpio_setup, METH_VARARGS | METH_KEYWORDS, setup_doc },
 	{ "cleanup", (PyCFunctionWithKeywords)wingpio_cleanup, METH_VARARGS | METH_KEYWORDS, cleanup_doc },
@@ -744,7 +744,7 @@ PyMethodDef wingpio_methods[] = {
 static struct PyModuleDef wingpio_module = {
 	PyModuleDef_HEAD_INIT,
 	"_wingpio",       // name of module
-	moduledocstring,  // module documentation, may be NULL
+    "GPIO functionality of a Windows 10 IoT Core device",  // module documentation, may be NULL
 	-1,               // size of per-interpreter state of the module, or -1 if the module keeps state in global variables.
     wingpio_methods
 };
@@ -756,7 +756,7 @@ PyMODINIT_FUNC PyInit__wingpio(void)
 	if ((module = PyModule_Create(&wingpio_module)) == NULL)
 		return NULL;
 
-	define_constants(module);
+    define_gpio_constants(module);
 
     if (FAILURE == init_gpio(module, gpio_handle_pin_event)) {
         _PyModule_Clear(module);

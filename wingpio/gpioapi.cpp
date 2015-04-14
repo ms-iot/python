@@ -17,6 +17,9 @@ static void(*gpioPinValueChangedCallback)(int, int);
 static TypedEventHandler<GpioPin ^, GpioPinValueChangedEventArgs ^>^ gpioValueChangedEventHandler;
 
 extern "C" {
+    /*************************************************************************
+     * init_gpio
+     ************************************************************************/
     int init_gpio(PyObject* module, void (*event_callback)(int, int)) {
         int pinCount = InitializeGpioStatics(event_callback);
 
@@ -30,6 +33,9 @@ extern "C" {
         return SUCCESS;
     }
 
+    /*************************************************************************
+    * setup_gpio_channel
+    ************************************************************************/
     int setup_gpio_channel(int channel, int direction, int pull_up_down, int initial) {
         int ret = FAILURE;
         GpioPin^ pin = nullptr;
@@ -43,7 +49,7 @@ extern "C" {
                 gpioPins->SetAt(channel, pin);
             }
 
-            if (direction == INPUT) {
+            if (direction == DRIVEMODE_IN) {
                 switch (pull_up_down) {
                 case PUD_UP:
                     driveMode = GpioPinDriveMode::InputPullUp;
@@ -86,6 +92,9 @@ extern "C" {
         return ret;
     }
 
+    /*************************************************************************
+    * output_gpio_channel
+    ************************************************************************/
     int output_gpio_channel(int channel, int value) {
         int ret = FAILURE;
         GpioPin^ pin = nullptr;
@@ -93,21 +102,35 @@ extern "C" {
         if (channel >= 0 && channel < (int)gpioPins->Size) {
             pin = gpioPins->GetAt(channel);
 
-            if (pin != nullptr && pin->GetDriveMode() == GpioPinDriveMode::Output) {
-                if (value == HIGH) {
-                    pin->Write(GpioPinValue::High);
+            if (pin != nullptr) {
+                switch (pin->GetDriveMode()) {
+                case GpioPinDriveMode::Output:
+                case GpioPinDriveMode::OutputStrongHigh:
+                case GpioPinDriveMode::OutputStrongHighPullDown:
+                case GpioPinDriveMode::OutputStrongLow:
+                case GpioPinDriveMode::OutputStrongLowPullUp:
+                    if (value == PINVALUE_HIGH) {
+                        pin->Write(GpioPinValue::High);
+                    } else if (value == PINVALUE_LOW) {
+                        pin->Write(GpioPinValue::Low);
+                    }
+                    ret = SUCCESS;
+                    break;
+                default:
+                    PyErr_SetString(PyExc_TypeError, "Pin not setup for output");
+                    break;
                 }
-                else if (value == LOW) {
-                    pin->Write(GpioPinValue::Low);
-                }
-
-                ret = SUCCESS;
+            } else {
+                PyErr_SetString(PyExc_TypeError, "Pin not setup");
             }
         }
 
         return ret;
     }
 
+    /*************************************************************************
+    * input_gpio_channel
+    ************************************************************************/
     int input_gpio_channel(int channel, int* value) {
         GpioPin^ pin = nullptr;
         int ret = FAILURE;
@@ -119,31 +142,44 @@ extern "C" {
                 auto pinValue = pin->Read();
 
                 if (pinValue == GpioPinValue::High) {
-                    *value = HIGH;
+                    *value = PINVALUE_HIGH;
                 }
                 else if (pinValue == GpioPinValue::Low) {
-                    *value = LOW;
+                    *value = PINVALUE_LOW;
                 }
 
                 ret = SUCCESS;
             }
+        } else {
+            PyErr_SetString(PyExc_TypeError, "Invalid pin number specified");
         }
 
         return ret;
     }
 
+    /*************************************************************************
+    * cleanup_gpio_channel
+    ************************************************************************/
     void cleanup_gpio_channel(int channel) {
         if (channel >= 0 && channel < (int)gpioPins->Size) {
             gpioPins->SetAt(channel, nullptr);
+        } else {
+            PyErr_SetString(PyExc_TypeError, "Invalid pin number specified");
         }
     }
 
+    /*************************************************************************
+    * cleanup_gpio_channels
+    ************************************************************************/
     void cleanup_gpio_channels() {
         for (auto i = 0; i < (int)gpioPins->Size; i++) {
             gpioPins->SetAt(i, nullptr);
         }
     }
 
+    /*************************************************************************
+    * enable_event_detect_gpio_channel
+    ************************************************************************/
     int enable_event_detect_gpio_channel(int channel, int debounce_timeout_ms, long long* event_token) {
         auto pin = gpioPins->GetAt(channel);
         TimeSpan debounceTimespan;
@@ -176,6 +212,9 @@ extern "C" {
         return SUCCESS;
     }
 
+    /*************************************************************************
+    * disable_event_detect_gpio_channel
+    ************************************************************************/
     int disable_event_detect_gpio_channel(int channel, long long token) {
         auto pin = gpioPins->GetAt(channel);
 
@@ -187,7 +226,9 @@ extern "C" {
             try {
                 pin->ValueChanged -= eventToken;
             } catch (Platform::Exception^ e) {
-                PyErr_Format(PyExc_RuntimeError, "An unexpected error occured during event detection removal: %S", e->Message->Data());
+                PyErr_Format(PyExc_RuntimeError, 
+                    "An unexpected error occured during event detection removal: %S", 
+                    e->Message->Data());
                 return FAILURE;
             }
         }
@@ -200,7 +241,9 @@ int
 InitializeGpioStatics(void(*event_callback)(int, int)) {
     int pinCount = FAILURE;
     gpioController = GpioController::GetDefault();
-    gpioValueChangedEventHandler = ref new TypedEventHandler<GpioPin ^, GpioPinValueChangedEventArgs ^>(OnPinValueChanged);
+    gpioValueChangedEventHandler = 
+        ref new TypedEventHandler<GpioPin ^, GpioPinValueChangedEventArgs ^>(
+            OnPinValueChanged);
     gpioPinValueChangedCallback = event_callback;
 
     if (gpioController != nullptr) {
@@ -214,7 +257,8 @@ InitializeGpioStatics(void(*event_callback)(int, int)) {
 
 void 
 OnPinValueChanged(GpioPin ^sender, GpioPinValueChangedEventArgs ^args) {
-    if (sender != nullptr && args != nullptr && gpioPinValueChangedCallback != nullptr) {
+    if (sender != nullptr && args != nullptr 
+        && gpioPinValueChangedCallback != nullptr) {
         
         int edge = 0;
 
