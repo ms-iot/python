@@ -171,7 +171,6 @@ wingpio_setup(PyObject *self, PyObject *args, PyObject *kwargs)
 	}
 	else {
         if (FAILURE == setup_gpio_channel(channel, direction, pud, initial)) {
-            PyErr_Format(PyExc_RuntimeError, "Setup of channel %d failed", channel);
             return NULL;
         }
 		Py_RETURN_NONE;
@@ -201,7 +200,6 @@ wingpio_setup(PyObject *self, PyObject *args, PyObject *kwargs)
 		}
 
         if (FAILURE == setup_gpio_channel(channel, direction, pud, initial)) {
-            PyErr_Format(PyExc_RuntimeError, "Setup of channel %d failed", channel);
             return NULL;
         }
 	}
