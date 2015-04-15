@@ -32,10 +32,9 @@ struct _inittab *PyImport_Inittab = _PyImport_Inittab;
 static PyObject *initstr = NULL;
 
 /*[clinic input]
-output preset file
 module _imp
 [clinic start generated code]*/
-/*[clinic end generated code: output=da39a3ee5e6b4b0d input=98c38221164579d5]*/
+/*[clinic end generated code: output=da39a3ee5e6b4b0d input=9c332475d8686284]*/
 
 #include "clinic/import.c.h"
 
@@ -905,8 +904,9 @@ Changes code.co_filename to specify the passed-in file path.
 [clinic start generated code]*/
 
 static PyObject *
-_imp__fix_co_filename_impl(PyModuleDef *module, PyCodeObject *code, PyObject *path)
-/*[clinic end generated code: output=7afe5ba6b9d383e4 input=895ba50e78b82f05]*/
+_imp__fix_co_filename_impl(PyModuleDef *module, PyCodeObject *code,
+                           PyObject *path)
+/*[clinic end generated code: output=f4db56aac0a1327f input=895ba50e78b82f05]*/
 
 {
     update_compiled_module(code, path);
@@ -1935,8 +1935,9 @@ Loads an extension module.
 [clinic start generated code]*/
 
 static PyObject *
-_imp_load_dynamic_impl(PyModuleDef *module, PyObject *name, PyObject *path, PyObject *file)
-/*[clinic end generated code: output=8b7ae431d795e1ba input=af64f06e4bad3526]*/
+_imp_load_dynamic_impl(PyModuleDef *module, PyObject *name, PyObject *path,
+                       PyObject *file)
+/*[clinic end generated code: output=e84e5f7f0f39bc54 input=af64f06e4bad3526]*/
 {
     PyObject *mod;
     FILE *fp;

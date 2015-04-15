@@ -9,7 +9,7 @@ import errno
 
 from test.support import (TESTFN, captured_output, check_impl_detail,
                           check_warnings, cpython_only, gc_collect, run_unittest,
-                          no_tracing, unlink)
+                          no_tracing, unlink, import_module)
 
 class NaiveException(Exception):
     def __init__(self, x):
@@ -244,6 +244,16 @@ class ExceptionTests(unittest.TestCase):
             self.assertEqual(w.winerror, None)
             self.assertEqual(w.strerror, 'foo')
             self.assertEqual(w.filename, None)
+
+    @unittest.skipUnless(sys.platform == 'win32',
+                         'test specific to Windows')
+    def test_windows_message(self):
+        """Should fill in unknown error code in Windows error message"""
+        ctypes = import_module('ctypes')
+        # this error code has no message, Python formats it as hexadecimal
+        code = 3765269347
+        with self.assertRaisesRegex(OSError, 'Windows Error 0x%x' % code):
+            ctypes.pythonapi.PyErr_SetFromWindowsErr(code)
 
     def testAttributes(self):
         # test that exception attributes are happy

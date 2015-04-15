@@ -270,7 +270,7 @@ typedef int Py_ssize_clean_t;
  * for platforms that support that.
  *
  * If PY_LOCAL_AGGRESSIVE is defined before python.h is included, more
- * "aggressive" inlining/optimizaion is enabled for the entire module.  This
+ * "aggressive" inlining/optimization is enabled for the entire module.  This
  * may lead to code bloat, and may slow things down for those reasons.  It may
  * also lead to errors, if the code relies on pointer aliasing.  Use with
  * care.
@@ -876,5 +876,25 @@ extern pid_t forkpty(int *, char *, struct termios *, struct winsize *);
 #define PY_BIG_ENDIAN 0
 #define PY_LITTLE_ENDIAN 1
 #endif
+
+#ifdef Py_BUILD_CORE 
+/*
+ * Macros to protect CRT calls against instant termination when passed an
+ * invalid parameter (issue23524).
+ */
+#if defined _MSC_VER && _MSC_VER >= 1900
+
+extern _invalid_parameter_handler _Py_silent_invalid_parameter_handler;
+#define _Py_BEGIN_SUPPRESS_IPH { _invalid_parameter_handler _Py_old_handler = \
+    _set_thread_local_invalid_parameter_handler(_Py_silent_invalid_parameter_handler);
+#define _Py_END_SUPPRESS_IPH _set_thread_local_invalid_parameter_handler(_Py_old_handler); }
+
+#else
+
+#define _Py_BEGIN_SUPPRESS_IPH
+#define _Py_END_SUPPRESS_IPH
+
+#endif /* _MSC_VER >= 1900 */
+#endif /* Py_BUILD_CORE */
 
 #endif /* Py_PYPORT_H */

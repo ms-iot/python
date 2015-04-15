@@ -32,6 +32,7 @@ __author__ = ('Ka-Ping Yee <ping@lfw.org>',
               'Yury Selivanov <yselivanov@sprymix.com>')
 
 import ast
+import dis
 import enum
 import importlib.machinery
 import itertools
@@ -49,18 +50,10 @@ from operator import attrgetter
 from collections import namedtuple, OrderedDict
 
 # Create constants for the compiler flags in Include/code.h
-# We try to get them from dis to avoid duplication, but fall
-# back to hard-coding so the dependency is optional
-try:
-    from dis import COMPILER_FLAG_NAMES as _flag_names
-except ImportError:
-    CO_OPTIMIZED, CO_NEWLOCALS = 0x1, 0x2
-    CO_VARARGS, CO_VARKEYWORDS = 0x4, 0x8
-    CO_NESTED, CO_GENERATOR, CO_NOFREE = 0x10, 0x20, 0x40
-else:
-    mod_dict = globals()
-    for k, v in _flag_names.items():
-        mod_dict["CO_" + v] = k
+# We try to get them from dis to avoid duplication
+mod_dict = globals()
+for k, v in dis.COMPILER_FLAG_NAMES.items():
+    mod_dict["CO_" + v] = k
 
 # See Include/object.h
 TPFLAGS_IS_ABSTRACT = 1 << 20
@@ -468,6 +461,74 @@ def indentsize(line):
     expline = line.expandtabs()
     return len(expline) - len(expline.lstrip())
 
+def _findclass(func):
+    cls = sys.modules.get(func.__module__)
+    if cls is None:
+        return None
+    for name in func.__qualname__.split('.')[:-1]:
+        cls = getattr(cls, name)
+    if not isclass(cls):
+        return None
+    return cls
+
+def _finddoc(obj):
+    if isclass(obj):
+        for base in obj.__mro__:
+            if base is not object:
+                try:
+                    doc = base.__doc__
+                except AttributeError:
+                    continue
+                if doc is not None:
+                    return doc
+        return None
+
+    if ismethod(obj):
+        name = obj.__func__.__name__
+        self = obj.__self__
+        if (isclass(self) and
+            getattr(getattr(self, name, None), '__func__') is obj.__func__):
+            # classmethod
+            cls = self
+        else:
+            cls = self.__class__
+    elif isfunction(obj):
+        name = obj.__name__
+        cls = _findclass(obj)
+        if cls is None or getattr(cls, name) is not obj:
+            return None
+    elif isbuiltin(obj):
+        name = obj.__name__
+        self = obj.__self__
+        if (isclass(self) and
+            self.__qualname__ + '.' + name == obj.__qualname__):
+            # classmethod
+            cls = self
+        else:
+            cls = self.__class__
+    elif ismethoddescriptor(obj) or isdatadescriptor(obj):
+        name = obj.__name__
+        cls = obj.__objclass__
+        if getattr(cls, name) is not obj:
+            return None
+    elif isinstance(obj, property):
+        func = f.fget
+        name = func.__name__
+        cls = _findclass(func)
+        if cls is None or getattr(cls, name) is not obj:
+            return None
+    else:
+        return None
+
+    for base in cls.__mro__:
+        try:
+            doc = getattr(base, name).__doc__
+        except AttributeError:
+            continue
+        if doc is not None:
+            return doc
+    return None
+
 def getdoc(object):
     """Get the documentation string for an object.
 
@@ -478,6 +539,11 @@ def getdoc(object):
         doc = object.__doc__
     except AttributeError:
         return None
+    if doc is None:
+        try:
+            doc = _finddoc(object)
+        except (AttributeError, TypeError):
+            return None
     if not isinstance(doc, str):
         return None
     return cleandoc(doc)
@@ -815,6 +881,14 @@ def getblock(lines):
         pass
     return lines[:blockfinder.last]
 
+def _line_number_helper(code_obj, lines, lnum):
+    """Return a list of source lines and starting line number for a code object.
+
+    The arguments must be a code object with lines and lnum from findsource.
+    """
+    _, end_line = list(dis.findlinestarts(code_obj))[-1]
+    return lines[lnum:end_line], lnum + 1
+
 def getsourcelines(object):
     """Return a list of source lines and starting line number for an object.
 
@@ -826,8 +900,16 @@ def getsourcelines(object):
     object = unwrap(object)
     lines, lnum = findsource(object)
 
-    if ismodule(object): return lines, 0
-    else: return getblock(lines[lnum:]), lnum + 1
+    if ismodule(object):
+        return lines, 0
+    elif iscode(object):
+        return _line_number_helper(object, lines, lnum)
+    elif isfunction(object):
+        return _line_number_helper(object.__code__, lines, lnum)
+    elif ismethod(object):
+        return _line_number_helper(object.__func__.__code__, lines, lnum)
+    else:
+        return getblock(lines[lnum:]), lnum + 1
 
 def getsource(object):
     """Return the text of the source code for an object.

@@ -13,18 +13,18 @@ PyDoc_STRVAR(spwd_getspnam__doc__,
 "See `help(spwd)` for more on shadow password database entries.");
 
 #define SPWD_GETSPNAM_METHODDEF    \
-    {"getspnam", (PyCFunction)spwd_getspnam, METH_VARARGS, spwd_getspnam__doc__},
+    {"getspnam", (PyCFunction)spwd_getspnam, METH_O, spwd_getspnam__doc__},
 
 static PyObject *
 spwd_getspnam_impl(PyModuleDef *module, PyObject *arg);
 
 static PyObject *
-spwd_getspnam(PyModuleDef *module, PyObject *args)
+spwd_getspnam(PyModuleDef *module, PyObject *arg_)
 {
     PyObject *return_value = NULL;
     PyObject *arg;
 
-    if (!PyArg_ParseTuple(args,
+    if (!PyArg_Parse(arg_,
         "U:getspnam",
         &arg))
         goto exit;
@@ -35,10 +35,6 @@ exit:
 }
 
 #endif /* defined(HAVE_GETSPNAM) */
-
-#ifndef SPWD_GETSPNAM_METHODDEF
-    #define SPWD_GETSPNAM_METHODDEF
-#endif /* !defined(SPWD_GETSPNAM_METHODDEF) */
 
 #if defined(HAVE_GETSPENT)
 
@@ -64,7 +60,11 @@ spwd_getspall(PyModuleDef *module, PyObject *Py_UNUSED(ignored))
 
 #endif /* defined(HAVE_GETSPENT) */
 
+#ifndef SPWD_GETSPNAM_METHODDEF
+    #define SPWD_GETSPNAM_METHODDEF
+#endif /* !defined(SPWD_GETSPNAM_METHODDEF) */
+
 #ifndef SPWD_GETSPALL_METHODDEF
     #define SPWD_GETSPALL_METHODDEF
 #endif /* !defined(SPWD_GETSPALL_METHODDEF) */
-/*[clinic end generated code: output=41fec4a15b0cd2a0 input=a9049054013a1b77]*/
+/*[clinic end generated code: output=67a4f8c47008f28f input=a9049054013a1b77]*/

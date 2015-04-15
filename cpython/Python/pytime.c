@@ -19,6 +19,10 @@
 #define MS_TO_NS (MS_TO_US * US_TO_NS)
 #define SEC_TO_NS (SEC_TO_MS * MS_TO_NS)
 
+/* Conversion from nanoseconds */
+#define NS_TO_MS (1000 * 1000)
+#define NS_TO_US (1000)
+
 static void
 error_time_t_overflow(void)
 {
@@ -155,6 +159,19 @@ _PyTime_overflow(void)
 }
 
 _PyTime_t
+_PyTime_FromSeconds(int seconds)
+{
+    _PyTime_t t;
+    /* ensure that integer overflow cannot happen, int type should have 32
+       bits, whereas _PyTime_t type has at least 64 bits (SEC_TO_MS takes 30
+       bits). */
+    assert((seconds >= 0 && seconds <= _PyTime_MAX / SEC_TO_NS)
+           || (seconds < 0 && seconds >= _PyTime_MIN / SEC_TO_NS));
+    t = (_PyTime_t)seconds * SEC_TO_NS;
+    return t;
+}
+
+_PyTime_t
 _PyTime_FromNanoseconds(PY_LONG_LONG ns)
 {
     _PyTime_t t;
@@ -288,33 +305,29 @@ _PyTime_AsNanosecondsObject(_PyTime_t t)
 }
 
 static _PyTime_t
-_PyTime_Multiply(_PyTime_t t, unsigned int multiply, _PyTime_round_t round)
+_PyTime_Divide(_PyTime_t t, _PyTime_t k, _PyTime_round_t round)
 {
-    _PyTime_t k;
-    if (multiply < SEC_TO_NS) {
-        k = SEC_TO_NS / multiply;
-        if (round == _PyTime_ROUND_CEILING)
+    assert(k > 1);
+    if (round == _PyTime_ROUND_CEILING) {
+        if (t >= 0)
             return (t + k - 1) / k;
         else
-            return t / k;
+            return (t - (k - 1)) / k;
     }
-    else {
-        k = multiply / SEC_TO_NS;
-        return t * k;
-    }
+    else
+        return t / k;
 }
 
 _PyTime_t
 _PyTime_AsMilliseconds(_PyTime_t t, _PyTime_round_t round)
 {
-    return _PyTime_Multiply(t, 1000, round);
+    return _PyTime_Divide(t, NS_TO_MS, round);
 }
 
-/* FIXME: write unit tests */
 _PyTime_t
 _PyTime_AsMicroseconds(_PyTime_t t, _PyTime_round_t round)
 {
-    return _PyTime_Multiply(t, 1000 * 1000, round);
+    return _PyTime_Divide(t, NS_TO_US, round);
 }
 
 static int
@@ -657,5 +670,9 @@ _PyTime_Init(void)
     /* ensure that the operating system provides a monotonic clock */
     if (_PyTime_GetMonotonicClockWithInfo(&t, NULL) < 0)
         return -1;
+
+    /* check that _PyTime_FromSeconds() cannot overflow */
+    assert(INT_MAX <= _PyTime_MAX / SEC_TO_NS);
+    assert(INT_MIN >= _PyTime_MIN / SEC_TO_NS);
     return 0;
 }

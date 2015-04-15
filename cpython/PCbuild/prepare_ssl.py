@@ -115,6 +115,7 @@ def fix_makefile(makefile):
     """
     if not os.path.isfile(makefile):
         return
+    copy_if_different = r'$(PERL) $(SRC_D)\util\copy-if-different.pl'
     with open(makefile) as fin:
         lines = fin.readlines()
     with open(makefile, 'w') as fout:
@@ -132,6 +133,8 @@ def fix_makefile(makefile):
                     if noalgo not in line:
                         line = line + noalgo
                 line = line + '\n'
+            if copy_if_different in line:
+                line = line.replace(copy_if_different, 'copy /Y')
             fout.write(line)
 
 def run_configure(configure, do_script):
@@ -215,7 +218,11 @@ def main():
 
     # perl should be on the path, but we also look in "\perl" and "c:\\perl"
     # as "well known" locations
-    perls = find_all_on_path("perl.exe", ["\\perl\\bin", "C:\\perl\\bin"])
+    perls = find_all_on_path("perl.exe", [r"\perl\bin",
+                                          r"C:\perl\bin",
+                                          r"\perl64\bin",
+                                          r"C:\perl64\bin",
+                                         ])
     perl = find_working_perl(perls)
     if perl:
         print("Found a working perl at '%s'" % (perl,))

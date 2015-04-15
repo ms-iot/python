@@ -88,6 +88,8 @@ Implementation improvements:
   ``surrogateescape`` error handler, instead of the ``strict`` error handler
   (:issue:`19977`).
 
+* :pep:`488`, the elimination of ``.pyo`` files.
+
 Significantly Improved Library Modules:
 
 * None yet.
@@ -147,7 +149,7 @@ PEP 465 - A dedicated infix operator for matrix multiplication
 --------------------------------------------------------------
 
 This PEP proposes a new binary operator to be used for matrix multiplication,
-called ``@``. (Mnemonic: ``@`` is ``*`` for matrices.)
+called ``@``. (Mnemonic: ``@`` is ``*`` for mATrices.)
 
 .. seealso::
 
@@ -194,6 +196,24 @@ environment will be used.
 .. seealso::
 
     :pep:`486` -- Make the Python Launcher aware of virtual environments
+
+
+PEP 488: Elimination of PYO files
+---------------------------------
+
+:pep:`488` does away with the concept of ``.pyo`` files. This means that
+``.pyc`` files represent both unoptimized and optimized bytecode. To prevent
+the need to constantly regenerate bytecode files, ``.pyc`` files now have an
+optional ``opt-`` tag in their name when the bytecode is optimized. This has
+the side-effect of no more bytecode file name clashes when running under either
+``-O`` or ``-OO``, thus allowing unoptimized, ``-O``, and ``-OO`` bytecode files
+to all exist simultaneously. :func:`importlib.util.cache_from_source` has an
+updated API to help with this change.
+
+.. seealso::
+
+   :pep:`488` -- Elimination of PYO files
+
 
 Other Language Changes
 ======================
@@ -410,6 +430,9 @@ shutil
 signal
 ------
 
+* On Windows, :func:`signal.set_wakeup_fd` now also supports socket handles.
+  (Contributed by Victor Stinner in :issue:`22018`.)
+
 * Different constants of :mod:`signal` module are now enumeration values using
   the :mod:`enum` module. This allows meaningful names to be printed during
   debugging, instead of integer “magic numbers”.  (Contributed by Giampaolo
@@ -456,18 +479,32 @@ socket
   :meth:`socket.socket.send`.
   (Contributed by Giampaolo Rodola' in :issue:`17552`.)
 
+subprocess
+----------
+
+* The new :func:`subprocess.run` function runs subprocesses and returns a
+  :class:`subprocess.CompletedProcess` object.  It Provides a more consistent
+  API than :func:`~subprocess.call`, :func:`~subprocess.check_call` and
+  :func:`~subprocess.check_output`.
+
 sysconfig
 ---------
 
 * The user scripts directory on Windows is now versioned.
   (Contributed by Paul Moore in :issue:`23437`.)
 
-
 tarfile
 -------
 
 * The :func:`tarfile.open` function now supports ``'x'`` (exclusive creation)
   mode.  (Contributed by Berker Peksag in :issue:`21717`.)
+
+* The :meth:`~tarfile.TarFile.extractall` and :meth:`~tarfile.TarFile.extract`
+  methods now take a keyword parameter *numeric_only*. If set to ``True``,
+  the extracted files and directories will be owned by the numeric uid and gid
+  from the tarfile. If set to ``False`` (the default, and the behavior in
+  versions prior to 3.5), they will be owned bythe named user and group in the
+  tarfile.  (Contributed by Michael Vogt and Eric Smith in :issue:`23193`.)
 
 time
 ----
@@ -495,6 +532,13 @@ xmlrpc
 
 * :class:`xmlrpc.client.ServerProxy` is now a :term:`context manager`.
   (Contributed by Claudiu Popa in :issue:`20627`.)
+
+xml.sax
+-------
+
+* SAX parsers now support a character stream of
+  :class:`~xml.sax.xmlreader.InputSource` object.
+  (Contributed by Serhiy Storchaka in :issue:`2175`.)
 
 faulthandler
 ------------
@@ -525,7 +569,7 @@ The following performance enhancements have been added:
   ``FindFirstFile``/``FindNextFile`` system calls. (Contributed by
   Ben Hoyt with help from Victor Stinner in :issue:`23605`.)
 
-* Construction of ``bytes(int)`` (filled by zero bytes) is faster and use less
+* Construction of ``bytes(int)`` (filled by zero bytes) is faster and uses less
   memory for large objects. ``calloc()`` is used instead of ``malloc()`` to
   allocate memory for these objects.
 
@@ -564,7 +608,7 @@ Deprecated
 Unsupported Operating Systems
 -----------------------------
 
-* None yet.
+* Windows XP - Per :PEP:`11`, Microsoft support of Windows XP has ended.
 
 
 Deprecated Python modules, functions and methods
@@ -620,6 +664,12 @@ removed:
   3.4, and has now been removed.
   (Contributed by Matt Chaput in :issue:`6623`.)
 
+* The concept of ``.pyo`` files has been removed.
+
+* The JoinableQueue class in the provisional asyncio module was deprecated
+  in 3.4.4 and is now removed (:issue:`23464`).
+
+
 Porting to Python 3.5
 =====================
 
@@ -634,9 +684,51 @@ Changes in the Python API
   raise an exception:
 
   - :func:`open`, :func:`os.open`, :func:`io.open`
-  - :func:`os.read`, :func:`os.write`
+  - functions of the :mod:`faulthandler` module
+  - :mod:`os` functions:
+
+    * :func:`os.fchdir`
+    * :func:`os.fchmod`
+    * :func:`os.fchown`
+    * :func:`os.fdatasync`
+    * :func:`os.fstat`
+    * :func:`os.fstatvfs`
+    * :func:`os.fsync`
+    * :func:`os.ftruncate`
+    * :func:`os.mkfifo`
+    * :func:`os.mknod`
+    * :func:`os.posix_fadvise`
+    * :func:`os.posix_fallocate`
+    * :func:`os.pread`
+    * :func:`os.pwrite`
+    * :func:`os.read`
+    * :func:`os.readv`
+    * :func:`os.sendfile`
+    * :func:`os.wait3`
+    * :func:`os.wait4`
+    * :func:`os.wait`
+    * :func:`os.waitid`
+    * :func:`os.waitpid`
+    * :func:`os.write`
+    * :func:`os.writev`
+    * special cases: :func:`os.close` and :func:`os.dup2` now ignore
+      :py:data:`~errno.EINTR` error, the syscall is not retried (see the PEP
+      for the rationale)
+
   - :func:`select.select`, :func:`select.poll.poll`, :func:`select.epoll.poll`,
     :func:`select.kqueue.control`, :func:`select.devpoll.poll`
+  - :func:`socket.socket` methods:
+
+    * :meth:`~socket.socket.accept`
+    * :meth:`~socket.socket.connect` (except for non-blocking sockets)
+    * :meth:`~socket.socket.recv`
+    * :meth:`~socket.socket.recvfrom`
+    * :meth:`~socket.socket.recvmsg`
+    * :meth:`~socket.socket.send`
+    * :meth:`~socket.socket.sendall`
+    * :meth:`~socket.socket.sendmsg`
+    * :meth:`~socket.socket.sendto`
+
   - :func:`signal.sigtimedwait`, :func:`signal.sigwaitinfo`
   - :func:`time.sleep`
 
@@ -702,6 +794,20 @@ Changes in the Python API
   keys in the update dictionary are invalid.  In addition, the undocumented
   *LegalChars* parameter of :func:`~http.cookies.Morsel.set` is deprecated and
   is now ignored.  (:issue:`2211`)
+
+* :pep:`488` has removed ``.pyo`` files from Python and introduced the optional
+  ``opt-`` tag in ``.pyc`` file names. The
+  :func:`importlib.util.cache_from_source` has gained an *optimization*
+  parameter to help control the ``opt-`` tag. Because of this, the
+  *debug_override* parameter of the function is now deprecated. `.pyo` files
+  are also no longer supported as a file argument to the Python interpreter and
+  thus serve no purpose when distributed on their own (i.e. sourcless code
+  distribution). Due to the fact that the magic number for bytecode has changed
+  in Python 3.5, all old `.pyo` files from previous versions of Python are
+  invalid regardless of this PEP.
+
+ * The :mod:`socket` module now exports the CAN_RAW_FD_FRAMES constant on linux
+   3.6 and greater.
 
 Changes in the C API
 --------------------

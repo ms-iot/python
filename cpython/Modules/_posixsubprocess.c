@@ -207,13 +207,13 @@ _close_fds_by_brute_force(long start_fd, PyObject *py_fds_to_keep)
         if (keep_fd < start_fd)
             continue;
         for (fd_num = start_fd; fd_num < keep_fd; ++fd_num) {
-            while (close(fd_num) < 0 && errno == EINTR);
+            close(fd_num);
         }
         start_fd = keep_fd + 1;
     }
     if (start_fd <= end_fd) {
         for (fd_num = start_fd; fd_num < end_fd; ++fd_num) {
-            while (close(fd_num) < 0 && errno == EINTR);
+            close(fd_num);
         }
     }
 }
@@ -274,11 +274,11 @@ _close_open_fds_safe(int start_fd, PyObject* py_fds_to_keep)
                     continue;  /* Not a number. */
                 if (fd != fd_dir_fd && fd >= start_fd &&
                     !_is_fd_in_sorted_fd_sequence(fd, py_fds_to_keep)) {
-                    while (close(fd) < 0 && errno == EINTR);
+                    close(fd);
                 }
             }
         }
-        while (close(fd_dir_fd) < 0 && errno == EINTR);
+        close(fd_dir_fd);
     }
 }
 
@@ -312,7 +312,7 @@ _close_open_fds_maybe_unsafe(long start_fd, PyObject* py_fds_to_keep)
      * reuse that fd otherwise we might close opendir's file descriptor in
      * our loop.  This trick assumes that fd's are allocated on a lowest
      * available basis. */
-    while (close(start_fd) < 0 && errno == EINTR);
+    close(start_fd);
     ++start_fd;
 #endif
 
@@ -339,7 +339,7 @@ _close_open_fds_maybe_unsafe(long start_fd, PyObject* py_fds_to_keep)
                 continue;  /* Not a number. */
             if (fd != fd_used_by_opendir && fd >= start_fd &&
                 !_is_fd_in_sorted_fd_sequence(fd, py_fds_to_keep)) {
-                while (close(fd) < 0 && errno == EINTR);
+                close(fd);
             }
             errno = 0;
         }
@@ -382,7 +382,7 @@ child_exec(char *const exec_array[],
            PyObject *preexec_fn,
            PyObject *preexec_fn_args_tuple)
 {
-    int i, saved_errno, unused, reached_preexec = 0;
+    int i, saved_errno, reached_preexec = 0;
     PyObject *result;
     const char* err_msg = "";
     /* Buffer large enough to hold a hex integer.  We can't malloc. */
@@ -496,28 +496,29 @@ error:
     saved_errno = errno;
     /* Report the posix error to our parent process. */
     /* We ignore all write() return values as the total size of our writes is
-     * less than PIPEBUF and we cannot do anything about an error anyways. */
+       less than PIPEBUF and we cannot do anything about an error anyways.
+       Use _Py_write_noraise() to retry write() if it is interrupted by a
+       signal (fails with EINTR). */
     if (saved_errno) {
         char *cur;
-        unused = write(errpipe_write, "OSError:", 8);
+        _Py_write_noraise(errpipe_write, "OSError:", 8);
         cur = hex_errno + sizeof(hex_errno);
         while (saved_errno != 0 && cur > hex_errno) {
             *--cur = "0123456789ABCDEF"[saved_errno % 16];
             saved_errno /= 16;
         }
-        unused = write(errpipe_write, cur, hex_errno + sizeof(hex_errno) - cur);
-        unused = write(errpipe_write, ":", 1);
+        _Py_write_noraise(errpipe_write, cur, hex_errno + sizeof(hex_errno) - cur);
+        _Py_write_noraise(errpipe_write, ":", 1);
         if (!reached_preexec) {
             /* Indicate to the parent that the error happened before exec(). */
-            unused = write(errpipe_write, "noexec", 6);
+            _Py_write_noraise(errpipe_write, "noexec", 6);
         }
         /* We can't call strerror(saved_errno).  It is not async signal safe.
          * The parent process will look the error message up. */
     } else {
-        unused = write(errpipe_write, "SubprocessError:0:", 18);
-        unused = write(errpipe_write, err_msg, strlen(err_msg));
+        _Py_write_noraise(errpipe_write, "SubprocessError:0:", 18);
+        _Py_write_noraise(errpipe_write, err_msg, strlen(err_msg));
     }
-    if (unused) return;  /* silly? yes! avoids gcc compiler warning. */
 }
 
 

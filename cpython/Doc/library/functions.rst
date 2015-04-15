@@ -1066,7 +1066,7 @@ are always available.  They are listed here in alphabetical order.
       The ``'U'`` mode.
 
    .. versionchanged:: 3.5
-      If the system call is interrupted and the signal does not raise an
+      If the system call is interrupted and the signal handler does not raise an
       exception, the function now retries the system call instead of raising an
       :exc:`InterruptedError` exception (see :pep:`475` for the rationale).
 
@@ -1225,8 +1225,8 @@ are always available.  They are listed here in alphabetical order.
 .. function:: round(number[, ndigits])
 
    Return the floating point value *number* rounded to *ndigits* digits after
-   the decimal point.  If *ndigits* is omitted, it defaults to zero. Delegates
-   to ``number.__round__(ndigits)``.
+   the decimal point.  If *ndigits* is omitted, it returns the nearest integer
+   to its input.  Delegates to ``number.__round__(ndigits)``.
 
    For the built-in types supporting :func:`round`, values are rounded to the
    closest multiple of 10 to the power minus *ndigits*; if two multiples are

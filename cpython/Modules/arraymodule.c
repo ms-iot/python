@@ -16,10 +16,9 @@
 #endif /* !STDC_HEADERS */
 
 /*[clinic input]
-output preset file
 module array
 [clinic start generated code]*/
-/*[clinic end generated code: output=da39a3ee5e6b4b0d input=0909c1a148c69931]*/
+/*[clinic end generated code: output=da39a3ee5e6b4b0d input=7d1b8d7f5958fd83]*/
 
 struct arrayobject; /* Forward */
 
@@ -1404,7 +1403,7 @@ static PyObject *
 array_array_fromfile_impl(arrayobject *self, PyObject *f, Py_ssize_t n)
 /*[clinic end generated code: output=ec9f600e10f53510 input=e188afe8e58adf40]*/
 {
-    PyObject *args, *b, *res;
+    PyObject *b, *res;
     Py_ssize_t itemsize = self->ob_descr->itemsize;
     Py_ssize_t nbytes;
     _Py_IDENTIFIER(read);
@@ -1433,13 +1432,8 @@ array_array_fromfile_impl(arrayobject *self, PyObject *f, Py_ssize_t n)
 
     not_enough_bytes = (PyBytes_GET_SIZE(b) != nbytes);
 
-    args = Py_BuildValue("(O)", b);
+    res = array_array_frombytes(self, b);
     Py_DECREF(b);
-    if (args == NULL)
-        return NULL;
-
-    res = array_array_frombytes(self, args);
-    Py_DECREF(args);
     if (res == NULL)
         return NULL;
 
@@ -1690,8 +1684,9 @@ some other type.
 [clinic start generated code]*/
 
 static PyObject *
-array_array_fromunicode_impl(arrayobject *self, Py_UNICODE *ustr, Py_ssize_clean_t ustr_length)
-/*[clinic end generated code: output=3b3f4f133bac725e input=56bcedb5ef70139f]*/
+array_array_fromunicode_impl(arrayobject *self, Py_UNICODE *ustr,
+                             Py_ssize_clean_t ustr_length)
+/*[clinic end generated code: output=ebb72fc16975e06d input=56bcedb5ef70139f]*/
 {
     char typecode;
 
@@ -1943,8 +1938,11 @@ Internal. Used for pickling support.
 [clinic start generated code]*/
 
 static PyObject *
-array__array_reconstructor_impl(PyModuleDef *module, PyTypeObject *arraytype, int typecode, enum machine_format_code mformat_code, PyObject *items)
-/*[clinic end generated code: output=c51081ec91caf7e9 input=f72492708c0a1d50]*/
+array__array_reconstructor_impl(PyModuleDef *module, PyTypeObject *arraytype,
+                                int typecode,
+                                enum machine_format_code mformat_code,
+                                PyObject *items)
+/*[clinic end generated code: output=6ecbf0e8e4d92ab9 input=f72492708c0a1d50]*/
 {
     PyObject *converted_items;
     PyObject *result;
@@ -2673,15 +2671,9 @@ array_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
             }
             else if (initial != NULL && (PyByteArray_Check(initial) ||
                                PyBytes_Check(initial))) {
-                PyObject *t_initial, *v;
-                t_initial = PyTuple_Pack(1, initial);
-                if (t_initial == NULL) {
-                    Py_DECREF(a);
-                    return NULL;
-                }
+                PyObject *v;
                 v = array_array_frombytes((arrayobject *)a,
-                                          t_initial);
-                Py_DECREF(t_initial);
+                                          initial);
                 if (v == NULL) {
                     Py_DECREF(a);
                     return NULL;
