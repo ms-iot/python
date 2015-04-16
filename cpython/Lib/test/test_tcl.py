@@ -133,9 +133,22 @@ class TclTest(unittest.TestCase):
         tcl = self.interp
         self.assertRaises(TclError,tcl.unsetvar,'a')
 
+    def get_integers(self):
+        integers = (0, 1, -1, 2**31-1, -2**31, 2**31, -2**31-1, 2**63-1, -2**63)
+        if tcl_version >= (8, 5):  # bignum was added in Tcl 8.5
+            integers += (2**63, -2**63-1, 2**1000, -2**1000)
+        return integers
+
     def test_getint(self):
         tcl = self.interp.tk
-        self.assertEqual(tcl.getint(' 42 '), 42)
+        for i in self.get_integers():
+            self.assertEqual(tcl.getint(' %d ' % i), i)
+            if tcl_version >= (8, 5):
+                self.assertEqual(tcl.getint(' %#o ' % i), i)
+            self.assertEqual(tcl.getint((' %#o ' % i).replace('o', '')), i)
+            self.assertEqual(tcl.getint(' %#x ' % i), i)
+        if tcl_version < (8, 5):  # bignum was added in Tcl 8.5
+            self.assertRaises(TclError, tcl.getint, str(2**1000))
         self.assertEqual(tcl.getint(42), 42)
         self.assertRaises(TypeError, tcl.getint)
         self.assertRaises(TypeError, tcl.getint, '42', '10')
@@ -166,7 +179,8 @@ class TclTest(unittest.TestCase):
         tcl = self.interp.tk
         self.assertIs(tcl.getboolean('on'), True)
         self.assertIs(tcl.getboolean('1'), True)
-        self.assertEqual(tcl.getboolean(42), 42)
+        self.assertIs(tcl.getboolean(42), True)
+        self.assertIs(tcl.getboolean(0), False)
         self.assertRaises(TypeError, tcl.getboolean)
         self.assertRaises(TypeError, tcl.getboolean, 'on', '1')
         self.assertRaises(TypeError, tcl.getboolean, b'on')
@@ -270,7 +284,7 @@ class TclTest(unittest.TestCase):
         check('"a\xbd\u20ac"', 'a\xbd\u20ac')
         check(r'"a\xbd\u20ac"', 'a\xbd\u20ac')
         check(r'"a\0b"', 'a\x00b')
-        if tcl_version >= (8, 5):
+        if tcl_version >= (8, 5):  # bignum was added in Tcl 8.5
             check('2**64', str(2**64))
 
     def test_exprdouble(self):
@@ -302,7 +316,7 @@ class TclTest(unittest.TestCase):
         check('[string length "a\xbd\u20ac"]', 3.0)
         check(r'[string length "a\xbd\u20ac"]', 3.0)
         self.assertRaises(TclError, tcl.exprdouble, '"abc"')
-        if tcl_version >= (8, 5):
+        if tcl_version >= (8, 5):  # bignum was added in Tcl 8.5
             check('2**64', float(2**64))
 
     def test_exprlong(self):
@@ -334,7 +348,7 @@ class TclTest(unittest.TestCase):
         check('[string length "a\xbd\u20ac"]', 3)
         check(r'[string length "a\xbd\u20ac"]', 3)
         self.assertRaises(TclError, tcl.exprlong, '"abc"')
-        if tcl_version >= (8, 5):
+        if tcl_version >= (8, 5):  # bignum was added in Tcl 8.5
             self.assertRaises(TclError, tcl.exprlong, '2**64')
 
     def test_exprboolean(self):
@@ -375,8 +389,41 @@ class TclTest(unittest.TestCase):
         check('[string length "a\xbd\u20ac"]', True)
         check(r'[string length "a\xbd\u20ac"]', True)
         self.assertRaises(TclError, tcl.exprboolean, '"abc"')
-        if tcl_version >= (8, 5):
+        if tcl_version >= (8, 5):  # bignum was added in Tcl 8.5
             check('2**64', True)
+
+    @unittest.skipUnless(tcl_version >= (8, 5), 'requires Tcl version >= 8.5')
+    def test_booleans(self):
+        tcl = self.interp
+        def check(expr, expected):
+            result = tcl.call('expr', expr)
+            if tcl.wantobjects():
+                self.assertEqual(result, expected)
+                self.assertIsInstance(result, int)
+            else:
+                self.assertIn(result, (expr, str(int(expected))))
+                self.assertIsInstance(result, str)
+        check('true', True)
+        check('yes', True)
+        check('on', True)
+        check('false', False)
+        check('no', False)
+        check('off', False)
+        check('1 < 2', True)
+        check('1 > 2', False)
+
+    def test_expr_bignum(self):
+        tcl = self.interp
+        for i in self.get_integers():
+            result = tcl.call('expr', str(i))
+            if self.wantobjects:
+                self.assertEqual(result, i)
+                self.assertIsInstance(result, int)
+            else:
+                self.assertEqual(result, str(i))
+                self.assertIsInstance(result, str)
+        if tcl_version < (8, 5):  # bignum was added in Tcl 8.5
+            self.assertRaises(TclError, tcl.call, 'expr', str(2**1000))
 
     def test_passing_values(self):
         def passValue(value):
@@ -395,8 +442,10 @@ class TclTest(unittest.TestCase):
                          b'str\xc0\x80ing' if self.wantobjects else 'str\xc0\x80ing')
         self.assertEqual(passValue(b'str\xbding'),
                          b'str\xbding' if self.wantobjects else 'str\xbding')
-        for i in (0, 1, -1, 2**31-1, -2**31):
+        for i in self.get_integers():
             self.assertEqual(passValue(i), i if self.wantobjects else str(i))
+        if tcl_version < (8, 5):  # bignum was added in Tcl 8.5
+            self.assertEqual(passValue(2**1000), str(2**1000))
         for f in (0.0, 1.0, -1.0, 1/3,
                   sys.float_info.min, sys.float_info.max,
                   -sys.float_info.min, -sys.float_info.max):
@@ -456,8 +505,10 @@ class TclTest(unittest.TestCase):
         check(b'str\x00ing', 'str\x00ing')
         check(b'str\xc0\x80ing', 'str\xc0\x80ing')
         check(b'str\xc0\x80ing\xe2\x82\xac', 'str\xc0\x80ing\xe2\x82\xac')
-        for i in (0, 1, -1, 2**31-1, -2**31):
+        for i in self.get_integers():
             check(i, str(i))
+        if tcl_version < (8, 5):  # bignum was added in Tcl 8.5
+            check(2**1000, str(2**1000))
         for f in (0.0, 1.0, -1.0):
             check(f, repr(f))
         for f in (1/3.0, sys.float_info.min, sys.float_info.max,

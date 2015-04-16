@@ -1,6 +1,6 @@
 import unittest
 from test.support import (verbose, refcount_test, run_unittest,
-                            strip_python_stderr, cpython_only)
+                            strip_python_stderr, cpython_only, start_threads)
 from test.script_helper import assert_python_ok, make_script, temp_dir
 
 import sys
@@ -397,19 +397,13 @@ class GCTests(unittest.TestCase):
         old_switchinterval = sys.getswitchinterval()
         sys.setswitchinterval(1e-5)
         try:
-            exit = False
+            exit = []
             threads = []
             for i in range(N_THREADS):
                 t = threading.Thread(target=run_thread)
                 threads.append(t)
-            try:
-                for t in threads:
-                    t.start()
-            finally:
+            with start_threads(threads, lambda: exit.append(1)):
                 time.sleep(1.0)
-                exit = True
-            for t in threads:
-                t.join()
         finally:
             sys.setswitchinterval(old_switchinterval)
         gc.collect()
@@ -552,11 +546,31 @@ class GCTests(unittest.TestCase):
 
         class UserClass:
             pass
+
+        class UserInt(int):
+            pass
+
+        # Base class is object; no extra fields.
+        class UserClassSlots:
+            __slots__ = ()
+
+        # Base class is fixed size larger than object; no extra fields.
+        class UserFloatSlots(float):
+            __slots__ = ()
+
+        # Base class is variable size; no extra fields.
+        class UserIntSlots(int):
+            __slots__ = ()
+
         self.assertTrue(gc.is_tracked(gc))
         self.assertTrue(gc.is_tracked(UserClass))
         self.assertTrue(gc.is_tracked(UserClass()))
+        self.assertTrue(gc.is_tracked(UserInt()))
         self.assertTrue(gc.is_tracked([]))
         self.assertTrue(gc.is_tracked(set()))
+        self.assertFalse(gc.is_tracked(UserClassSlots()))
+        self.assertFalse(gc.is_tracked(UserFloatSlots()))
+        self.assertFalse(gc.is_tracked(UserIntSlots()))
 
     def test_bug1055820b(self):
         # Corresponds to temp2b.py in the bug report.

@@ -263,13 +263,13 @@ purposes.
 
    .. note::
       If you find that when certain older clients or servers attempt to connect
-      with a :class:`SSLContext` created by this function that they get an
-      error stating "Protocol or cipher suite mismatch", it may be that they
-      only support SSL3.0 which this function excludes using the
-      :data:`OP_NO_SSLv3`. SSL3.0 has problematic security due to a number of
-      poor implementations and it's reliance on MD5 within the protocol. If you
-      wish to continue to use this function but still allow SSL 3.0 connections
-      you can re-enable them using::
+      with a :class:`SSLContext` created by this function that they get an error
+      stating "Protocol or cipher suite mismatch", it may be that they only
+      support SSL3.0 which this function excludes using the
+      :data:`OP_NO_SSLv3`. SSL3.0 is widely considered to be `completely broken
+      <https://en.wikipedia.org/wiki/POODLE>`_. If you still wish to continue to
+      use this function but still allow SSL 3.0 connections you can re-enable
+      them using::
 
          ctx = ssl.create_default_context(Purpose.CLIENT_AUTH)
          ctx.options &= ~ssl.OP_NO_SSLv3
@@ -286,11 +286,13 @@ Random generation
 
 .. function:: RAND_bytes(num)
 
-   Returns *num* cryptographically strong pseudo-random bytes. Raises an
+   Return *num* cryptographically strong pseudo-random bytes. Raises an
    :class:`SSLError` if the PRNG has not been seeded with enough data or if the
    operation is not supported by the current RAND method. :func:`RAND_status`
    can be used to check the status of the PRNG and :func:`RAND_add` can be used
    to seed the PRNG.
+
+   For almost all applications :func:`os.urandom` is preferable.
 
    Read the Wikipedia article, `Cryptographically secure pseudorandom number
    generator (CSPRNG)
@@ -301,7 +303,7 @@ Random generation
 
 .. function:: RAND_pseudo_bytes(num)
 
-   Returns (bytes, is_cryptographic): bytes are *num* pseudo-random bytes,
+   Return (bytes, is_cryptographic): bytes are *num* pseudo-random bytes,
    is_cryptographic is ``True`` if the bytes generated are cryptographically
    strong. Raises an :class:`SSLError` if the operation is not supported by the
    current RAND method.
@@ -311,14 +313,18 @@ Random generation
    for non-cryptographic purposes and for certain purposes in cryptographic
    protocols, but usually not for key generation etc.
 
+   For almost all applications :func:`os.urandom` is preferable.
+
+   For almost all applications :func:`os.urandom` is preferable.
+
    .. versionadded:: 3.3
 
 .. function:: RAND_status()
 
-   Returns ``True`` if the SSL pseudo-random number generator has been seeded with
-   'enough' randomness, and ``False`` otherwise.  You can use :func:`ssl.RAND_egd`
-   and :func:`ssl.RAND_add` to increase the randomness of the pseudo-random
-   number generator.
+   Return ``True`` if the SSL pseudo-random number generator has been seeded
+   with 'enough' randomness, and ``False`` otherwise.  You can use
+   :func:`ssl.RAND_egd` and :func:`ssl.RAND_add` to increase the randomness of
+   the pseudo-random number generator.
 
 .. function:: RAND_egd(path)
 
@@ -335,7 +341,7 @@ Random generation
 
 .. function:: RAND_add(bytes, entropy)
 
-   Mixes the given *bytes* into the SSL pseudo-random number generator.  The
+   Mix the given *bytes* into the SSL pseudo-random number generator.  The
    parameter *entropy* (a float) is a lower bound on the entropy contained in
    string (so you can always use :const:`0.0`).  See :rfc:`1750` for more
    information on sources of entropy.
@@ -830,6 +836,11 @@ SSL Sockets
    .. versionchanged:: 3.5
       The :meth:`sendfile` method was added.
 
+   .. versionchanged:: 3.5
+      The :meth:`shutdown` does not reset the socket timeout each time bytes
+      are received or sent. The socket timeout is now to maximum total duration
+      of the shutdown.
+
 
 SSL sockets also have the following additional methods and attributes:
 
@@ -845,6 +856,11 @@ SSL sockets also have the following additional methods and attributes:
    As at any time a re-negotiation is possible, a call to :meth:`read` can also
    cause write operations.
 
+   .. versionchanged:: 3.5
+      The socket timeout is no more reset each time bytes are received or sent.
+      The socket timeout is now to maximum total duration to read up to *len*
+      bytes.
+
 .. method:: SSLSocket.write(buf)
 
    Write *buf* to the SSL socket and return the number of bytes written. The
@@ -855,6 +871,10 @@ SSL sockets also have the following additional methods and attributes:
 
    As at any time a re-negotiation is possible, a call to :meth:`write` can
    also cause read operations.
+
+   .. versionchanged:: 3.5
+      The socket timeout is no more reset each time bytes are received or sent.
+      The socket timeout is now to maximum total duration to write *buf*.
 
 .. note::
 
@@ -876,6 +896,10 @@ SSL sockets also have the following additional methods and attributes:
       The handshake method also performs :func:`match_hostname` when the
       :attr:`~SSLContext.check_hostname` attribute of the socket's
       :attr:`~SSLSocket.context` is true.
+
+   .. versionchanged:: 3.5
+      The socket timeout is no more reset each time bytes are received or sent.
+      The socket timeout is now to maximum total duration of the handshake.
 
 .. method:: SSLSocket.getpeercert(binary_form=False)
 
@@ -1171,6 +1195,10 @@ to speed up repeated connections from the same clients.
    does not contain certificates from *capath* unless a certificate was
    requested and loaded by a SSL connection.
 
+   .. note::
+      Certificates in a capath directory aren't loaded unless they have
+      been used at least once.
+
    .. versionadded:: 3.4
 
 .. method:: SSLContext.set_default_verify_paths()
@@ -1350,18 +1378,6 @@ to speed up repeated connections from the same clients.
       >>> stats = context.session_stats()
       >>> stats['hits'], stats['misses']
       (0, 0)
-
-.. method:: SSLContext.get_ca_certs(binary_form=False)
-
-   Returns a list of dicts with information of loaded CA certs. If the
-   optional argument is true, returns a DER-encoded copy of the CA
-   certificate.
-
-   .. note::
-      Certificates in a capath directory aren't loaded unless they have
-      been used at least once.
-
-   .. versionadded:: 3.4
 
 .. attribute:: SSLContext.check_hostname
 

@@ -805,8 +805,10 @@ as internal buffering of data.
    most *length* bytes in size.  As of Python 3.3, this is equivalent to
    ``os.truncate(fd, length)``.
 
-   Availability: Unix.
+   Availability: Unix, Windows.
 
+   .. versionchanged:: 3.5
+      Added support for Windows
 
 .. function:: get_blocking(fd)
 
@@ -906,7 +908,7 @@ as internal buffering of data.
       The *dir_fd* argument.
 
    .. versionchanged:: 3.5
-      If the system call is interrupted and the signal does not raise an
+      If the system call is interrupted and the signal handler does not raise an
       exception, the function now retries the system call instead of raising an
       :exc:`InterruptedError` exception (see :pep:`475` for the rationale).
 
@@ -1088,7 +1090,7 @@ or `the MSDN <http://msdn.microsoft.com/en-us/library/z0kc8e3z.aspx>`_ on Window
       :meth:`~file.read` or :meth:`~file.readline` methods.
 
    .. versionchanged:: 3.5
-      If the system call is interrupted and the signal does not raise an
+      If the system call is interrupted and the signal handler does not raise an
       exception, the function now retries the system call instead of raising an
       :exc:`InterruptedError` exception (see :pep:`475` for the rationale).
 
@@ -1208,7 +1210,7 @@ or `the MSDN <http://msdn.microsoft.com/en-us/library/z0kc8e3z.aspx>`_ on Window
       :meth:`~file.write` method.
 
    .. versionchanged:: 3.5
-      If the system call is interrupted and the signal does not raise an
+      If the system call is interrupted and the signal handler does not raise an
       exception, the function now retries the system call instead of raising an
       :exc:`InterruptedError` exception (see :pep:`475` for the rationale).
 
@@ -2492,10 +2494,12 @@ features:
 
    This function can support :ref:`specifying a file descriptor <path_fd>`.
 
-   Availability: Unix.
+   Availability: Unix, Windows.
 
    .. versionadded:: 3.3
 
+   .. versionchanged:: 3.5
+      Added support for Windows
 
 .. function:: unlink(path, *, dir_fd=None)
 
@@ -3375,7 +3379,7 @@ written in Python, such as a mail server's external command delivery program.
    functions called with :const:`P_NOWAIT` return suitable process handles.
 
    .. versionchanged:: 3.5
-      If the system call is interrupted and the signal does not raise an
+      If the system call is interrupted and the signal handler does not raise an
       exception, the function now retries the system call instead of raising an
       :exc:`InterruptedError` exception (see :pep:`475` for the rationale).
 

@@ -123,7 +123,7 @@ class CAPITest(unittest.TestCase):
         self.assertEqual(_testcapi.no_docstring.__doc__, None)
         self.assertEqual(_testcapi.no_docstring.__text_signature__, None)
 
-        self.assertEqual(_testcapi.docstring_empty.__doc__, "")
+        self.assertEqual(_testcapi.docstring_empty.__doc__, None)
         self.assertEqual(_testcapi.docstring_empty.__text_signature__, None)
 
         self.assertEqual(_testcapi.docstring_no_signature.__doc__,
@@ -149,6 +149,10 @@ class CAPITest(unittest.TestCase):
         self.assertEqual(_testcapi.docstring_with_signature.__doc__,
             "This docstring has a valid signature.")
         self.assertEqual(_testcapi.docstring_with_signature.__text_signature__, "($module, /, sig)")
+
+        self.assertEqual(_testcapi.docstring_with_signature_but_no_doc.__doc__, None)
+        self.assertEqual(_testcapi.docstring_with_signature_but_no_doc.__text_signature__,
+            "($module, /, sig)")
 
         self.assertEqual(_testcapi.docstring_with_signature_and_extra_newlines.__doc__,
             "\nThis docstring has a valid signature and some extra newlines.")
@@ -284,15 +288,11 @@ class TestPendingCalls(unittest.TestCase):
         context.lock = threading.Lock()
         context.event = threading.Event()
 
-        for i in range(context.nThreads):
-            t = threading.Thread(target=self.pendingcalls_thread, args = (context,))
-            t.start()
-            threads.append(t)
-
-        self.pendingcalls_wait(context.l, n, context)
-
-        for t in threads:
-            t.join()
+        threads = [threading.Thread(target=self.pendingcalls_thread,
+                                    args=(context,))
+                   for i in range(context.nThreads)]
+        with support.start_threads(threads):
+            self.pendingcalls_wait(context.l, n, context)
 
     def pendingcalls_thread(self, context):
         try:

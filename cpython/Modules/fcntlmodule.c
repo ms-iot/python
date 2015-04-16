@@ -16,10 +16,9 @@
 #endif
 
 /*[clinic input]
-output preset file
 module fcntl
 [clinic start generated code]*/
-/*[clinic end generated code: output=da39a3ee5e6b4b0d input=c7356fdb126a904a]*/
+/*[clinic end generated code: output=da39a3ee5e6b4b0d input=124b58387c158179]*/
 
 static int
 conv_descriptor(PyObject *object, int *target)
@@ -147,8 +146,9 @@ code.
 [clinic start generated code]*/
 
 static PyObject *
-fcntl_ioctl_impl(PyModuleDef *module, int fd, unsigned int code, PyObject *ob_arg, int mutate_arg)
-/*[clinic end generated code: output=ad47738c118622bf input=ede70c433cccbbb2]*/
+fcntl_ioctl_impl(PyModuleDef *module, int fd, unsigned int code,
+                 PyObject *ob_arg, int mutate_arg)
+/*[clinic end generated code: output=102faa0f7ebe2210 input=ede70c433cccbbb2]*/
 {
 #define IOCTL_BUFSZ 1024
     /* We use the unsigned non-checked 'I' format for the 'code' parameter
@@ -358,8 +358,9 @@ starts.  `whence` is as with fileobj.seek(), specifically:
 [clinic start generated code]*/
 
 static PyObject *
-fcntl_lockf_impl(PyModuleDef *module, int fd, int code, PyObject *lenobj, PyObject *startobj, int whence)
-/*[clinic end generated code: output=5536df2892bf3ce9 input=9c594391de821f24]*/
+fcntl_lockf_impl(PyModuleDef *module, int fd, int code, PyObject *lenobj,
+                 PyObject *startobj, int whence)
+/*[clinic end generated code: output=31af35eba08b9af7 input=9c594391de821f24]*/
 {
     int ret;
 

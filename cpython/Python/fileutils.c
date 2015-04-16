@@ -5,6 +5,7 @@
 #ifdef MS_WINDOWS
 #  include <malloc.h>
 #  include <windows.h>
+extern int winerror_to_errno(int);
 #endif
 
 #ifdef HAVE_LANGINFO_H
@@ -41,9 +42,13 @@ _Py_device_encoding(int fd)
 #if defined(MS_WINDOWS)
     UINT cp;
 #endif
-    if (!_PyVerify_fd(fd) || !isatty(fd)) {
+    int valid;
+    _Py_BEGIN_SUPPRESS_IPH
+    valid = _PyVerify_fd(fd) && isatty(fd);
+    _Py_END_SUPPRESS_IPH
+    if (!valid)
         Py_RETURN_NONE;
-    }
+
 #if defined(MS_WINDOWS)
 #ifndef MS_WINRT
     if (fd == 0)
@@ -627,16 +632,15 @@ _Py_fstat_noraise(int fd, struct _Py_stat_struct *status)
 
     if (!_PyVerify_fd(fd))
         h = INVALID_HANDLE_VALUE;
-    else
+    else {
+        _Py_BEGIN_SUPPRESS_IPH
         h = (HANDLE)_get_osfhandle(fd);
-
-    /* Protocol violation: we explicitly clear errno, instead of
-       setting it to a POSIX error. Callers should use GetLastError. */
-    errno = 0;
+        _Py_END_SUPPRESS_IPH
+    }
 
     if (h == INVALID_HANDLE_VALUE) {
-        /* This is really a C library error (invalid file handle).
-           We set the Win32 error to the closes one matching. */
+        /* errno is already set by _get_osfhandle, but we also set
+           the Win32 error for callers who expect that */
         SetLastError(ERROR_INVALID_HANDLE);
         return -1;
     }
@@ -655,8 +659,10 @@ _Py_fstat_noraise(int fd, struct _Py_stat_struct *status)
     type = GetFileType(h);
     if (type == FILE_TYPE_UNKNOWN) {
         DWORD error = GetLastError();
-        if (error != 0)
+        if (error != 0) {
+            errno = winerror_to_errno(error);
             return -1;
+        }
         /* else: valid but unknown file */
     }
 
@@ -669,6 +675,9 @@ _Py_fstat_noraise(int fd, struct _Py_stat_struct *status)
     }
 
     if (!GetFileInformationByHandle(h, &info)) {
+        /* The Win32 error is already set, but we also set errno for
+           callers who expect it */
+        errno = winerror_to_errno(GetLastError());
         return -1;
     }
     _Py_attribute_data_to_stat(&info, 0, status);
@@ -694,7 +703,8 @@ _Py_fstat_noraise(int fd, struct _Py_stat_struct *status)
    error on error. On POSIX, set errno on error. Fill status and return 0 on
    success.
 
-   The GIL must be held. */
+   Release the GIL to call GetFileType() and GetFileInformationByHandle(), or
+   to call fstat(). The caller must hold the GIL. */
 int
 _Py_fstat(int fd, struct _Py_stat_struct *status)
 {
@@ -764,7 +774,9 @@ get_inheritable(int fd, int raise)
         return -1;
     }
 
+    _Py_BEGIN_SUPPRESS_IPH
     handle = (HANDLE)_get_osfhandle(fd);
+    _Py_END_SUPPRESS_IPH
     if (handle == INVALID_HANDLE_VALUE) {
         if (raise)
             PyErr_SetFromErrno(PyExc_OSError);
@@ -845,7 +857,9 @@ set_inheritable(int fd, int inheritable, int raise, int *atomic_flag_works)
         return -1;
     }
 
+    _Py_BEGIN_SUPPRESS_IPH
     handle = (HANDLE)_get_osfhandle(fd);
+    _Py_END_SUPPRESS_IPH
     if (handle == INVALID_HANDLE_VALUE) {
         if (raise)
             PyErr_SetFromErrno(PyExc_OSError);
@@ -1004,7 +1018,7 @@ _Py_open_impl(const char *pathname, int flags, int gil_held)
    When interrupted by a signal (open() fails with EINTR), retry the syscall,
    except if the Python signal handler raises an exception.
 
-   The GIL must be held. */
+   Release the GIL to call open(). The caller must hold the GIL. */
 int
 _Py_open(const char *pathname, int flags)
 {
@@ -1090,7 +1104,8 @@ _Py_fopen(const char *pathname, const char *mode)
    When interrupted by a signal (open() fails with EINTR), retry the syscall,
    except if the Python signal handler raises an exception.
 
-   The GIL must be held. */
+   Release the GIL to call _wfopen() or fopen(). The caller must hold
+   the GIL. */
 FILE*
 _Py_fopen_obj(PyObject *path, const char *mode)
 {
@@ -1160,18 +1175,18 @@ _Py_fopen_obj(PyObject *path, const char *mode)
 }
 
 /* Read count bytes from fd into buf.
- *
- * On success, return the number of read bytes, it can be lower than count.
- * If the current file offset is at or past the end of file, no bytes are read,
- * and read() returns zero.
- *
- * On error, raise an exception, set errno and return -1.
- *
- * When interrupted by a signal (read() fails with EINTR), retry the syscall.
- * If the Python signal handler raises an exception, the function returns -1
- * (the syscall is not retried).
- *
- * The GIL must be held. */
+
+   On success, return the number of read bytes, it can be lower than count.
+   If the current file offset is at or past the end of file, no bytes are read,
+   and read() returns zero.
+
+   On error, raise an exception, set errno and return -1.
+
+   When interrupted by a signal (read() fails with EINTR), retry the syscall.
+   If the Python signal handler raises an exception, the function returns -1
+   (the syscall is not retried).
+
+   Release the GIL to call read(). The caller must hold the GIL. */
 Py_ssize_t
 _Py_read(int fd, void *buf, size_t count)
 {
@@ -1205,6 +1220,7 @@ _Py_read(int fd, void *buf, size_t count)
     }
 #endif
 
+    _Py_BEGIN_SUPPRESS_IPH
     do {
         Py_BEGIN_ALLOW_THREADS
         errno = 0;
@@ -1219,6 +1235,7 @@ _Py_read(int fd, void *buf, size_t count)
         Py_END_ALLOW_THREADS
     } while (n < 0 && err == EINTR &&
             !(async_err = PyErr_CheckSignals()));
+    _Py_END_SUPPRESS_IPH
 
     if (async_err) {
         /* read() was interrupted by a signal (failed with EINTR)
@@ -1236,37 +1253,24 @@ _Py_read(int fd, void *buf, size_t count)
     return n;
 }
 
-/* Write count bytes of buf into fd.
- *
- * -On success, return the number of written bytes, it can be lower than count
- *   including 0
- * - On error, raise an exception, set errno and return -1.
- *
- * When interrupted by a signal (write() fails with EINTR), retry the syscall.
- * If the Python signal handler raises an exception, the function returns -1
- * (the syscall is not retried).
- *
- * The GIL must be held. */
-Py_ssize_t
-_Py_write(int fd, const void *buf, size_t count)
+static Py_ssize_t
+_Py_write_impl(int fd, const void *buf, size_t count, int gil_held)
 {
     Py_ssize_t n;
     int err;
     int async_err = 0;
 
-    /* _Py_write() must not be called with an exception set, otherwise the
-     * caller may think that write() was interrupted by a signal and the signal
-     * handler raised an exception. */
-    assert(!PyErr_Occurred());
-
     if (!_PyVerify_fd(fd)) {
-        /* save/restore errno because PyErr_SetFromErrno() can modify it */
-        err = errno;
-        PyErr_SetFromErrno(PyExc_OSError);
-        errno = err;
+        if (gil_held) {
+            /* save/restore errno because PyErr_SetFromErrno() can modify it */
+            err = errno;
+            PyErr_SetFromErrno(PyExc_OSError);
+            errno = err;
+        }
         return -1;
     }
 
+    _Py_BEGIN_SUPPRESS_IPH
 #ifdef MS_WINDOWS
     if (count > 32767 && isatty(fd)) {
         /* Issue #11395: the Windows console returns an error (12: not
@@ -1285,35 +1289,85 @@ _Py_write(int fd, const void *buf, size_t count)
     }
 #endif
 
-    do {
-        Py_BEGIN_ALLOW_THREADS
-        errno = 0;
+    if (gil_held) {
+        do {
+            Py_BEGIN_ALLOW_THREADS
+            errno = 0;
 #ifdef MS_WINDOWS
-        n = write(fd, buf, (int)count);
+            n = write(fd, buf, (int)count);
 #else
-        n = write(fd, buf, count);
+            n = write(fd, buf, count);
 #endif
-        /* save/restore errno because PyErr_CheckSignals()
-         * and PyErr_SetFromErrno() can modify it */
-        err = errno;
-        Py_END_ALLOW_THREADS
-    } while (n < 0 && errno == EINTR &&
-            !(async_err = PyErr_CheckSignals()));
+            /* save/restore errno because PyErr_CheckSignals()
+             * and PyErr_SetFromErrno() can modify it */
+            err = errno;
+            Py_END_ALLOW_THREADS
+        } while (n < 0 && err == EINTR &&
+                !(async_err = PyErr_CheckSignals()));
+    }
+    else {
+        do {
+            errno = 0;
+#ifdef MS_WINDOWS
+            n = write(fd, buf, (int)count);
+#else
+            n = write(fd, buf, count);
+#endif
+            err = errno;
+        } while (n < 0 && err == EINTR);
+    }
+    _Py_END_SUPPRESS_IPH
 
     if (async_err) {
         /* write() was interrupted by a signal (failed with EINTR)
-         * and the Python signal handler raised an exception */
+           and the Python signal handler raised an exception (if gil_held is
+           nonzero). */
         errno = err;
-        assert(errno == EINTR && PyErr_Occurred());
+        assert(errno == EINTR && (!gil_held || PyErr_Occurred()));
         return -1;
     }
     if (n < 0) {
-        PyErr_SetFromErrno(PyExc_OSError);
+        if (gil_held)
+            PyErr_SetFromErrno(PyExc_OSError);
         errno = err;
         return -1;
     }
 
     return n;
+}
+
+/* Write count bytes of buf into fd.
+
+   On success, return the number of written bytes, it can be lower than count
+   including 0. On error, raise an exception, set errno and return -1.
+
+   When interrupted by a signal (write() fails with EINTR), retry the syscall.
+   If the Python signal handler raises an exception, the function returns -1
+   (the syscall is not retried).
+
+   Release the GIL to call write(). The caller must hold the GIL. */
+Py_ssize_t
+_Py_write(int fd, const void *buf, size_t count)
+{
+    /* _Py_write() must not be called with an exception set, otherwise the
+     * caller may think that write() was interrupted by a signal and the signal
+     * handler raised an exception. */
+    assert(!PyErr_Occurred());
+
+    return _Py_write_impl(fd, buf, count, 1);
+}
+
+/* Write count bytes of buf into fd.
+ *
+ * On success, return the number of written bytes, it can be lower than count
+ * including 0. On error, set errno and return -1.
+ *
+ * When interrupted by a signal (write() fails with EINTR), retry the syscall
+ * without calling the Python signal handler. */
+Py_ssize_t
+_Py_write_noraise(int fd, const void *buf, size_t count)
+{
+    return _Py_write_impl(fd, buf, count, 0);
 }
 
 #ifdef HAVE_READLINK
@@ -1452,7 +1506,9 @@ _Py_dup(int fd)
     }
 
 #ifdef MS_WINDOWS
+    _Py_BEGIN_SUPPRESS_IPH
     handle = (HANDLE)_get_osfhandle(fd);
+    _Py_END_SUPPRESS_IPH
     if (handle == INVALID_HANDLE_VALUE) {
         PyErr_SetFromErrno(PyExc_OSError);
         return -1;
@@ -1466,7 +1522,9 @@ _Py_dup(int fd)
 #endif
 
     Py_BEGIN_ALLOW_THREADS
+    _Py_BEGIN_SUPPRESS_IPH
     fd = dup(fd);
+    _Py_END_SUPPRESS_IPH
     Py_END_ALLOW_THREADS
     if (fd < 0) {
         PyErr_SetFromErrno(PyExc_OSError);
@@ -1476,13 +1534,17 @@ _Py_dup(int fd)
     /* Character files like console cannot be make non-inheritable */
     if (ftype != FILE_TYPE_CHAR) {
         if (_Py_set_inheritable(fd, 0, NULL) < 0) {
+            _Py_BEGIN_SUPPRESS_IPH
             close(fd);
+            _Py_END_SUPPRESS_IPH
             return -1;
         }
     }
 #elif defined(HAVE_FCNTL_H) && defined(F_DUPFD_CLOEXEC)
     Py_BEGIN_ALLOW_THREADS
+    _Py_BEGIN_SUPPRESS_IPH
     fd = fcntl(fd, F_DUPFD_CLOEXEC, 0);
+    _Py_END_SUPPRESS_IPH
     Py_END_ALLOW_THREADS
     if (fd < 0) {
         PyErr_SetFromErrno(PyExc_OSError);
@@ -1491,7 +1553,9 @@ _Py_dup(int fd)
 
 #else
     Py_BEGIN_ALLOW_THREADS
+    _Py_BEGIN_SUPPRESS_IPH
     fd = dup(fd);
+    _Py_END_SUPPRESS_IPH
     Py_END_ALLOW_THREADS
     if (fd < 0) {
         PyErr_SetFromErrno(PyExc_OSError);
@@ -1499,7 +1563,9 @@ _Py_dup(int fd)
     }
 
     if (_Py_set_inheritable(fd, 0, NULL) < 0) {
+        _Py_BEGIN_SUPPRESS_IPH
         close(fd);
+        _Py_END_SUPPRESS_IPH
         return -1;
     }
 #endif
@@ -1513,7 +1579,10 @@ _Py_dup(int fd)
 int
 _Py_get_blocking(int fd)
 {
-    int flags = fcntl(fd, F_GETFL, 0);
+    int flags;
+    _Py_BEGIN_SUPPRESS_IPH
+    flags = fcntl(fd, F_GETFL, 0);
+    _Py_END_SUPPRESS_IPH
     if (flags < 0) {
         PyErr_SetFromErrno(PyExc_OSError);
         return -1;
@@ -1538,16 +1607,20 @@ _Py_set_blocking(int fd, int blocking)
 #else
     int flags, res;
 
+    _Py_BEGIN_SUPPRESS_IPH
     flags = fcntl(fd, F_GETFL, 0);
-    if (flags < 0)
-        goto error;
+    if (flags >= 0) {
+        if (blocking)
+            flags = flags & (~O_NONBLOCK);
+        else
+            flags = flags | O_NONBLOCK;
 
-    if (blocking)
-        flags = flags & (~O_NONBLOCK);
-    else
-        flags = flags | O_NONBLOCK;
+        res = fcntl(fd, F_SETFL, flags);
+    } else {
+        res = -1;
+    }
+    _Py_END_SUPPRESS_IPH
 
-    res = fcntl(fd, F_SETFL, flags);
     if (res < 0)
         goto error;
 #endif
@@ -1559,25 +1632,7 @@ error:
 }
 #endif
 
-#ifdef _MSC_VER
-#if _MSC_VER >= 1900
-
-/* This function lets the Windows CRT validate the file handle without
-   terminating the process if it's invalid. */
-int
-_PyVerify_fd(int fd)
-{
-    intptr_t osh;
-    /* Fast check for the only condition we know */
-    if (fd < 0) {
-        _set_errno(EBADF);
-        return 0;
-    }
-    osh = _get_osfhandle(fd);
-    return osh != (intptr_t)-1;
-}
-
-#elif _MSC_VER >= 1400
+#if defined _MSC_VER && _MSC_VER >= 1400 && _MSC_VER < 1900
 /* Legacy implementation of _PyVerify_fd while transitioning to
  * MSVC 14.0. This should eventually be removed. (issue23524)
  */
@@ -1656,5 +1711,4 @@ _PyVerify_fd(int fd)
     return 0;
 }
 
-#endif /* _MSC_VER >= 1900 || _MSC_VER >= 1400 */
-#endif /* defined _MSC_VER */
+#endif /* defined _MSC_VER && _MSC_VER >= 1400 && _MSC_VER < 1900 */

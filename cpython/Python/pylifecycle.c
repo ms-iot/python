@@ -409,14 +409,14 @@ _Py_InitializeEx_Private(int install_sigs, int install_importlib)
     if (!install_importlib)
         return;
 
+    if (_PyTime_Init() < 0)
+        Py_FatalError("Py_Initialize: can't initialize time");
+
     import_init(interp, sysmod);
 
     /* initialize the faulthandler module */
     if (_PyFaulthandler_Init())
         Py_FatalError("Py_Initialize: can't initialize faulthandler");
-
-    if (_PyTime_Init() < 0)
-        Py_FatalError("Py_Initialize: can't initialize time");
 
     if (initfsencoding(interp) < 0)
         Py_FatalError("Py_Initialize: unable to load the file system codec");
@@ -1072,11 +1072,12 @@ is_valid_fd(int fd)
     int dummy_fd;
     if (fd < 0 || !_PyVerify_fd(fd))
         return 0;
+    _Py_BEGIN_SUPPRESS_IPH
     dummy_fd = dup(fd);
-    if (dummy_fd < 0)
-        return 0;
-    close(dummy_fd);
-    return 1;
+    if (dummy_fd >= 0)
+        close(dummy_fd);
+    _Py_END_SUPPRESS_IPH
+    return dummy_fd >= 0;
 }
 
 /* Initialize sys.stdin, stdout, stderr and builtins.open */
@@ -1303,8 +1304,12 @@ _Py_PrintFatalError(int fd)
         return;
 
 display_stack:
+#ifdef WITH_THREAD
     /* PyGILState_GetThisThreadState() works even if the GIL was released */
     tstate = PyGILState_GetThisThreadState();
+#else
+    tstate = PyThreadState_GET();
+#endif
     if (tstate == NULL) {
         /* _Py_DumpTracebackThreads() requires the thread state to display
          * frames */

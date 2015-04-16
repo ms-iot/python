@@ -1556,10 +1556,12 @@ class TestUnique(unittest.TestCase):
                 turkey = 3
 
 
-expected_help_output = """
+expected_help_output_with_docs = """\
 Help on class Color in module %s:
 
 class Color(enum.Enum)
+ |  An enumeration.
+ |\x20\x20
  |  Method resolution order:
  |      Color
  |      enum.Enum
@@ -1589,10 +1591,40 @@ class Color(enum.Enum)
  |      Returns a mapping of member name->value.
  |\x20\x20\x20\x20\x20\x20
  |      This mapping lists all enum members, including aliases. Note that this
- |      is a read-only view of the internal mapping.
-""".strip()
+ |      is a read-only view of the internal mapping."""
+
+expected_help_output_without_docs = """\
+Help on class Color in module %s:
+
+class Color(enum.Enum)
+ |  Method resolution order:
+ |      Color
+ |      enum.Enum
+ |      builtins.object
+ |\x20\x20
+ |  Data and other attributes defined here:
+ |\x20\x20
+ |  blue = <Color.blue: 3>
+ |\x20\x20
+ |  green = <Color.green: 2>
+ |\x20\x20
+ |  red = <Color.red: 1>
+ |\x20\x20
+ |  ----------------------------------------------------------------------
+ |  Data descriptors inherited from enum.Enum:
+ |\x20\x20
+ |  name
+ |\x20\x20
+ |  value
+ |\x20\x20
+ |  ----------------------------------------------------------------------
+ |  Data descriptors inherited from enum.EnumMeta:
+ |\x20\x20
+ |  __members__"""
 
 class TestStdLib(unittest.TestCase):
+
+    maxDiff = None
 
     class Color(Enum):
         red = 1
@@ -1601,7 +1633,10 @@ class TestStdLib(unittest.TestCase):
 
     def test_pydoc(self):
         # indirectly test __objclass__
-        expected_text = expected_help_output % __name__
+        if StrEnum.__doc__ is None:
+            expected_text = expected_help_output_without_docs % __name__
+        else:
+            expected_text = expected_help_output_with_docs % __name__
         output = StringIO()
         helper = pydoc.Helper(output=output)
         helper(self.Color)
@@ -1611,7 +1646,7 @@ class TestStdLib(unittest.TestCase):
     def test_inspect_getmembers(self):
         values = dict((
                 ('__class__', EnumMeta),
-                ('__doc__', None),
+                ('__doc__', 'An enumeration.'),
                 ('__members__', self.Color.__members__),
                 ('__module__', __name__),
                 ('blue', self.Color.blue),
@@ -1639,7 +1674,7 @@ class TestStdLib(unittest.TestCase):
                 Attribute(name='__class__', kind='data',
                     defining_class=object, object=EnumMeta),
                 Attribute(name='__doc__', kind='data',
-                    defining_class=self.Color, object=None),
+                    defining_class=self.Color, object='An enumeration.'),
                 Attribute(name='__members__', kind='property',
                     defining_class=EnumMeta, object=EnumMeta.__members__),
                 Attribute(name='__module__', kind='data',

@@ -100,6 +100,7 @@ class PyCompileTests(unittest.TestCase):
         self.assertFalse(os.path.exists(
             importlib.util.cache_from_source(bad_coding)))
 
+    @unittest.skipIf(sys.flags.optimize > 0, 'test does not work with -O')
     def test_double_dot_no_clobber(self):
         # http://bugs.python.org/issue22966
         # py_compile foo.bar.py -> __pycache__/foo.cpython-34.pyc
@@ -118,6 +119,10 @@ class PyCompileTests(unittest.TestCase):
         py_compile.compile(weird_path)
         self.assertTrue(os.path.exists(cache_path))
         self.assertFalse(os.path.exists(pyc_path))
+
+    def test_optimization_path(self):
+        # Specifying optimized bytecode should lead to a path reflecting that.
+        self.assertIn('opt-2', py_compile.compile(self.source_path, optimize=2))
 
 
 if __name__ == "__main__":

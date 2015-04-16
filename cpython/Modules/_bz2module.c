@@ -210,12 +210,11 @@ error:
 }
 
 /*[clinic input]
-output preset file
 module _bz2
 class _bz2.BZ2Compressor "BZ2Compressor *" "&BZ2Compressor_Type"
 class _bz2.BZ2Decompressor "BZ2Decompressor *" "&BZ2Decompressor_Type"
 [clinic start generated code]*/
-/*[clinic end generated code: output=da39a3ee5e6b4b0d input=e3b139924f5e18cc]*/
+/*[clinic end generated code: output=da39a3ee5e6b4b0d input=dc7d7992a79f9cb7]*/
 
 #include "clinic/_bz2module.c.h"
 
@@ -614,8 +613,9 @@ the unused_data attribute.
 [clinic start generated code]*/
 
 static PyObject *
-_bz2_BZ2Decompressor_decompress_impl(BZ2Decompressor *self, Py_buffer *data, Py_ssize_t max_length)
-/*[clinic end generated code: output=7eeb5794035a2ca3 input=9558b424c8b00516]*/
+_bz2_BZ2Decompressor_decompress_impl(BZ2Decompressor *self, Py_buffer *data,
+                                     Py_ssize_t max_length)
+/*[clinic end generated code: output=23e41045deb240a3 input=9558b424c8b00516]*/
 {
     PyObject *result = NULL;
 

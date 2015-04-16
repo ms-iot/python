@@ -10,8 +10,122 @@ Release date: XXX
 Core and Builtins
 -----------------
 
+- Issue #22980: Under Linux, GNU/KFreeBSD and the Hurd, C extensions now include
+  the architecture triplet in the extension name, to make it easy to test builds
+  for different ABIs in the same working tree.
+
+- Issue #22631: Added Linux-specific socket constant CAN_RAW_FD_FRAMES.
+  Patch courtesy of Joe Jevnik.
+
+- Issue #23731: Implement PEP 488: removal of .pyo files.
+
+- Issue #23726: Don't enable GC for user subclasses of non-GC types that
+  don't add any new fields.  Patch by Eugene Toder.
+
+- Issue #23309: Avoid a deadlock at shutdown if a daemon thread is aborted
+  while it is holding a lock to a buffered I/O object, and the main thread
+  tries to use the same I/O object (typically stdout or stderr).  A fatal
+  error is emitted instead.
+
+- Issue #22977: Fixed formatting Windows error messages on Wine.
+  Patch by Martin Panter.
+
+- Issue #23466: %c, %o, %x, and %X in bytes formatting now raise TypeError on
+  non-integer input.
+
 Library
 -------
+
+- Issue 19933: Provide default argument for ndigits in round. Patch by
+  Vajrasky Kok.
+
+- Issue #23193: Add a numeric_owner parameter to
+  tarfile.TarFile.extract and tarfile.TarFile.extractall. Patch by
+  Michael Vogt and Eric Smith.
+
+- Issue #23342: Add a subprocess.run() function than returns a CalledProcess
+  instance for a more consistent API than the existing call* functions.
+
+- Issue #21217: inspect.getsourcelines() now tries to compute the start and end
+  lines from the code object, fixing an issue when a lambda function is used as
+  decorator argument. Patch by Thomas Ballinger and Allison Kaptur.
+
+- Issue #23811: Add missing newline to the PyCompileError error message.
+  Patch by Alex Shkop.
+
+- Issue #21116: Avoid blowing memory when allocating a multiprocessing shared
+  array that's larger than 50% of the available RAM.  Patch by Médéric Boquien.
+
+- Issue #22982: Improve BOM handling when seeking to multiple positions of
+  a writable text file.
+
+- Issue #23464: Removed deprecated asyncio JoinableQueue.
+
+- Issue #23529: Limit the size of decompressed data when reading from
+  GzipFile, BZ2File or LZMAFile.  This defeats denial of service attacks
+  using compressed bombs (i.e. compressed payloads which decompress to a huge
+  size).  Patch by Martin Panter and Nikolaus Rath.
+
+- Issue #21859: Added Python implementation of io.FileIO.
+
+- Issue #23865: close() methods in multiple modules now are idempotent and more
+  robust at shutdown. If they need to release multiple resources, all are
+  released even if errors occur.
+
+- Issue #23400: Raise same exception on both Python 2 and 3 if sem_open is not
+  available.  Patch by Davin Potts.
+
+- Issue #10838: The subprocess now module includes SubprocessError and
+  TimeoutError in its list of exported names for the users wild enough
+  to use ``from subprocess import *``.
+
+- Issue #23411: Added DefragResult, ParseResult, SplitResult, DefragResultBytes,
+  ParseResultBytes, and SplitResultBytes to urllib.parse.__all__.
+  Patch by Martin Panter.
+
+- Issue #23881: urllib.request.ftpwrapper constructor now closes the socket if
+  the FTP connection failed to fix a ResourceWarning.
+
+- Issue #23853: :meth:`socket.socket.sendall` does no more reset the socket
+  timeout each time data is sent successfuly. The socket timeout is now the
+  maximum total duration to send all data.
+
+- Issue #22721: An order of multiline pprint output of set or dict containing
+  orderable and non-orderable elements no longer depends on iteration order of
+  set or dict.
+
+- Issue #15133: _tkinter.tkapp.getboolean() now supports Tcl_Obj and always
+  returns bool.  tkinter.BooleanVar now validates input values (accepted bool,
+  int, str, and Tcl_Obj).  tkinter.BooleanVar.get() now always returns bool.
+
+- Issue #10590: xml.sax.parseString() now supports string argument.
+
+- Issue #23338: Fixed formatting ctypes error messages on Cygwin.
+  Patch by Makoto Kato.
+
+- Issue #15582: inspect.getdoc() now follows inheritance chains.
+
+- Issue #2175: SAX parsers now support a character stream of InputSource object.
+
+- Issue #16840: Tkinter now supports 64-bit integers added in Tcl 8.4 and
+  arbitrary precision integers added in Tcl 8.5.
+
+- Issue #23834: Fix socket.sendto(), use the C Py_ssize_t type to store the
+  result of sendto() instead of the C int type.
+
+- Issue #23618: :meth:`socket.socket.connect` now waits until the connection
+  completes instead of raising :exc:`InterruptedError` if the connection is
+  interrupted by signals, signal handlers don't raise an exception and the
+  socket is blocking or has a timeout. :meth:`socket.socket.connect` still
+  raise :exc:`InterruptedError` for non-blocking sockets.
+
+- Issue #21526: Tkinter now supports new boolean type in Tcl 8.5.
+
+- Issue #23836: Fix the faulthandler module to handle reentrant calls to
+  its signal handlers.
+
+- Issue #23838: linecache now clears the cache and returns an empty result on
+  MemoryError.
 
 - Issue #10395: Added os.path.commonpath(). Implemented in posixpath and ntpath.
   Based on patch by Rafik Draoui.
@@ -33,15 +147,52 @@ Library
   only calls fstat() once. Before fstat() was called twice, which was not
   necessary.
 
+- Issue #23704: collections.deque() objects now support __add__, __mul__, and
+  __imul__().
+
+- Issue #23171: csv.Writer.writerow() now supports arbitrary iterables.
+
+- Issue #23745: The new email header parser now handles duplicate MIME
+  parameter names without error, similar to how get_param behaves.
+
+- Issue #22117: Fix os.utime(), it now rounds the timestamp towards minus
+  infinity (-inf) instead of rounding towards zero.
+
+- Issue #23310: Fix MagicMock's initializer to work with __methods__, just
+  like configure_mock().  Patch by Kasia Jachim.
+
 Build
 -----
+
+- Issue #23817: FreeBSD now uses "1.0" the the SOVERSION as other operating
+  systems, instead of just "1".
+
+- Issue #23501: Argument Clinic now generates code into separate files by default.
 
 Tests
 -----
 
+- Issue #23799: Added test.support.start_threads() for running and
+  cleaning up multiple threads.
+
+- Issue #22390: test.regrtest now emits a warning if temporary files or
+  directories are left after running a test.
+
 Tools/Demos
 -----------
 
+- Issue #23944: Argument Clinic now wraps long impl prototypes at column 78.
+
+- Issue #20586: Argument Clinic now ensures that functions without docstrings
+  have signatures.
+
+- Issue #23492: Argument Clinic now generates argument parsing code with
+  PyArg_Parse instead of PyArg_ParseTuple if possible.
+
+- Issue #23500: Argument Clinic is now smarter about generating the "#ifndef"
+  (empty) definition of the methoddef macro: it's only generated once, even
+  if Argument Clinic processes the same symbol multiple times, and it's emitted
+  at the end of all processing rather than immediately after the first use.
 
 
 What's New in Python 3.5.0 alpha 3?
@@ -51,9 +202,6 @@ Release date: 2015-03-28
 
 Core and Builtins
 -----------------
-
-- Issue #23466: %c, %o, %x, and %X in bytes formatting now raise TypeError on
-  non-integer input.
 
 - Issue #23573: Increased performance of string search operations (str.find,
   str.index, str.count, the in operator, str.split, str.partition) with
@@ -74,14 +222,6 @@ Core and Builtins
 
 Library
 -------
-
-- Issue #23171: csv.Writer.writerow() now supports arbitrary iterables.
-
-- Issue #23745: The new email header parser now handles duplicate MIME
-  parameter names without error, similar to how get_param behaves.
-
-- Issue #22117: Fix os.utime(), it now rounds the timestamp towards minus
-  infinity (-inf) instead of rounding towards zero.
 
 - Issue #14260: The groupindex attribute of regular expression pattern object
   now is non-modifiable mapping.
@@ -137,8 +277,6 @@ Library
 
 - Issue #23252:  Added support for writing ZIP files to unseekable streams.
 
-- Issue #21526: Tkinter now supports new boolean type in Tcl 8.5.
-
 - Issue #23647: Increase impalib's MAXLINE to accommodate modern mailbox sizes.
 
 - Issue #23539: If body is None, http.client.HTTPConnection.request now sets
@@ -152,7 +290,6 @@ Library
 - Issue #23704: collections.deque() objects now support methods for index(),
   insert(), and copy().  This allows deques to be registered as a
   MutableSequence and it improves their substitutablity for lists.
-  Deques now also support __add__, __mul__, and __imul__().
 
 - Issue #23715: :func:`signal.sigwaitinfo` and :func:`signal.sigtimedwait` are
   now retried when interrupted by a signal not in the *sigset* parameter, if
@@ -199,6 +336,8 @@ Library
 
 - Issue #2052: Add charset parameter to HtmlDiff.make_file().
 
+- Issue #23668: Support os.truncate and os.ftruncate on Windows.
+
 - Issue #23138: Fixed parsing cookies with absent keys or values in cookiejar.
   Patch by Demian Brecht.
 
@@ -230,9 +369,6 @@ Build
 Tests
 -----
 
-- Issue #22390: test.regrtest now emits a warning if temporary files or
-  directories are left after running a test.
-
 - Issue #23583: Added tests for standard IO streams in IDLE.
 
 - Issue #22289: Prevent test_urllib2net failures due to ftp connection timeout.
@@ -252,10 +388,6 @@ Release date: 2015-03-09
 
 Core and Builtins
 -----------------
-
-- Issue #22980: Under Linux, C extensions now include bitness in the file
-  name, to make it easy to test 32-bit and 64-bit builds in the same
-  working tree.
 
 - Issue #23571: PyObject_Call() and PyCFunction_Call() now raise a SystemError
   if a function returns a result and raises an exception. The SystemError is
@@ -993,7 +1125,7 @@ Library
   (including empty directories) in ZIP file.
 
 - Issue #22449: In the ssl.SSLContext.load_default_certs, consult the
-  enviromental variables SSL_CERT_DIR and SSL_CERT_FILE on Windows.
+  environmental variables SSL_CERT_DIR and SSL_CERT_FILE on Windows.
 
 - Issue #22508: The email.__version__ variable has been removed; the email
   code is no longer shipped separately from the stdlib, and __version__

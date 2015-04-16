@@ -55,9 +55,9 @@ echo.Fetching external libraries...
 for %%e in (
             bzip2-1.0.6
             nasm-2.11.06
-            openssl-1.0.1l
-            tcl-core-8.6.3.1
-            tk-8.6.3.1
+            openssl-1.0.2a
+            tcl-core-8.6.4.1
+            tk-8.6.4.1
             tix-8.4.3.4
             sqlite-3.8.3.1
             xz-5.0.5
