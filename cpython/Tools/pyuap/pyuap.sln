@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.22730.0
+VisualStudioVersion = 14.0.22823.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pyuapsdk", "pyuapsdk\pyuapsdk.csproj", "{7CDD4AB5-BB11-4F6F-827E-576088CD6880}"
 EndProject
@@ -18,6 +18,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Task", "Task", "{2031DDDB-6853-4631-A78B-B9C9DDF772F7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pyuapbackgroundservice", "pyuapbackgroundservice\pyuapbackgroundservice.vcxproj", "{98E552FA-8A1C-4916-B63B-FFA88936248C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unicodedata", "..\..\PCbuild\winrt\unicodedata.vcxproj", "{BBB70146-955E-4282-B2CE-E45D6217FC52}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -175,6 +177,24 @@ Global
 		{98E552FA-8A1C-4916-B63B-FFA88936248C}.Release|x64.ActiveCfg = Release|x64
 		{98E552FA-8A1C-4916-B63B-FFA88936248C}.Release|x64.Build.0 = Release|x64
 		{98E552FA-8A1C-4916-B63B-FFA88936248C}.Release|x64.Deploy.0 = Release|x64
+		{BBB70146-955E-4282-B2CE-E45D6217FC52}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{BBB70146-955E-4282-B2CE-E45D6217FC52}.Debug|ARM.ActiveCfg = Debug|ARM
+		{BBB70146-955E-4282-B2CE-E45D6217FC52}.Debug|ARM.Build.0 = Debug|ARM
+		{BBB70146-955E-4282-B2CE-E45D6217FC52}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{BBB70146-955E-4282-B2CE-E45D6217FC52}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{BBB70146-955E-4282-B2CE-E45D6217FC52}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BBB70146-955E-4282-B2CE-E45D6217FC52}.Debug|Win32.Build.0 = Debug|Win32
+		{BBB70146-955E-4282-B2CE-E45D6217FC52}.Debug|x64.ActiveCfg = Debug|x64
+		{BBB70146-955E-4282-B2CE-E45D6217FC52}.Debug|x64.Build.0 = Debug|x64
+		{BBB70146-955E-4282-B2CE-E45D6217FC52}.Release|Any CPU.ActiveCfg = Release|Win32
+		{BBB70146-955E-4282-B2CE-E45D6217FC52}.Release|ARM.ActiveCfg = Release|ARM
+		{BBB70146-955E-4282-B2CE-E45D6217FC52}.Release|ARM.Build.0 = Release|ARM
+		{BBB70146-955E-4282-B2CE-E45D6217FC52}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{BBB70146-955E-4282-B2CE-E45D6217FC52}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{BBB70146-955E-4282-B2CE-E45D6217FC52}.Release|Win32.ActiveCfg = Release|Win32
+		{BBB70146-955E-4282-B2CE-E45D6217FC52}.Release|Win32.Build.0 = Release|Win32
+		{BBB70146-955E-4282-B2CE-E45D6217FC52}.Release|x64.ActiveCfg = Release|x64
+		{BBB70146-955E-4282-B2CE-E45D6217FC52}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -185,5 +205,6 @@ Global
 		{A1863EDB-6843-4B69-896B-E9183E94751C} = {864D2DE4-F76E-4372-B559-FBCF4CAE8ECB}
 		{6BCCDA23-80F4-4C46-A82E-133D64B13FDB} = {864D2DE4-F76E-4372-B559-FBCF4CAE8ECB}
 		{98E552FA-8A1C-4916-B63B-FFA88936248C} = {2031DDDB-6853-4631-A78B-B9C9DDF772F7}
+		{BBB70146-955E-4282-B2CE-E45D6217FC52} = {864D2DE4-F76E-4372-B559-FBCF4CAE8ECB}
 	EndGlobalSection
 EndGlobal
