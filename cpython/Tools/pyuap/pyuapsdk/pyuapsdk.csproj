@@ -81,6 +81,10 @@
       <Link>Redist\Retail\x86\select.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="$(InputDir)\Win32\unicodedata.pyd">
+      <Link>Redist\Retail\x86\unicodedata.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="$(InputDir)\Win32\_ctypes.pyd">
       <Link>Redist\Retail\x86\_ctypes.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -91,6 +95,10 @@
     </Content>
     <Content Include="$(InputDir)\Win32\select_d.pyd">
       <Link>Redist\Debug\x86\select.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\unicodedata_d.pyd">
+      <Link>Redist\Debug\x86\unicodedata.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\_ctypes_d.pyd">
@@ -132,6 +140,10 @@
       <Link>Redist\Retail\x64\select.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="$(InputDir)\amd64\unicodedata.pyd">
+      <Link>Redist\Retail\x64\unicodedata.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="$(InputDir)\amd64\_ctypes.pyd">
       <Link>Redist\Retail\x64\_ctypes.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -142,6 +154,10 @@
     </Content>
     <Content Include="$(InputDir)\amd64\select_d.pyd">
       <Link>Redist\Debug\x64\select.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\unicodedata_d.pyd">
+      <Link>Redist\Debug\x64\unicodedata.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\_ctypes_d.pyd">
@@ -183,6 +199,10 @@
       <Link>Redist\Retail\arm\select.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="$(InputDir)\arm\unicodedata.pyd">
+      <Link>Redist\Retail\arm\unicodedata.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="$(InputDir)\arm\_ctypes.pyd">
       <Link>Redist\Retail\arm\_ctypes.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -193,6 +213,10 @@
     </Content>
     <Content Include="$(InputDir)\arm\select_d.pyd">
       <Link>Redist\Debug\arm\select.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\unicodedata_d.pyd">
+      <Link>Redist\Debug\arm\unicodedata.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\_ctypes_d.pyd">

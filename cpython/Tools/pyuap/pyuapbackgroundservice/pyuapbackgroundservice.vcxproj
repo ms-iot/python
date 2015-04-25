@@ -308,6 +308,9 @@
     <ProjectReference Include="..\..\..\PCBuild\winrt\select.vcxproj">
       <Project>{a1863edb-6843-4b69-896b-e9183e94751c}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\PCbuild\winrt\unicodedata.vcxproj">
+      <Project>{bbb70146-955e-4282-b2ce-e45d6217fc52}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\PCBuild\winrt\_ctypes.vcxproj">
       <Project>{6bccda23-80f4-4c46-a82e-133d64b13fdb}</Project>
     </ProjectReference>
