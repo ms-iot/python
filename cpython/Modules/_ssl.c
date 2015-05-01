@@ -4075,6 +4075,7 @@ parseKeyUsage(PCCERT_CONTEXT pCertCtx, DWORD flags)
     return retval;
 }
 
+#ifndef MS_WINRT
 PyDoc_STRVAR(PySSL_enum_certificates_doc,
 "enum_certificates(store_name) -> []\n\
 \n\
@@ -4240,6 +4241,7 @@ PySSL_enum_crls(PyObject *self, PyObject *args, PyObject *kwds)
     }
     return result;
 }
+#endif /* !MS_WINRT */
 
 #endif /* _MSC_VER */
 
@@ -4263,10 +4265,12 @@ static PyMethodDef PySSL_methods[] = {
     {"get_default_verify_paths", (PyCFunction)PySSL_get_default_verify_paths,
      METH_NOARGS, PySSL_get_default_verify_paths_doc},
 #ifdef _MSC_VER
+#ifndef MS_WINRT
     {"enum_certificates", (PyCFunction)PySSL_enum_certificates,
      METH_VARARGS | METH_KEYWORDS, PySSL_enum_certificates_doc},
     {"enum_crls", (PyCFunction)PySSL_enum_crls,
      METH_VARARGS | METH_KEYWORDS, PySSL_enum_crls_doc},
+#endif
 #endif
     {"txt2obj", (PyCFunction)PySSL_txt2obj,
      METH_VARARGS | METH_KEYWORDS, PySSL_txt2obj_doc},

@@ -85,6 +85,10 @@
       <Link>Redist\Retail\x86\_socket.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="$(InputDir)\Win32\_ssl.pyd">
+      <Link>Redist\Retail\x86\_ssl.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="$(InputDir)\Win32\pyexpat.pyd">
       <Link>Redist\Retail\x86\pyexpat.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -101,7 +105,6 @@
       <Link>Redist\Retail\x86\pyuapbackgroundservice.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-
     <Content Include="$(InputDir)\Win32\Python35_d.dll">
       <Link>Redist\Debug\x86\Python35_d.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -122,6 +125,10 @@
       <Link>Redist\Debug\x86\_socket.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="$(InputDir)\Win32\_ssl_d.pyd">
+      <Link>Redist\Debug\x86\_ssl.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="$(InputDir)\Win32\pyexpat_d.pyd">
       <Link>Redist\Debug\x86\pyexpat.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -138,7 +145,6 @@
       <Link>Redist\Debug\x86\pyuapbackgroundservice.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-
     <!-- 
     x64 
     -->
@@ -162,6 +168,10 @@
       <Link>Redist\Retail\x64\_socket.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="$(InputDir)\amd64\_ssl.pyd">
+      <Link>Redist\Retail\x64\_ssl.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="$(InputDir)\amd64\pyexpat.pyd">
       <Link>Redist\Retail\x64\pyexpat.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -174,7 +184,6 @@
       <Link>Redist\Retail\x64\unicodedata.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-
     <Content Include="$(InputDir)\amd64\Python35_d.dll">
       <Link>Redist\Debug\x64\Python35_d.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -193,6 +202,10 @@
     </Content>
     <Content Include="$(InputDir)\amd64\_socket_d.pyd">
       <Link>Redist\Debug\x64\_socket.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\_ssl_d.pyd">
+      <Link>Redist\Debug\x64\_ssl.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\pyexpat_d.pyd">
@@ -215,7 +228,6 @@
       <Link>Redist\Debug\x64\pyuapbackgroundservice.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-
     <!-- 
     ARM 
     -->
@@ -239,6 +251,10 @@
       <Link>Redist\Retail\arm\_socket.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="$(InputDir)\arm\_ssl.pyd">
+      <Link>Redist\Retail\arm\_ssl.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="$(InputDir)\arm\pyexpat.pyd">
       <Link>Redist\Retail\arm\pyexpat.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -251,7 +267,6 @@
       <Link>Redist\Retail\arm\unicodedata.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-
     <Content Include="$(InputDir)\arm\Python35_d.dll">
       <Link>Redist\Debug\arm\Python35_d.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -270,6 +285,10 @@
     </Content>
     <Content Include="$(InputDir)\arm\_socket_d.pyd">
       <Link>Redist\Debug\arm\_socket.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\_ssl_d.pyd">
+      <Link>Redist\Debug\arm\_ssl.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\pyexpat_d.pyd">
@@ -292,7 +311,6 @@
       <Link>Redist\Debug\arm\pyuapbackgroundservice.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-
     <!-- Neutral -->
     <Content Include="..\pyuapbackgroundservice\lib.zip">
       <Link>References\CommonConfiguration\Neutral\lib.zip</Link>
@@ -322,9 +340,9 @@
   <ItemGroup>
     <ProjectReference Include="..\pyuapbackgroundservice\pyuapbackgroundservice.vcxproj">
       <Project>{98e552fa-8a1c-4916-b63b-ffa88936248c}</Project>
+      <Name>pyuapbackgroundservice</Name>
     </ProjectReference>
   </ItemGroup>
-
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

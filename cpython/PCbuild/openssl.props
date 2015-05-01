@@ -51,7 +51,7 @@
     <ClCompile>
       <!-- Suppress 64-bit truncation warnings - they aren't ours to worry about -->
       <DisableSpecificWarnings>4244;4267</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(opensslDir);$(opensslDir)include;$(opensslDir)crypto;$(opensslDir)crypto\asn1;$(opensslDir)crypto\evp;$(opensslDir)crypto\modes</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(opensslDir);$(opensslDir)include;$(opensslDir)inc32;$(opensslDir)crypto;$(opensslDir)crypto\asn1;$(opensslDir)crypto\evp;$(opensslDir)crypto\modes</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>$(_PreprocessorDefinitionList);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
