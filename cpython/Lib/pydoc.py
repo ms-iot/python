@@ -1639,6 +1639,8 @@ def writedoc(thing, forceload=0):
     try:
         object, name = resolve(thing, forceload)
         page = html.page(describe(object), html.document(object, name))
+        if os.name == 'winrt_os':
+            name = os.environ['TEMP'] + '\\' + name
         with open(name + '.html', 'w', encoding='utf-8') as file:
             file.write(page)
         print('wrote', name + '.html')
