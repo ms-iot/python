@@ -4075,7 +4075,12 @@ parseKeyUsage(PCCERT_CONTEXT pCertCtx, DWORD flags)
     return retval;
 }
 
-#ifndef MS_WINRT
+#ifdef MS_WINRT
+
+PyObject * winrt_enumcertificates(void);
+
+#endif
+
 PyDoc_STRVAR(PySSL_enum_certificates_doc,
 "enum_certificates(store_name) -> []\n\
 \n\
@@ -4089,6 +4094,9 @@ boolean True.");
 static PyObject *
 PySSL_enum_certificates(PyObject *self, PyObject *args, PyObject *kwds)
 {
+#ifdef MS_WINRT
+    return winrt_enumcertificates();
+#else
     char *kwlist[] = {"store_name", NULL};
     char *store_name;
     HCERTSTORE hStore = NULL;
@@ -4163,8 +4171,10 @@ PySSL_enum_certificates(PyObject *self, PyObject *args, PyObject *kwds)
         return PyErr_SetFromWindowsErr(GetLastError());
     }
     return result;
+#endif
 }
 
+#ifndef MS_WINRT
 PyDoc_STRVAR(PySSL_enum_crls_doc,
 "enum_crls(store_name) -> []\n\
 \n\

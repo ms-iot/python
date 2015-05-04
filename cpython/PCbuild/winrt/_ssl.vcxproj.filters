@@ -9,5 +9,8 @@
     <ClCompile Include="..\..\Modules\_ssl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\PC\winrtapi.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

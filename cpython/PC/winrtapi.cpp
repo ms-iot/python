@@ -4,12 +4,15 @@
 
 #include <Windows.h>
 
+#define X509_ASN_ENCODING "x509_asn"
+
 using namespace Platform;
 using namespace Windows::ApplicationModel;
 using namespace Windows::System::UserProfile;
 using namespace Windows::Storage;
 using namespace Windows::Storage::Streams;
 using namespace Windows::Security::Cryptography;
+using namespace Windows::Security::Cryptography::Certificates;
 
 extern "C" {
     
@@ -86,6 +89,75 @@ extern "C" {
 
         Py_DECREF(d);
         return nullptr;
+    }
+
+    PyObject * winrt_enumcertificates()
+    {
+        PyObject *result = NULL;
+        PyObject *keyusage = NULL, *cert = NULL, *enc = NULL, *tup = NULL;
+        auto asyncResult = CertificateStores::FindAllAsync();
+        auto certs = asyncResult->GetResults();
+
+        result = PyList_New(0);
+        if (result == NULL)
+        {
+            return result;
+        }
+
+        for (auto itr = certs->First(); itr->HasCurrent; itr->MoveNext())
+        {
+            auto certificate = itr->Current;
+            auto encodedCert = certificate->GetCertificateBlob();
+
+            byte* buffer = reinterpret_cast<byte*>(PyMem_Malloc(encodedCert->Length));
+            if (!buffer) {
+                Py_CLEAR(result);
+                result = NULL;
+                break;
+            }
+
+            auto bufferArray = ArrayReference<byte>(buffer, encodedCert->Length);
+
+            auto reader = DataReader::FromBuffer(encodedCert);
+
+            reader->ReadBytes(bufferArray);
+
+            cert = PyBytes_FromStringAndSize((const char *)buffer, encodedCert->Length);
+            PyMem_Free(buffer);
+            buffer = NULL;
+
+            if (!cert) {
+                Py_CLEAR(result);
+                result = NULL;
+                break;
+            }
+
+            keyusage = PySet_New(NULL);
+            for (auto kuitr = certificate->EnhancedKeyUsages->First(); kuitr->HasCurrent; kuitr->MoveNext())
+            {
+                PySet_Add(keyusage, PyUnicode_FromWideChar(kuitr->Current->Data(), kuitr->Current->Length()));
+            }
+
+            enc = PyUnicode_InternFromString(X509_ASN_ENCODING);
+            if ((tup = PyTuple_New(3)) == NULL) {
+                Py_CLEAR(result);
+                break;
+            }
+
+            PyTuple_SET_ITEM(tup, 0, cert);
+
+            PyTuple_SET_ITEM(tup, 1, enc);
+
+            PyTuple_SET_ITEM(tup, 1, keyusage);
+
+            PyList_Append(result, tup);
+
+            cert = NULL;
+            enc = NULL;
+            keyusage = NULL;
+        }
+
+        return result;
     }
 }
 
