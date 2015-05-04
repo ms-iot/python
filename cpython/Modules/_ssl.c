@@ -4275,9 +4275,9 @@ static PyMethodDef PySSL_methods[] = {
     {"get_default_verify_paths", (PyCFunction)PySSL_get_default_verify_paths,
      METH_NOARGS, PySSL_get_default_verify_paths_doc},
 #ifdef _MSC_VER
-#ifndef MS_WINRT
     {"enum_certificates", (PyCFunction)PySSL_enum_certificates,
      METH_VARARGS | METH_KEYWORDS, PySSL_enum_certificates_doc},
+#ifndef MS_WINRT
     {"enum_crls", (PyCFunction)PySSL_enum_crls,
      METH_VARARGS | METH_KEYWORDS, PySSL_enum_crls_doc},
 #endif
