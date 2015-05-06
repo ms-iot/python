@@ -87,8 +87,7 @@ python \- an interpreted, interactive, object-oriented programming language
 .SH DESCRIPTION
 Python is an interpreted, interactive, object-oriented programming
 language that combines remarkable power with very clear syntax.
-For an introduction to programming in Python you are referred to the
-Python Tutorial.
+For an introduction to programming in Python, see the Python Tutorial.
 The Python Library Reference documents built-in and standard types,
 constants, functions and modules.
 Finally, the Python Reference Manual describes the syntax and
@@ -143,7 +142,7 @@ useful to inspect global variables or a stack trace when a script
 raises an exception.
 .TP
 .B \-I
-Run Python in isolated mode. This also implies \fB\-E\fP and \fB\-S\fP. In
+Run Python in isolated mode. This also implies \fB\-E\fP and \fB\-s\fP. In
 isolated mode sys.path contains neither the script’s directory nor the user’s
 site-packages directory. All PYTHON* environment variables are ignored, too.
 Further restrictions may be imposed to prevent the user from injecting
@@ -432,17 +431,17 @@ values.
 The integer must be a decimal number in the range [0,4294967295].  Specifying
 the value 0 will disable hash randomization.
 .SH AUTHOR
-The Python Software Foundation: http://www.python.org/psf
+The Python Software Foundation: https://www.python.org/psf
 .SH INTERNET RESOURCES
-Main website:  http://www.python.org/
+Main website:  https://www.python.org/
 .br
-Documentation:  http://docs.python.org/py3k/
+Documentation:  https://docs.python.org/
 .br
-Developer resources:  http://docs.python.org/devguide/
+Developer resources:  https://docs.python.org/devguide/
 .br
-Downloads:  http://python.org/download/
+Downloads:  https://www.python.org/downloads/
 .br
-Module repository:  http://pypi.python.org/
+Module repository:  https://pypi.python.org/
 .br
 Newsgroups:  comp.lang.python, comp.lang.python.announce
 .SH LICENSING

@@ -19,6 +19,11 @@ This module defines classes which implement the client side of the HTTP and
 HTTPS protocols.  It is normally not used directly --- the module
 :mod:`urllib.request` uses it to handle URLs that use HTTP and HTTPS.
 
+.. seealso::
+
+    The `Requests package <http://requests.readthedocs.org/>`_
+    is recommended for a higher-level http client interface.
+
 .. note::
 
    HTTPS support is only available if Python was compiled with SSL support
@@ -422,18 +427,18 @@ Examples
 Here is an example session that uses the ``GET`` method::
 
    >>> import http.client
-   >>> conn = http.client.HTTPConnection("www.python.org")
-   >>> conn.request("GET", "/index.html")
+   >>> conn = http.client.HTTPSConnection("www.python.org")
+   >>> conn.request("GET", "/")
    >>> r1 = conn.getresponse()
    >>> print(r1.status, r1.reason)
    200 OK
    >>> data1 = r1.read()  # This will return entire content.
    >>> # The following example demonstrates reading data in chunks.
-   >>> conn.request("GET", "/index.html")
+   >>> conn.request("GET", "/")
    >>> r1 = conn.getresponse()
    >>> while not r1.closed:
    ...     print(r1.read(200)) # 200 bytes
-   b'<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"...
+   b'<!doctype html>\n<!--[if"...
    ...
    >>> # Example of an invalid request
    >>> conn.request("GET", "/parrot.spam")
@@ -447,8 +452,8 @@ Here is an example session that uses the ``HEAD`` method.  Note that the
 ``HEAD`` method never returns any data. ::
 
    >>> import http.client
-   >>> conn = http.client.HTTPConnection("www.python.org")
-   >>> conn.request("HEAD","/index.html")
+   >>> conn = http.client.HTTPSConnection("www.python.org")
+   >>> conn.request("HEAD", "/")
    >>> res = conn.getresponse()
    >>> print(res.status, res.reason)
    200 OK

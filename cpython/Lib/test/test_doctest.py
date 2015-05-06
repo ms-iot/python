@@ -659,7 +659,7 @@ plain ol' Python and is guaranteed to be available.
 
     >>> import builtins
     >>> tests = doctest.DocTestFinder().find(builtins)
-    >>> 790 < len(tests) < 800 # approximate number of objects with docstrings
+    >>> 790 < len(tests) < 810 # approximate number of objects with docstrings
     True
     >>> real_tests = [t for t in tests if len(t.examples) > 0]
     >>> len(real_tests) # objects that actually have doctests
@@ -2729,8 +2729,8 @@ With those preliminaries out of the way, we'll start with a file with two
 simple tests and no errors.  We'll run both the unadorned doctest command, and
 the verbose version, and then check the output:
 
-    >>> from test import script_helper
-    >>> with script_helper.temp_dir() as tmpdir:
+    >>> from test.support import script_helper, temp_dir
+    >>> with temp_dir() as tmpdir:
     ...     fn = os.path.join(tmpdir, 'myfile.doc')
     ...     with open(fn, 'w') as f:
     ...         _ = f.write('This is a very simple test file.\n')
@@ -2780,8 +2780,8 @@ ability to process more than one file on the command line and, since the second
 file ends in '.py', its handling of python module files (as opposed to straight
 text files).
 
-    >>> from test import script_helper
-    >>> with script_helper.temp_dir() as tmpdir:
+    >>> from test.support import script_helper, temp_dir
+    >>> with temp_dir() as tmpdir:
     ...     fn = os.path.join(tmpdir, 'myfile.doc')
     ...     with open(fn, 'w') as f:
     ...         _ = f.write('This is another simple test file.\n')

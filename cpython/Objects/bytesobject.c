@@ -5,6 +5,7 @@
 #include "Python.h"
 
 #include "bytes_methods.h"
+#include "pystrhex.h"
 #include <stddef.h>
 
 /*[clinic input]
@@ -1806,10 +1807,9 @@ bytes_find_internal(PyBytesObject *self, PyObject *args, int dir)
     /* Issue #23573: FIXME, windows has no memrchr() */
     else if (sub_len == 1 && dir > 0) {
         unsigned char needle = *sub;
-        int mode = (dir > 0) ? FAST_SEARCH : FAST_RSEARCH;
         res = stringlib_fastsearch_memchr_1char(
             PyBytes_AS_STRING(self) + start, end - start,
-            needle, needle, mode);
+            needle, needle, FAST_SEARCH);
         if (res >= 0)
             res += start;
     }
@@ -3037,6 +3037,20 @@ bytes_fromhex_impl(PyTypeObject *type, PyObject *string)
     return NULL;
 }
 
+PyDoc_STRVAR(hex__doc__,
+"B.hex() -> string\n\
+\n\
+Create a string of hexadecimal numbers from a bytes object.\n\
+Example: b'\\xb9\\x01\\xef'.hex() -> 'b901ef'.");
+
+static PyObject *
+bytes_hex(PyBytesObject *self)
+{
+    char* argbuf = PyBytes_AS_STRING(self);
+    Py_ssize_t arglen = PyBytes_GET_SIZE(self);
+    return _Py_strhex(argbuf, arglen);
+}
+
 static PyObject *
 bytes_getnewargs(PyBytesObject *v)
 {
@@ -3058,6 +3072,7 @@ bytes_methods[] = {
      expandtabs__doc__},
     {"find", (PyCFunction)bytes_find, METH_VARARGS, find__doc__},
     BYTES_FROMHEX_METHODDEF
+    {"hex", (PyCFunction)bytes_hex, METH_NOARGS, hex__doc__},
     {"index", (PyCFunction)bytes_index, METH_VARARGS, index__doc__},
     {"isalnum", (PyCFunction)stringlib_isalnum, METH_NOARGS,
      _Py_isalnum__doc__},
