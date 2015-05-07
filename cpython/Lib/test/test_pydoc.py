@@ -21,7 +21,7 @@ import xml.etree
 import textwrap
 from io import StringIO
 from collections import namedtuple
-from test.script_helper import assert_python_ok
+from test.support.script_helper import assert_python_ok
 from test.support import (
     TESTFN, rmtree,
     reap_children, reap_threads, captured_output, captured_stdout,
@@ -1005,6 +1005,14 @@ class PydocWithMetaClasses(unittest.TestCase):
         expected_text = expected_missingattribute_pattern % __name__
         result = output.getvalue().strip()
         self.assertEqual(expected_text, result)
+
+    def test_resolve_false(self):
+        # Issue #23008: pydoc enum.{,Int}Enum failed
+        # because bool(enum.Enum) is False.
+        with captured_stdout() as help_io:
+            pydoc.help('enum.Enum')
+        helptext = help_io.getvalue()
+        self.assertIn('class Enum', helptext)
 
 
 @reap_threads

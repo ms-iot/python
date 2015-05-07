@@ -967,5 +967,8 @@
     </ClCompile>
     <ClCompile Include="..\..\PC\pythonwinrt.cpp" />
     <ClCompile Include="..\..\PC\invalid_parameter_handler.c" />
+    <ClCompile Include="..\..\Python\pystrhex.c">
+      <Filter>Python</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

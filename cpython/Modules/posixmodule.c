@@ -859,6 +859,11 @@ path_converter(PyObject *o, void *p) {
             Py_DECREF(unicode);
             return 0;
         }
+        if (wcslen(wide) != length) {
+            FORMAT_EXCEPTION(PyExc_ValueError, "embedded null character");
+            Py_DECREF(unicode);
+            return 0;
+        }
 
         path->wide = wide;
         path->narrow = NULL;
@@ -3478,12 +3483,15 @@ extern Py_ssize_t winrt_getinstallpath(wchar_t *buffer, Py_ssize_t cch);
 static PyObject *
 posix_getcwd(int use_bytes)
 {
-    char buf[1026];
-    char *res;
+    char *buf, *tmpbuf;
+    char *cwd;
+    const size_t chunk = 1024;
+    size_t buflen = 0;
+    PyObject *obj;
 
 #ifdef MS_WINDOWS
     if (!use_bytes) {
-        wchar_t wbuf[1026];
+        wchar_t wbuf[MAXPATHLEN];
         wchar_t *wbuf2 = wbuf;
         PyObject *resobj;
         DWORD len;
@@ -3524,18 +3532,32 @@ posix_getcwd(int use_bytes)
     if (win32_warn_bytes_api())
         return NULL;
 #endif
-#ifdef MS_WINRT
-    res = NULL;
-#else
+    buf = cwd = NULL;
+#ifndef MS_WINRT
     Py_BEGIN_ALLOW_THREADS
-    res = getcwd(buf, sizeof buf);
+    do {
+        buflen += chunk;
+        tmpbuf = PyMem_RawRealloc(buf, buflen);
+        if (tmpbuf == NULL)
+            break;
+
+        buf = tmpbuf;
+        cwd = getcwd(buf, buflen);
+    } while (cwd == NULL && errno == ERANGE);
     Py_END_ALLOW_THREADS
 #endif
-    if (res == NULL)
+    if (cwd == NULL) {
+        PyMem_RawFree(buf);
         return posix_error();
+    }
+
     if (use_bytes)
-        return PyBytes_FromStringAndSize(buf, strlen(buf));
-    return PyUnicode_DecodeFSDefault(buf);
+        obj = PyBytes_FromStringAndSize(buf, strlen(buf));
+    else
+        obj = PyUnicode_DecodeFSDefault(buf);
+    PyMem_RawFree(buf);
+
+    return obj;
 }
 
 
@@ -9185,7 +9207,7 @@ os_truncate_impl(PyModuleDef *module, path_t *path, Py_off_t length)
         fd = _wopen(path->wide, _O_WRONLY | _O_BINARY | _O_NOINHERIT);
     else
         fd = _open(path->narrow, _O_WRONLY | _O_BINARY | _O_NOINHERIT);
-    if (fd < 0) 
+    if (fd < 0)
         result = -1;
     else {
         result = _chsize_s(fd, length);
@@ -10203,7 +10225,7 @@ os_confstr_impl(PyModuleDef *module, int name)
             return PyErr_NoMemory();
         len2 = confstr(name, buf, len);
         assert(len == len2);
-        result = PyUnicode_DecodeFSDefaultAndSize(buf, len-1);
+        result = PyUnicode_DecodeFSDefaultAndSize(buf, len2-1);
         PyMem_Free(buf);
     }
     else

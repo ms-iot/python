@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<FileList
+  Identity = "PyUWPSDK, Version=3.5"
+  DisplayName = "PyUWP 3.5 SDK"
+  MinVSVersion = "14.0"
+  SupportedArchitectures = "x86;x64;ARM"
+  SupportsMultipleVersions = "Error"
+  AppliesTo = "WindowsAppContainer + VisualC">
+</FileList>
