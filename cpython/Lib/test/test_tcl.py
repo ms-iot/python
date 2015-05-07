@@ -1,4 +1,5 @@
 import unittest
+import re
 import sys
 import os
 from test import support
@@ -17,27 +18,22 @@ try:
 except ImportError:
     INT_MAX = PY_SSIZE_T_MAX = sys.maxsize
 
-tcl_version = _tkinter.TCL_VERSION.split('.')
-try:
-    for i in range(len(tcl_version)):
-        tcl_version[i] = int(tcl_version[i])
-except ValueError:
-    pass
-tcl_version = tuple(tcl_version)
+tcl_version = tuple(map(int, _tkinter.TCL_VERSION.split('.')))
 
 _tk_patchlevel = None
 def get_tk_patchlevel():
     global _tk_patchlevel
     if _tk_patchlevel is None:
         tcl = Tcl()
-        patchlevel = []
-        for x in tcl.call('info', 'patchlevel').split('.'):
-            try:
-                x = int(x, 10)
-            except ValueError:
-                x = -1
-            patchlevel.append(x)
-        _tk_patchlevel = tuple(patchlevel)
+        patchlevel = tcl.call('info', 'patchlevel')
+        m = re.fullmatch(r'(\d+)\.(\d+)([ab.])(\d+)', patchlevel)
+        major, minor, releaselevel, serial = m.groups()
+        major, minor, serial = int(major), int(minor), int(serial)
+        releaselevel = {'a': 'alpha', 'b': 'beta', '.': 'final'}[releaselevel]
+        if releaselevel == 'final':
+            _tk_patchlevel = major, minor, serial, releaselevel, 0
+        else:
+            _tk_patchlevel = major, minor, 0, releaselevel, serial
     return _tk_patchlevel
 
 
@@ -135,7 +131,9 @@ class TclTest(unittest.TestCase):
 
     def get_integers(self):
         integers = (0, 1, -1, 2**31-1, -2**31, 2**31, -2**31-1, 2**63-1, -2**63)
-        if tcl_version >= (8, 5):  # bignum was added in Tcl 8.5
+        # bignum was added in Tcl 8.5, but its support is able only since 8.5.8
+        if (get_tk_patchlevel() >= (8, 6, 0, 'final') or
+            (8, 5, 8) <= get_tk_patchlevel() < (8, 6)):
             integers += (2**63, -2**63-1, 2**1000, -2**1000)
         return integers
 
@@ -165,10 +163,10 @@ class TclTest(unittest.TestCase):
         self.assertEqual(tcl.getdouble(' 42 '), 42.0)
         self.assertEqual(tcl.getdouble(' 42.5 '), 42.5)
         self.assertEqual(tcl.getdouble(42.5), 42.5)
+        self.assertEqual(tcl.getdouble(42), 42.0)
         self.assertRaises(TypeError, tcl.getdouble)
         self.assertRaises(TypeError, tcl.getdouble, '42.5', '10')
         self.assertRaises(TypeError, tcl.getdouble, b'42.5')
-        self.assertRaises(TypeError, tcl.getdouble, 42)
         self.assertRaises(TclError, tcl.getdouble, 'a')
         self.assertRaises((TypeError, ValueError, TclError),
                           tcl.getdouble, '42.5\0')

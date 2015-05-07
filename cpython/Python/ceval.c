@@ -12,8 +12,10 @@
 #include "Python.h"
 
 #include "code.h"
+#include "dictobject.h"
 #include "frameobject.h"
 #include "opcode.h"
+#include "setobject.h"
 #include "structmember.h"
 
 #include <ctype.h>
@@ -2379,6 +2381,43 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             DISPATCH();
         }
 
+        TARGET_WITH_IMPL(BUILD_TUPLE_UNPACK, _build_list_unpack)
+        TARGET(BUILD_LIST_UNPACK)
+        _build_list_unpack: {
+            int convert_to_tuple = opcode == BUILD_TUPLE_UNPACK;
+            int i;
+            PyObject *sum = PyList_New(0);
+            PyObject *return_value;
+            if (sum == NULL)
+                goto error;
+
+            for (i = oparg; i > 0; i--) {
+                PyObject *none_val;
+
+                none_val = _PyList_Extend((PyListObject *)sum, PEEK(i));
+                if (none_val == NULL) {
+                    Py_DECREF(sum);
+                    goto error;
+                }
+                Py_DECREF(none_val);
+            }
+
+            if (convert_to_tuple) {
+                return_value = PyList_AsTuple(sum);
+                Py_DECREF(sum);
+                if (return_value == NULL)
+                    goto error;
+            }
+            else {
+                return_value = sum;
+            }
+
+            while (oparg--)
+                Py_DECREF(POP());
+            PUSH(return_value);
+            DISPATCH();
+        }
+
         TARGET(BUILD_SET) {
             PyObject *set = PySet_New(NULL);
             int err = 0;
@@ -2398,11 +2437,124 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             DISPATCH();
         }
 
+        TARGET(BUILD_SET_UNPACK) {
+            int i;
+            PyObject *sum = PySet_New(NULL);
+            if (sum == NULL)
+                goto error;
+
+            for (i = oparg; i > 0; i--) {
+                if (_PySet_Update(sum, PEEK(i)) < 0) {
+                    Py_DECREF(sum);
+                    goto error;
+                }
+            }
+
+            while (oparg--)
+                Py_DECREF(POP());
+            PUSH(sum);
+            DISPATCH();
+        }
+
         TARGET(BUILD_MAP) {
             PyObject *map = _PyDict_NewPresized((Py_ssize_t)oparg);
             if (map == NULL)
                 goto error;
+            while (--oparg >= 0) {
+                int err;
+                PyObject *key = TOP();
+                PyObject *value = SECOND();
+                STACKADJ(-2);
+                err = PyDict_SetItem(map, key, value);
+                Py_DECREF(value);
+                Py_DECREF(key);
+                if (err != 0) {
+                    Py_DECREF(map);
+                    goto error;
+                }
+            }
             PUSH(map);
+            DISPATCH();
+        }
+
+        TARGET_WITH_IMPL(BUILD_MAP_UNPACK_WITH_CALL, _build_map_unpack)
+        TARGET(BUILD_MAP_UNPACK)
+        _build_map_unpack: {
+            int with_call = opcode == BUILD_MAP_UNPACK_WITH_CALL;
+            int num_maps;
+            int function_location;
+            int i;
+            PyObject *sum = PyDict_New();
+            if (sum == NULL)
+                goto error;
+            if (with_call) {
+                num_maps = oparg & 0xff;
+                function_location = (oparg>>8) & 0xff;
+            }
+            else {
+                num_maps = oparg;
+            }
+
+            for (i = num_maps; i > 0; i--) {
+                PyObject *arg = PEEK(i);
+                if (with_call) {
+                    PyObject *intersection = _PyDictView_Intersect(sum, arg);
+
+                    if (intersection == NULL) {
+                        if (PyErr_ExceptionMatches(PyExc_AttributeError)) {
+                            PyObject *func = (
+                                    PEEK(function_location + num_maps));
+                            PyErr_Format(PyExc_TypeError,
+                                    "%.200s%.200s argument after ** "
+                                    "must be a mapping, not %.200s",
+                                    PyEval_GetFuncName(func),
+                                    PyEval_GetFuncDesc(func),
+                                    arg->ob_type->tp_name);
+                        }
+                        Py_DECREF(sum);
+                        goto error;
+                    }
+
+                    if (PySet_GET_SIZE(intersection)) {
+                        Py_ssize_t idx = 0;
+                        PyObject *key;
+                        PyObject *func = PEEK(function_location + num_maps);
+                        Py_hash_t hash;
+                        _PySet_NextEntry(intersection, &idx, &key, &hash);
+                        if (!PyUnicode_Check(key)) {
+                            PyErr_Format(PyExc_TypeError,
+                                    "%.200s%.200s keywords must be strings",
+                                    PyEval_GetFuncName(func),
+                                    PyEval_GetFuncDesc(func));
+                        } else {
+                            PyErr_Format(PyExc_TypeError,
+                                    "%.200s%.200s got multiple "
+                                    "values for keyword argument '%U'",
+                                    PyEval_GetFuncName(func),
+                                    PyEval_GetFuncDesc(func),
+                                    key);
+                        }
+                        Py_DECREF(intersection);
+                        Py_DECREF(sum);
+                        goto error;
+                    }
+                    Py_DECREF(intersection);
+                }
+
+                if (PyDict_Update(sum, arg) < 0) {
+                    if (PyErr_ExceptionMatches(PyExc_AttributeError)) {
+                        PyErr_Format(PyExc_TypeError,
+                                "'%.200s' object is not a mapping",
+                                arg->ob_type->tp_name);
+                    }
+                    Py_DECREF(sum);
+                    goto error;
+                }
+            }
+
+            while (num_maps--)
+                Py_DECREF(POP());
+            PUSH(sum);
             DISPATCH();
         }
 
@@ -3049,6 +3201,7 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             oparg = oparg<<16 | NEXTARG();
             goto dispatch_opcode;
         }
+
 
 #if USE_COMPUTED_GOTOS
         _unknown_opcode:
@@ -3825,9 +3978,17 @@ unpack_iterable(PyObject *v, int argcnt, int argcntafter, PyObject **sp)
         if (w == NULL) {
             /* Iterator done, via error or exhaustion. */
             if (!PyErr_Occurred()) {
-                PyErr_Format(PyExc_ValueError,
-                    "need more than %d value%s to unpack",
-                    i, i == 1 ? "" : "s");
+                if (argcntafter == -1) {
+                    PyErr_Format(PyExc_ValueError,
+                        "not enough values to unpack (expected %d, got %d)",
+                        argcnt, i);
+                }
+                else {
+                    PyErr_Format(PyExc_ValueError,
+                        "not enough values to unpack "
+                        "(expected at least %d, got %d)",
+                        argcnt + argcntafter, i);
+                }
             }
             goto Error;
         }
@@ -3844,8 +4005,9 @@ unpack_iterable(PyObject *v, int argcnt, int argcntafter, PyObject **sp)
             return 1;
         }
         Py_DECREF(w);
-        PyErr_Format(PyExc_ValueError, "too many values to unpack "
-                     "(expected %d)", argcnt);
+        PyErr_Format(PyExc_ValueError,
+            "too many values to unpack (expected %d)",
+            argcnt);
         goto Error;
     }
 
@@ -3857,8 +4019,9 @@ unpack_iterable(PyObject *v, int argcnt, int argcntafter, PyObject **sp)
 
     ll = PyList_GET_SIZE(l);
     if (ll < argcntafter) {
-        PyErr_Format(PyExc_ValueError, "need more than %zd values to unpack",
-                     argcnt + ll);
+        PyErr_Format(PyExc_ValueError,
+            "not enough values to unpack (expected at least %d, got %zd)",
+            argcnt + argcntafter, argcnt + ll);
         goto Error;
     }
 
@@ -4547,6 +4710,12 @@ ext_do_call(PyObject *func, PyObject ***pp_stack, int flags, int na, int nk)
             kwdict = d;
         }
     }
+    if (nk > 0) {
+        kwdict = update_keyword_args(kwdict, nk, pp_stack, func);
+        if (kwdict == NULL)
+            goto ext_call_fail;
+    }
+
     if (flags & CALL_FLAG_VAR) {
         stararg = EXT_POP(*pp_stack);
         if (!PyTuple_Check(stararg)) {
@@ -4567,11 +4736,6 @@ ext_do_call(PyObject *func, PyObject ***pp_stack, int flags, int na, int nk)
             stararg = t;
         }
         nstar = PyTuple_GET_SIZE(stararg);
-    }
-    if (nk > 0) {
-        kwdict = update_keyword_args(kwdict, nk, pp_stack, func);
-        if (kwdict == NULL)
-            goto ext_call_fail;
     }
     callargs = update_star_args(na, nstar, stararg, pp_stack);
     if (callargs == NULL)

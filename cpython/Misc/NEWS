@@ -2,17 +2,106 @@
 Python News
 +++++++++++
 
+What's New in Python 3.5.0 beta 1?
+==================================
+
+Release date: 2015-04-24
+
+Core and Builtins
+-----------------
+
+- Issue #2292: PEP 448: Additional Unpacking Generalizations.
+
+- Issue #24096: Make warnings.warn_explicit more robust against mutation of the
+  warnings.filters list.
+
+- Issue #23996: Avoid a crash when a delegated generator raises an
+  unnormalized StopIteration exception.  Patch by Stefan Behnel.
+
+- Issue #23910: Optimize property() getter calls.  Patch by Joe Jevnik.
+
+- Issue #23911: Move path-based importlib bootstrap code to a separate
+  frozen module.
+
+- Issue #24022: Fix tokenizer crash when processing undecodable source code.
+
+- Issue #9951: Added a hex() method to bytes, bytearray, and memoryview.
+
+Library
+-------
+
+- Issue #24134: assertRaises(), assertRaisesRegex(), assertWarns() and
+  assertWarnsRegex() checks are not longer successful if the callable is None.
+
+- Issue #23880: Tkinter's getint() and getdouble() now support Tcl_Obj.
+  Tkinter's getdouble() now supports any numbers (in particular int).
+
+- Issue #22619: Added negative limit support in the traceback module.
+  Based on patch by Dmitry Kazakov.
+
+- Issue #24094: Fix possible crash in json.encode with poorly behaved dict
+  subclasses.
+
+- Issue #9246: On POSIX, os.getcwd() now supports paths longer than 1025 bytes.
+  Patch written by William Orr.
+
+- Issue #17445: add difflib.diff_bytes() to support comparison of
+  byte strings (fixes a regression from Python 2).
+
+- Issue #23917: Fall back to sequential compilation when ProcessPoolExecutor
+  doesn't exist.  Patch by Claudiu Popa.
+
+- Issue #23008: Fixed resolving attributes with boolean value is False in pydoc.
+
+- Fix asyncio issue 235: LifoQueue and PriorityQueue's put didn't
+  increment unfinished tasks (this bug was introduced when
+  JoinableQueue was merged with Queue).
+
+- Issue #23908: os functions now reject paths with embedded null character
+  on Windows instead of silently truncate them.
+
+- Issue #23728: binascii.crc_hqx() could return an integer outside of the range
+  0-0xffff for empty data.
+
+- Issue #23887: urllib.error.HTTPError now has a proper repr() representation.
+  Patch by Berker Peksag.
+
+Tests
+-----
+
+- Issue #9517: Move script_helper into the support package.
+  Patch by Christie Wilson.
+
+Documentation
+-------------
+
+- Issue #24029: Document the name binding behavior for submodule imports.
+
+- Issue #24077: Fix typo in man page for -I command option: -s, not -S
+
+Tools/Demos
+-----------
+
+- Issue #24001: Argument Clinic converters now use accept={type}
+  instead of types={'type'} to specify the types the converter accepts.
+
+- Issue #23330: h2py now supports arbitrary filenames in #include.
+
+- Issue #24031: make patchcheck now supports git checkouts, too.
+
+
 What's New in Python 3.5.0 alpha 4?
 ===================================
 
-Release date: XXX
+Release date: 2015-04-19
 
 Core and Builtins
 -----------------
 
 - Issue #22980: Under Linux, GNU/KFreeBSD and the Hurd, C extensions now include
   the architecture triplet in the extension name, to make it easy to test builds
-  for different ABIs in the same working tree.
+  for different ABIs in the same working tree.  Under OS X, the extension name
+  now includes PEP 3149-style information.
 
 - Issue #22631: Added Linux-specific socket constant CAN_RAW_FD_FRAMES.
   Patch courtesy of Joe Jevnik.
@@ -33,8 +122,24 @@ Core and Builtins
 - Issue #23466: %c, %o, %x, and %X in bytes formatting now raise TypeError on
   non-integer input.
 
+- Issue #24044: Fix possible null pointer dereference in list.sort in out of
+  memory conditions.
+
+- Issue #21354: PyCFunction_New function is exposed by python DLL again.
+
 Library
 -------
+
+- Issue #16914: new debuglevel 2 in smtplib adds timestamps to debug output.
+
+- Issue #7159: urllib.request now supports sending auth credentials
+  automatically after the first 401.  This enhancement is a superset of the
+  enhancement from issue #19494 and supersedes that change.
+
+- Issue #23703: Fix a regression in urljoin() introduced in 901e4e52b20a.
+  Patch by Demian Brecht.
+
+- Issue #4254: Adds _curses.update_lines_cols() Patch by Arnon Yaari
 
 - Issue 19933: Provide default argument for ndigits in round. Patch by
   Vajrasky Kok.
@@ -161,6 +266,7 @@ Library
 - Issue #23310: Fix MagicMock's initializer to work with __methods__, just
   like configure_mock().  Patch by Kasia Jachim.
 
+
 Build
 -----
 
@@ -181,6 +287,13 @@ Tests
 Tools/Demos
 -----------
 
+- Issue #18128: pygettext now uses standard +NNNN format in the
+  POT-Creation-Date header.
+
+- Issue #23935: Argument Clinic's understanding of format units
+  accepting bytes, bytearrays, and buffers is now consistent with
+  both the documentation and the implementation.
+
 - Issue #23944: Argument Clinic now wraps long impl prototypes at column 78.
 
 - Issue #20586: Argument Clinic now ensures that functions without docstrings
@@ -193,6 +306,11 @@ Tools/Demos
   (empty) definition of the methoddef macro: it's only generated once, even
   if Argument Clinic processes the same symbol multiple times, and it's emitted
   at the end of all processing rather than immediately after the first use.
+
+C API
+-----
+
+- Issue #23998: PyImport_ReInitLock() now checks for lock allocation error
 
 
 What's New in Python 3.5.0 alpha 3?

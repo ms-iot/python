@@ -159,12 +159,6 @@ Functions
 
    There are a number of other caveats:
 
-   If a module is syntactically correct but its initialization fails, the first
-   :keyword:`import` statement for it does not bind its name locally, but does
-   store a (partially initialized) module object in ``sys.modules``.  To reload
-   the module you must first :keyword:`import` it again (this will bind the name
-   to the partially initialized module object) before you can :func:`reload` it.
-
    When a module is reloaded, its dictionary (containing the module's global
    variables) is retained.  Redefinitions of names will override the old
    definitions, so this is generally not a problem.  If the new version of a
@@ -1120,7 +1114,7 @@ an :term:`importer`.
    file path.  For example, if *path* is
    ``/foo/bar/__pycache__/baz.cpython-32.pyc`` the returned path would be
    ``/foo/bar/baz.py``.  *path* need not exist, however if it does not conform
-   to :pep:`3147` or :pep`488` format, a ``ValueError`` is raised. If
+   to :pep:`3147` or :pep:`488` format, a ``ValueError`` is raised. If
    :attr:`sys.implementation.cache_tag` is not defined,
    :exc:`NotImplementedError` is raised.
 

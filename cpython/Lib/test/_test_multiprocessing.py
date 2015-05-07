@@ -19,7 +19,7 @@ import logging
 import struct
 import operator
 import test.support
-import test.script_helper
+import test.support.script_helper
 
 
 # Skip tests if _multiprocessing wasn't built.
@@ -1799,17 +1799,23 @@ class _TestPool(BaseTestCase):
         it = self.pool.imap_unordered(sqr,
                                       exception_throwing_generator(10, 3),
                                       1)
+        expected_values = list(map(sqr, list(range(10))))
         with self.assertRaises(SayWhenError):
             # imap_unordered makes it difficult to anticipate the SayWhenError
             for i in range(10):
-                self.assertEqual(next(it), i*i)
+                value = next(it)
+                self.assertIn(value, expected_values)
+                expected_values.remove(value)
 
         it = self.pool.imap_unordered(sqr,
                                       exception_throwing_generator(20, 7),
                                       2)
+        expected_values = list(map(sqr, list(range(20))))
         with self.assertRaises(SayWhenError):
             for i in range(20):
-                self.assertEqual(next(it), i*i)
+                value = next(it)
+                self.assertIn(value, expected_values)
+                expected_values.remove(value)
 
     def test_make_pool(self):
         self.assertRaises(ValueError, multiprocessing.Pool, -1)
@@ -3477,11 +3483,11 @@ class TestNoForkBomb(unittest.TestCase):
         sm = multiprocessing.get_start_method()
         name = os.path.join(os.path.dirname(__file__), 'mp_fork_bomb.py')
         if sm != 'fork':
-            rc, out, err = test.script_helper.assert_python_failure(name, sm)
+            rc, out, err = test.support.script_helper.assert_python_failure(name, sm)
             self.assertEqual(out, b'')
             self.assertIn(b'RuntimeError', err)
         else:
-            rc, out, err = test.script_helper.assert_python_ok(name, sm)
+            rc, out, err = test.support.script_helper.assert_python_ok(name, sm)
             self.assertEqual(out.rstrip(), b'123')
             self.assertEqual(err, b'')
 
