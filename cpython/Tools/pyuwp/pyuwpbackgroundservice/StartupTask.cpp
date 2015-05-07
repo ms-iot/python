@@ -4,7 +4,7 @@
 
 #define STARTUP_FILE L"startupinfo.xml"
 
-using namespace pyuapbackgroundservice;
+using namespace pyuwpbackgroundservice;
 
 using namespace concurrency;
 using namespace Platform;

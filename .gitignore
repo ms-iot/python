@@ -184,7 +184,7 @@ FakesAssemblies/
 
 # Python work
 lib.zip
-cpython/Tools/pyuap/winrt/
+cpython/Tools/pyuwp/winrt/
 Generated Files/
 cpython/PC/pythonnt_rc*.h
 cpython/python.bat

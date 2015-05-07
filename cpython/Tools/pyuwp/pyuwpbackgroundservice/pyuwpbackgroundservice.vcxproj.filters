@@ -36,7 +36,7 @@
     <AppxManifest Include="Package.appxmanifest" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="pyuapbackgroundservice_TemporaryKey.pfx" />
+    <None Include="pyuwpbackgroundservice_TemporaryKey.pfx" />
     <None Include="StartupTask.py" />
     <None Include="lib.zip" />
     <None Include="ExtensionScraper.py" />

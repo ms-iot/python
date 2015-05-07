@@ -30,7 +30,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{98e552fa-8a1c-4916-b63b-ffa88936248c}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>pyuapbackgroundservice</RootNamespace>
+    <RootNamespace>pyuwpbackgroundservice</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <AppContainerApplication>true</AppContainerApplication>
@@ -39,7 +39,7 @@
     <UseAppLocalVCLibs>true</UseAppLocalVCLibs>
     <AppxPackage>true</AppxPackage>
     <AppxPackageSigningEnabled>true</AppxPackageSigningEnabled>
-    <PackageCertificateKeyFile>pyuapbackgroundservice_TemporaryKey.pfx</PackageCertificateKeyFile>
+    <PackageCertificateKeyFile>pyuwpbackgroundservice_TemporaryKey.pfx</PackageCertificateKeyFile>
     <ContainsStartupTask>true</ContainsStartupTask>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -258,7 +258,7 @@
     <AppxManifest Include="Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
-    <None Include="pyuapbackgroundservice_TemporaryKey.pfx" />
+    <None Include="pyuwpbackgroundservice_TemporaryKey.pfx" />
     <None Include="StartupTask.py">
       <DeploymentContent>true</DeploymentContent>
     </None>

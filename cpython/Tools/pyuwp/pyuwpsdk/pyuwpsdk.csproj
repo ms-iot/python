@@ -13,8 +13,8 @@
     <ProjectGuid>{7CDD4AB5-BB11-4F6F-827E-576088CD6880}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>pyuapsdk</RootNamespace>
-    <AssemblyName>pyuapsdk</AssemblyName>
+    <RootNamespace>pyuwpsdk</RootNamespace>
+    <AssemblyName>pyuwpsdk</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
@@ -101,8 +101,8 @@
       <Link>Redist\Retail\x86\unicodedata.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\Win32\pyuapbackgroundservice\Release\pyuapbackgroundservice.dll">
-      <Link>Redist\Retail\x86\pyuapbackgroundservice.dll</Link>
+    <Content Include="$(InputDir)\Win32\pyuwpbackgroundservice\Release\pyuwpbackgroundservice.dll">
+      <Link>Redist\Retail\x86\pyuwpbackgroundservice.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\Python35_d.dll">
@@ -141,8 +141,8 @@
       <Link>Redist\Debug\x86\unicodedata.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\Win32\pyuapbackgroundservice\Debug\pyuapbackgroundservice.dll">
-      <Link>Redist\Debug\x86\pyuapbackgroundservice.dll</Link>
+    <Content Include="$(InputDir)\Win32\pyuwpbackgroundservice\Debug\pyuwpbackgroundservice.dll">
+      <Link>Redist\Debug\x86\pyuwpbackgroundservice.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <!-- 
@@ -220,12 +220,12 @@
       <Link>Redist\Debug\x64\unicodedata.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\amd64\pyuapbackgroundservice\Release\pyuapbackgroundservice.dll">
-      <Link>Redist\Retail\x64\pyuapbackgroundservice.dll</Link>
+    <Content Include="$(InputDir)\amd64\pyuwpbackgroundservice\Release\pyuwpbackgroundservice.dll">
+      <Link>Redist\Retail\x64\pyuwpbackgroundservice.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\amd64\pyuapbackgroundservice\Debug\pyuapbackgroundservice.dll">
-      <Link>Redist\Debug\x64\pyuapbackgroundservice.dll</Link>
+    <Content Include="$(InputDir)\amd64\pyuwpbackgroundservice\Debug\pyuwpbackgroundservice.dll">
+      <Link>Redist\Debug\x64\pyuwpbackgroundservice.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <!-- 
@@ -303,44 +303,44 @@
       <Link>Redist\Debug\arm\unicodedata.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\arm\pyuapbackgroundservice\Release\pyuapbackgroundservice.dll">
-      <Link>Redist\Retail\arm\pyuapbackgroundservice.dll</Link>
+    <Content Include="$(InputDir)\arm\pyuwpbackgroundservice\Release\pyuwpbackgroundservice.dll">
+      <Link>Redist\Retail\arm\pyuwpbackgroundservice.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(InputDir)\arm\pyuapbackgroundservice\Debug\pyuapbackgroundservice.dll">
-      <Link>Redist\Debug\arm\pyuapbackgroundservice.dll</Link>
+    <Content Include="$(InputDir)\arm\pyuwpbackgroundservice\Debug\pyuwpbackgroundservice.dll">
+      <Link>Redist\Debug\arm\pyuwpbackgroundservice.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <!-- Neutral -->
-    <Content Include="..\pyuapbackgroundservice\lib.zip">
+    <Content Include="..\pyuwpbackgroundservice\lib.zip">
       <Link>References\CommonConfiguration\Neutral\lib.zip</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="..\pyuapbackgroundservice\Assets\Logo.scale-100.png">
+    <Content Include="..\pyuwpbackgroundservice\Assets\Logo.scale-100.png">
       <Link>References\CommonConfiguration\Neutral\Assets\Logo.scale-100.png</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="..\pyuapbackgroundservice\Assets\SmallLogo.scale-100.png">
+    <Content Include="..\pyuwpbackgroundservice\Assets\SmallLogo.scale-100.png">
       <Link>References\CommonConfiguration\Neutral\Assets\SmallLogo.scale-100.png</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="..\pyuapbackgroundservice\Assets\SplashScreen.scale-100.png">
+    <Content Include="..\pyuwpbackgroundservice\Assets\SplashScreen.scale-100.png">
       <Link>References\CommonConfiguration\Neutral\Assets\SplashScreen.scale-100.png</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="..\pyuapbackgroundservice\Assets\StoreLogo.scale-100.png">
+    <Content Include="..\pyuwpbackgroundservice\Assets\StoreLogo.scale-100.png">
       <Link>References\CommonConfiguration\Neutral\Assets\StoreLogo.scale-100.png</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="..\pyuapbackgroundservice\Assets\WideLogo.scale-100.png">
+    <Content Include="..\pyuwpbackgroundservice\Assets\WideLogo.scale-100.png">
       <Link>References\CommonConfiguration\Neutral\Assets\WideLogo.scale-100.png</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\pyuapbackgroundservice\pyuapbackgroundservice.vcxproj">
+    <ProjectReference Include="..\pyuwpbackgroundservice\pyuwpbackgroundservice.vcxproj">
       <Project>{98e552fa-8a1c-4916-b63b-ffa88936248c}</Project>
-      <Name>pyuapbackgroundservice</Name>
+      <Name>pyuwpbackgroundservice</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

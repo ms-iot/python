@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.22823.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pyuapsdk", "pyuapsdk\pyuapsdk.csproj", "{7CDD4AB5-BB11-4F6F-827E-576088CD6880}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pyuwpsdk", "pyuwpsdk\pyuwpsdk.csproj", "{7CDD4AB5-BB11-4F6F-827E-576088CD6880}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pythoncore", "..\..\PCbuild\winrt\pythoncore.vcxproj", "{91C36924-3E30-4482-BE39-4A780305C187}"
 EndProject
@@ -17,7 +17,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_ctypes", "..\..\PCbuild\wi
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Host", "Host", "{2031DDDB-6853-4631-A78B-B9C9DDF772F7}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pyuapbackgroundservice", "pyuapbackgroundservice\pyuapbackgroundservice.vcxproj", "{98E552FA-8A1C-4916-B63B-FFA88936248C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pyuwpbackgroundservice", "pyuwpbackgroundservice\pyuwpbackgroundservice.vcxproj", "{98E552FA-8A1C-4916-B63B-FFA88936248C}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unicodedata", "..\..\PCbuild\winrt\unicodedata.vcxproj", "{BBB70146-955E-4282-B2CE-E45D6217FC52}"
 EndProject
