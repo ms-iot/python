@@ -4,7 +4,7 @@
 
 #include <Windows.h>
 
-#define X509_ASN_ENCODING "x509_asn"
+#define X509_ASN_ENC "x509_asn"
 
 using namespace Platform;
 using namespace Windows::ApplicationModel;
@@ -138,7 +138,7 @@ extern "C" {
                 PySet_Add(keyusage, PyUnicode_FromWideChar(kuitr->Current->Data(), kuitr->Current->Length()));
             }
 
-            enc = PyUnicode_InternFromString(X509_ASN_ENCODING);
+            enc = PyUnicode_InternFromString(X509_ASN_ENC);
             if ((tup = PyTuple_New(3)) == NULL) {
                 Py_CLEAR(result);
                 break;

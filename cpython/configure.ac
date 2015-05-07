@@ -728,8 +728,16 @@ AC_SUBST(MULTIARCH)
 
 AC_MSG_CHECKING([for the platform triplet based on compiler characteristics])
 cat >> conftest.c <<EOF
+#undef bfin
+#undef cris
+#undef fr30
 #undef linux
+#undef hppa
+#undef hpux
 #undef i386
+#undef mips
+#undef powerpc
+#undef sparc
 #undef unix
 #if defined(__linux__)
 # if defined(__x86_64__) && defined(__LP64__)
@@ -825,6 +833,8 @@ cat >> conftest.c <<EOF
 # endif
 #elif defined(__gnu_hurd__)
         i386-gnu
+#elif defined(__APPLE__)
+        darwin
 #else
 # error unknown platform triplet
 #endif
@@ -4309,7 +4319,7 @@ AC_MSG_RESULT($SOABI)
 
 AC_SUBST(EXT_SUFFIX)
 case $ac_sys_system in
-    Linux*|GNU*)
+    Linux*|GNU*|Darwin)
 	EXT_SUFFIX=.${SOABI}${SHLIB_SUFFIX};;
     *)
 	EXT_SUFFIX=${SHLIB_SUFFIX};;
@@ -4321,7 +4331,7 @@ AC_MSG_RESULT($LDVERSION)
 
 dnl define LIBPL after ABIFLAGS and LDVERSION is defined.
 AC_SUBST(PY_ENABLE_SHARED)
-LIBPL="${prefix}/lib/python${VERSION}/config-${LDVERSION}"
+LIBPL='$(prefix)'"/lib/python${VERSION}/config-${LDVERSION}"
 AC_SUBST(LIBPL)
 
 # Check whether right shifting a negative integer extends the sign bit

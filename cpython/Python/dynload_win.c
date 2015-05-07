@@ -233,6 +233,8 @@ dl_funcptr _PyImport_GetDynLoadWindows(const char *shortname,
         /* restore old error mode settings */
         SetErrorMode(old_mode);
 #else
+        extern size_t winrt_getinstallpath(wchar_t *buffer, size_t cch);
+
         /* Windows Store apps require libraries to be packaged */
         len = winrt_getinstallpath(packagepath, MAX_PATH);
         if (len >= 0 && wcsnicmp(packagepath, wpathname, len) == 0)

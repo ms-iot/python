@@ -68,14 +68,9 @@
       <AdditionalIncludeDirectories>..\..\Python;..\..\Modules\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_USRDLL;Py_BUILD_CORE;Py_ENABLE_SHARED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)'=='Debug'">_DEBUG;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Disabled</Optimization>
-      <WholeProgramOptimization Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</WholeProgramOptimization>
+      <Optimization Condition="'$(Configuration)'=='Release'">Disabled</Optimization>
+      <WholeProgramOptimization Condition="'$(Configuration)'=='Release'">false</WholeProgramOptimization>
     </ClCompile>
-    <!--
-    <Link Condition="'$(ApplicationTypeRevision)'=='8.2'">
-      <IgnoreSpecificDefaultLibraries>LIBC;ole32.lib;kernel32.lib;msvcrt.lib%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-    </Link>
-    -->
     <Link>
       <AdditionalDependencies>%(AdditionalDependencies);ws2_32.lib</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
@@ -83,6 +78,9 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">vccorlibd.lib msvcrtd.lib vcruntimed.lib ucrtd.lib /defaultlib:windowsapp.lib %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">vccorlibd.lib msvcrtd.lib vcruntimed.lib ucrtd.lib /defaultlib:windowsapp.lib %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">vccorlibd.lib msvcrtd.lib vcruntimed.lib ucrtd.lib /defaultlib:windowsapp.lib %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">vccorlib.lib msvcrt.lib vcruntime.lib ucrt.lib /defaultlib:windowsapp.lib %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">vccorlib.lib msvcrt.lib vcruntime.lib ucrt.lib /defaultlib:windowsapp.lib %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">vccorlib.lib msvcrt.lib vcruntime.lib ucrt.lib /defaultlib:windowsapp.lib %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -368,6 +366,7 @@
     <ClCompile Include="..\..\PC\getpathp.c" />
     <ClCompile Include="..\..\PC\msvcrtmodule.c" />
     <ClCompile Include="..\..\Python\pyhash.c" />
+    <ClCompile Include="..\..\Python\pystrhex.c" />
     <ClCompile Include="..\..\Python\random.c" />
     <ClCompile Include="..\..\Python\_warnings.c" />
     <ClCompile Include="..\..\Python\asdl.c" />

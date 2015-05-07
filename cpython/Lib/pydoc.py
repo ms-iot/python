@@ -53,6 +53,7 @@ Richard Chamberlain, for the first implementation of textdoc.
 
 import builtins
 import importlib._bootstrap
+import importlib._bootstrap_external
 import importlib.machinery
 import importlib.util
 import inspect
@@ -292,9 +293,9 @@ def importfile(path):
     filename = os.path.basename(path)
     name, ext = os.path.splitext(filename)
     if is_bytecode:
-        loader = importlib._bootstrap.SourcelessFileLoader(name, path)
+        loader = importlib._bootstrap_external.SourcelessFileLoader(name, path)
     else:
-        loader = importlib._bootstrap.SourceFileLoader(name, path)
+        loader = importlib._bootstrap_external.SourceFileLoader(name, path)
     # XXX We probably don't need to pass in the loader here.
     spec = importlib.util.spec_from_file_location(name, path, loader=loader)
     try:
@@ -1588,7 +1589,7 @@ def resolve(thing, forceload=0):
     """Given an object or a path to an object, get the object and its name."""
     if isinstance(thing, str):
         object = locate(thing, forceload)
-        if not object:
+        if object is None:
             raise ImportError('''\
 No Python documentation found for %r.
 Use help() to get the interactive help utility.
