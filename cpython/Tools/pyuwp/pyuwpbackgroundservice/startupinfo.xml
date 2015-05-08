@@ -1,7 +1,0 @@
-<StartupInfo>
-  <Argument>ExtensionScraper.py</Argument>
-  <Argument>scrape</Argument>
-  <Argument>_socket</Argument>
-  <Argument>.</Argument>
-  <Argument>_socket</Argument>
-</StartupInfo>

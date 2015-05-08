@@ -31,7 +31,7 @@
   </ItemGroup>
   
   <PropertyGroup>
-    <StartupInfoFile>$(TargetDir)startupinfo.xml</StartupInfoFile>
+    <StartupInfoFile>$(TargetDir)startupinfo.json</StartupInfoFile>
   </PropertyGroup>
   
   <ItemGroup>
@@ -74,27 +74,16 @@
       <StartupInfoFile ParameterType="System.String" Required="true" />
     </ParameterGroup>
     <Task>
-      <Reference Include="System.Xml" />
+      <Reference Include="System.Web.Extensions" />
       <Using Namespace="System.IO" />
-      <Using Namespace="System.Xml" />
+      <Using Namespace="System.Web.Script.Serialization" />
       <Code Type="Fragment" Language="cs">
-          <![CDATA[
-        var xml = new XmlDocument();
-        
-        xml.LoadXml("<StartupInfo></StartupInfo>");
-        
+        <![CDATA[
+        var serializer = new JavaScriptSerializer();        
         var argArray = Arguments.Split(';');
+        var json = serializer.Serialize(argArray);
         
-        for (var i = 0; i < argArray.Length; i++)
-        {
-          var newArg = xml.CreateElement("Argument");
-          
-          newArg.InnerText = argArray[i];
-          
-          xml.DocumentElement.AppendChild(newArg);
-        }
-        
-        xml.Save(StartupInfoFile);
+        File.WriteAllText(StartupInfoFile, json);
       ]]></Code>
     </Task>
   </UsingTask>

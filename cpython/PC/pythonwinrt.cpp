@@ -23,14 +23,26 @@
 using namespace Platform;
 using namespace Platform::Collections; 
 
+bool GetPythonDebuggerParams(
+    DWORD dwExceptionCode,
+    wchar_t* debugCommand);
+
+void InitializePython()
+{
+    Py_Initialize();
+}
+
+void FinalizePython()
+{
+    Py_Finalize();
+}
+
 int RunPython(
     std::function<void(String^)> stdOutFunc,
     std::function<void(String^)> stdErrFunc,
     Vector<String^>^ argumentsVector)
 {
     int result = -1;
-
-    Py_Initialize();
 
     // _set_invalid_parameter_handler();
     // _CrtSetReportMode()
@@ -40,6 +52,10 @@ int RunPython(
         SetStdOutCallback(stdOutFunc);
         SetStdErrCallback(stdErrFunc);
     }
+
+    bool GetPythonDebuggerParams(
+        DWORD dwExceptionCode,
+        wchar_t* debugCommand);
 
     wchar_t** args = (wchar_t**)malloc(sizeof(wchar_t*)*(argumentsVector->Size));
 
@@ -52,7 +68,30 @@ int RunPython(
 
     free(args);
 
-    Py_Finalize();
-
     return result;
+}
+
+bool GetPythonDebugParams(
+    DWORD dwExceptionCode, 
+    wchar_t* debugCommand,
+    DWORD cbDebugCommand)
+{
+    const DWORD argCount = 3;
+    ULONG_PTR args[argCount];
+    bool isPresent = false;
+
+    args[0] = (ULONG_PTR)&isPresent;
+    args[1] = (ULONG_PTR)debugCommand;
+    args[2] = (ULONG_PTR)cbDebugCommand;
+
+    // Try to get information back from debugger
+    __try
+    {
+        RaiseException(dwExceptionCode, 0, argCount, args);
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    {
+    }
+
+    return isPresent;
 }

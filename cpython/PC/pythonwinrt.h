@@ -23,6 +23,15 @@
 #endif
 #endif
 
+PyAPI_FUNC(void) InitializePython();
+
+PyAPI_FUNC(void) FinalizePython();
+
+PyAPI_FUNC(bool) GetPythonDebugParams(
+    DWORD dwExceptionCode,
+    wchar_t* debugCommand,
+    DWORD cbDebugCommand);
+
 PyAPI_FUNC(int) RunPython(
     std::function<void(Platform::String^)> stdOutFunc,
     std::function<void(Platform::String^)> stdErrFunc,

@@ -44,6 +44,6 @@
     <None Include="PythonScraper.py" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="startupinfo.xml" />
+    <Text Include="startupinfo.json" />
   </ItemGroup>
 </Project>
