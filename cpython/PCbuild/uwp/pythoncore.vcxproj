@@ -81,6 +81,12 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">vccorlib.lib msvcrt.lib vcruntime.lib ucrt.lib /defaultlib:windowsapp.lib %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">vccorlib.lib msvcrt.lib vcruntime.lib ucrt.lib /defaultlib:windowsapp.lib %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">vccorlib.lib msvcrt.lib vcruntime.lib ucrt.lib /defaultlib:windowsapp.lib %(AdditionalOptions)</AdditionalOptions>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Default</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Default</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">Default</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">Default</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Default</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Default</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -212,7 +218,7 @@
     <ClInclude Include="..\..\Parser\tokenizer.h" />
     <ClInclude Include="..\..\PC\errmap.h" />
     <ClInclude Include="..\..\PC\pyconfig.h" />
-    <ClInclude Include="..\..\PC\pythonwinrt.h" />
+    <ClInclude Include="..\..\PC\pythonuwp.h" />
     <ClInclude Include="..\..\PC\StdListener.h" />
     <ClInclude Include="..\..\Python\ceval_gil.h" />
     <ClInclude Include="..\..\Python\condvar.h" />
@@ -220,7 +226,7 @@
     <ClInclude Include="..\..\Python\thread_nt.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\PC\pythonwinrt.cpp">
+    <ClCompile Include="..\..\PC\pythonuwp.cpp">
       <CompileAsWinRT>true</CompileAsWinRT>
       <ExceptionHandling>Sync</ExceptionHandling>
       <CompileAs>CompileAsCpp</CompileAs>
@@ -230,7 +236,7 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
-    <ClCompile Include="..\..\PC\winrtapi.cpp">
+    <ClCompile Include="..\..\PC\uwpapi.cpp">
       <CompileAsWinRT>true</CompileAsWinRT>
       <ExceptionHandling>Sync</ExceptionHandling>
       <CompileAs>CompileAsCpp</CompileAs>

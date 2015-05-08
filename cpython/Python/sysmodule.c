@@ -783,7 +783,7 @@ sys_getwindowsversion(PyObject *self)
 {
     PyObject *version;
     int pos = 0;
-#ifndef MS_WINRT
+#ifndef MS_UWP
     OSVERSIONINFOEX ver;
     ver.dwOSVersionInfoSize = sizeof(ver);
     if (!GetVersionEx((OSVERSIONINFO*) &ver))
@@ -794,7 +794,7 @@ sys_getwindowsversion(PyObject *self)
     if (version == NULL)
         return NULL;
 
-#ifndef MS_WINRT
+#ifndef MS_UWP
     PyStructSequence_SET_ITEM(version, pos++, PyLong_FromLong(ver.dwMajorVersion));
     PyStructSequence_SET_ITEM(version, pos++, PyLong_FromLong(ver.dwMinorVersion));
     PyStructSequence_SET_ITEM(version, pos++, PyLong_FromLong(ver.dwBuildNumber));
@@ -1946,7 +1946,7 @@ sys_update_path(int argc, wchar_t **argv)
 #endif
 #if defined(HAVE_REALPATH)
     wchar_t fullpath[MAXPATHLEN];
-#elif defined(MS_WINDOWS) && !defined(MS_WINCE) && !defined(MS_WINRT)
+#elif defined(MS_WINDOWS) && !defined(MS_WINCE) && !defined(MS_UWP)
     wchar_t fullpath[MAX_PATH];
 #endif
 
@@ -1985,7 +1985,7 @@ sys_update_path(int argc, wchar_t **argv)
 #if SEP == '\\' /* Special case for MS filename syntax */
     if (_HAVE_SCRIPT_ARGUMENT(argc, argv)) {
         wchar_t *q;
-#if defined(MS_WINDOWS) && !defined(MS_WINCE) && !defined(MS_WINRT)
+#if defined(MS_WINDOWS) && !defined(MS_WINCE) && !defined(MS_UWP)
         /* This code here replaces the first element in argv with the full
         path that it represents. Under CE, there are no relative paths so
         the argument must be the full path anyway. */

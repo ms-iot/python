@@ -9,7 +9,7 @@
     <ClCompile Include="..\..\Modules\_ssl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\PC\winrtapi.cpp">
+    <ClCompile Include="..\..\PC\uwpapi.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

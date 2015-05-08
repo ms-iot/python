@@ -70,27 +70,27 @@
       <AdditionalOptions Condition="'$(Configuration)'=='Release'">vccorlib.lib msvcrt.lib vcruntime.lib ucrt.lib /defaultlib:windowsapp.lib %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PreBuildEvent>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">call $(ProjectDir)openssl_winrt_build.cmd "$(openSslDir)" $(Configuration) $(Platform)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">call $(ProjectDir)openssl_uwp_build.cmd "$(openSslDir)" $(Configuration) $(Platform)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">call $(ProjectDir)openssl_winrt_build.cmd "$(openSslDir)" $(Configuration) $(Platform)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">call $(ProjectDir)openssl_uwp_build.cmd "$(openSslDir)" $(Configuration) $(Platform)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">call $(ProjectDir)openssl_winrt_build.cmd "$(openSslDir)" $(Configuration) $(Platform)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">call $(ProjectDir)openssl_uwp_build.cmd "$(openSslDir)" $(Configuration) $(Platform)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">call $(ProjectDir)openssl_winrt_build.cmd "$(openSslDir)" $(Configuration) $(Platform)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">call $(ProjectDir)openssl_uwp_build.cmd "$(openSslDir)" $(Configuration) $(Platform)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">call $(ProjectDir)openssl_winrt_build.cmd "$(openSslDir)" $(Configuration) $(Platform)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">call $(ProjectDir)openssl_uwp_build.cmd "$(openSslDir)" $(Configuration) $(Platform)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">call $(ProjectDir)openssl_winrt_build.cmd "$(openSslDir)" $(Configuration) $(Platform)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">call $(ProjectDir)openssl_uwp_build.cmd "$(openSslDir)" $(Configuration) $(Platform)</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules\_ssl.c" />
-    <ClCompile Include="..\..\PC\winrtapi.cpp">
+    <ClCompile Include="..\..\PC\uwpapi.cpp">
       <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</CompileAsWinRT>
       <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</CompileAsWinRT>
       <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</CompileAsWinRT>

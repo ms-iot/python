@@ -356,8 +356,8 @@ Popen(["/bin/mycmd", "myarg"], env={"PATH": "/usr/bin"})
 """
 
 import sys
-if sys.platform == "winrt":
-    raise ImportError("Cannot use subprocess in Windows Store apps")
+if sys.platform == "uwp":
+    raise ImportError("Cannot use subprocess in UWP apps")
 _mswindows = (sys.platform == "win32")
 
 import io

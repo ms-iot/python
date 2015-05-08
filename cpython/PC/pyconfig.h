@@ -15,7 +15,7 @@ MS_WIN64 - Code specific to the MS Win64 API
 MS_WIN32 - Code specific to the MS Win32 (and Win64) API (obsolete, this covers all supported APIs)
 MS_WINDOWS - Code specific to Windows, but all versions.
 MS_WINCE - Code specific to Windows CE
-MS_WINRT - Code specific to Windows Store Apps
+MS_UWP - Code specific to UWP Apps
 Py_ENABLE_SHARED - Code if the Python core is built as a DLL.
 
 Also note that neither "_M_IX86" or "_MSC_VER" should be used for
@@ -85,25 +85,25 @@ WIN32 is still required for the locale module.
 #ifdef WINAPI_FAMILY
 #   include <winapifamily.h>
 #   if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)
-#       define MS_WINRT
+#       define MS_UWP
 #   endif
 #endif
 #ifndef PYTHONPATH
-#   ifdef MS_WINRT
+#   ifdef MS_UWP
 #       define PYTHONPATH L".\\lib;.\\lib.zip;.\\pythoncore;.\\pythoncore\\lib.zip"
 #   else
 #	    define PYTHONPATH L".\\DLLs;.\\lib"
 #   endif
 #endif
-#ifdef MS_WINRT
+#ifdef MS_UWP
 #define _PY_EMULATED_WIN_CV 0
 #endif
 #ifndef NETSCAPE_PI
 #define USE_SOCKET
 #endif
 
-#ifdef MS_WINRT
-#define WINRT_THREADS
+#ifdef MS_UWP
+#define UWP_THREADS
 #define WITH_THREAD
 #else
 #define NT_THREADS
@@ -111,7 +111,7 @@ WIN32 is still required for the locale module.
 #endif
 
 /* CE6 doesn't have strdup() but _strdup(). Assume the same for earlier versions. */
-#if defined(MS_WINCE) || defined(MS_WINRT)
+#if defined(MS_WINCE) || defined(MS_UWP)
 #  include <stdlib.h>
 #  define strdup _strdup
 #endif
@@ -122,8 +122,8 @@ WIN32 is still required for the locale module.
 #define environ (NULL)
 #endif
 
-#if defined(MS_WINRT)
-/* Windows Store apps do not have environment variables */
+#if defined(MS_UWP)
+/* UWP apps do not have environment variables */
 #define getenv(v) (NULL)
 #undef environ
 #define environ (NULL)
@@ -192,11 +192,11 @@ WIN32 is still required for the locale module.
 #endif /* MS_WIN64 */
 
 /* set the version macros for the windows headers */
-/* Python 3.5+ for WINRT will require WIN8 and above */
-#if defined(MS_WINRT)
-/* WinRT requires Windows 8 or later */
-#define Py_WINVER 0x0602 /* _WIN32_WINNT_WIN8 */
-#define Py_NTDDI NTDDI_WIN8
+/* Python 3.5+ for UWP will require WIN10 and above */
+#if defined(MS_UWP)
+/* UWP requires Windows 10 or later */
+#define Py_WINVER 0x0A00 /* _WIN32_WINNT_WIN8 */
+#define Py_NTDDI NTDDI_WIN10
 #else
 /* Python 3.5+ requires Windows Vista or greater */
 #define Py_WINVER 0x0600 /* _WIN32_WINNT_VISTA */
@@ -396,9 +396,9 @@ Py_NO_ENABLE_SHARED to find out.  Also support MS_NO_COREDLL for b/w compat */
 #	endif
 #endif
 
-#if defined(MS_WINRT)
+#if defined(MS_UWP)
 #   undef PLATFORM
-#   define PLATFORM "winrt"
+#   define PLATFORM "uwp"
 #endif
 
 #ifdef _DEBUG
@@ -494,12 +494,12 @@ Py_NO_ENABLE_SHARED to find out.  Also support MS_NO_COREDLL for b/w compat */
 /* #define const  */
 
 /* Define to 1 if you have the <conio.h> header file. */
-#if !defined(MS_WINCE) && !defined(MS_WINRT)
+#if !defined(MS_WINCE) && !defined(MS_UWP)
 #define HAVE_CONIO_H 1
 #endif
 
 /* Define to 1 if you have the <direct.h> header file. */
-#if !defined(MS_WINCE) && !defined(MS_WINRT)
+#if !defined(MS_WINCE) && !defined(MS_UWP)
 #define HAVE_DIRECT_H 1
 #endif
 
@@ -574,7 +574,7 @@ Py_NO_ENABLE_SHARED to find out.  Also support MS_NO_COREDLL for b/w compat */
 /* #define HAVE_ALTZONE */
 
 /* Define if you have the putenv function.  */
-#if !defined(MS_WINCE) && !defined(MS_WINRT)
+#if !defined(MS_WINCE) && !defined(MS_UWP)
 #define HAVE_PUTENV
 #endif
 
@@ -705,7 +705,7 @@ Py_NO_ENABLE_SHARED to find out.  Also support MS_NO_COREDLL for b/w compat */
 #endif
 
 /* Define to 1 if you have the <process.h> header file. */
-#if !defined(MS_WINCE) && !defined(MS_WINRT)
+#if !defined(MS_WINCE) && !defined(MS_UWP)
 #define HAVE_PROCESS_H 1
 #endif
 

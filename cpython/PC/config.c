@@ -17,8 +17,8 @@ extern PyObject* PyInit__tracemalloc(void);
 extern PyObject* PyInit_gc(void);
 extern PyObject* PyInit_math(void);
 extern PyObject* PyInit__md5(void);
-#ifdef MS_WINRT
-extern PyObject* PyInit_winrt_os(void);
+#ifdef MS_UWP
+extern PyObject* PyInit_uwp_os(void);
 #else
 extern PyObject* PyInit_nt(void);
 #endif
@@ -43,13 +43,13 @@ extern PyObject* PyInit__collections(void);
 extern PyObject* PyInit__heapq(void);
 extern PyObject* PyInit__bisect(void);
 extern PyObject* PyInit__symtable(void);
-#ifndef MS_WINRT
+#ifndef MS_UWP
 extern PyObject* PyInit_mmap(void);
 #endif
 extern PyObject* PyInit__csv(void);
 extern PyObject* PyInit__sre(void);
 extern PyObject* PyInit_parser(void);
-#ifndef MS_WINRT
+#ifndef MS_UWP
 extern PyObject* PyInit_winreg(void);
 #endif
 extern PyObject* PyInit__struct(void);
@@ -97,8 +97,8 @@ struct _inittab _PyImport_Inittab[] = {
     {"faulthandler", PyInit_faulthandler},
     {"gc", PyInit_gc},
     {"math", PyInit_math},
-#ifdef MS_WINRT
-    {"winrt_os", PyInit_winrt_os},
+#ifdef MS_UWP
+    {"uwp_os", PyInit_uwp_os},
 #else
     {"nt", PyInit_nt}, /* Use the NT os functions, not posix */
 #endif
@@ -129,13 +129,13 @@ struct _inittab _PyImport_Inittab[] = {
     {"itertools", PyInit_itertools},
     {"_collections", PyInit__collections},
     {"_symtable", PyInit__symtable},
-#ifndef MS_WINRT
+#ifndef MS_UWP
     {"mmap", PyInit_mmap},
 #endif
     {"_csv", PyInit__csv},
     {"_sre", PyInit__sre},
     {"parser", PyInit_parser},
-#ifndef MS_WINRT
+#ifndef MS_UWP
     {"winreg", PyInit_winreg},
 #endif
     {"_struct", PyInit__struct},

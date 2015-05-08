@@ -27,10 +27,10 @@ PyAPI_FUNC(void) InitializePython();
 
 PyAPI_FUNC(void) FinalizePython();
 
-PyAPI_FUNC(bool) GetPythonDebugParams(
+PyAPI_FUNC(void) GetPythonDebugParams(
     DWORD dwExceptionCode,
-    wchar_t* debugCommand,
-    DWORD cbDebugCommand);
+    ULONG_PTR * pArguments,
+    DWORD nArguments);
 
 PyAPI_FUNC(int) RunPython(
     std::function<void(Platform::String^)> stdOutFunc,

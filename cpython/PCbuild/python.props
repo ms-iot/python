@@ -36,7 +36,7 @@
     <bz2Dir>$(ExternalsDir)bzip2-1.0.6\</bz2Dir>
     <lzmaDir>$(ExternalsDir)xz-5.0.5\</lzmaDir>
     <opensslDir Condition=" '$(ApplicationTypeRevision)' == '' ">$(ExternalsDir)openssl-1.0.2a\</opensslDir>
-    <opensslDir Condition=" '$(ApplicationTypeRevision)' != '' ">$(ExternalsDir)openssl-winrt\</opensslDir>
+    <opensslDir Condition=" '$(ApplicationTypeRevision)' != '' ">$(ExternalsDir)openssl-uwp\</opensslDir>
     <nasmDir>$(ExternalsDir)\nasm-2.11.06\</nasmDir>
     
     <!-- Suffix for all binaries when building for debug -->

@@ -1,5 +1,5 @@
-# Module 'winrtpath' -- common operations on Windows App Store pathnames
-"""Common pathname manipulations, WinRT version.
+# Module 'uwppath' -- common operations on UWP pathnames
+"""Common pathname manipulations, UWP version.
 
 Instead of importing this module directly, import os and refer to this
 module as os.path.

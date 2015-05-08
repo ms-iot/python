@@ -192,7 +192,7 @@ dl_funcptr _PyImport_GetDynLoadWindows(const char *shortname,
     dl_funcptr p;
     char funcname[258], *import_python;
     wchar_t *wpathname;
-#ifdef MS_WINRT
+#ifdef MS_UWP
     wchar_t packagepath[MAX_PATH];
     size_t len;
 #endif
@@ -209,7 +209,7 @@ dl_funcptr _PyImport_GetDynLoadWindows(const char *shortname,
 
     {
         HINSTANCE hDLL = NULL;
-#ifndef MS_WINRT
+#ifndef MS_UWP
         unsigned int old_mode;
 #if HAVE_SXS
         ULONG_PTR cookie = 0;
@@ -233,10 +233,10 @@ dl_funcptr _PyImport_GetDynLoadWindows(const char *shortname,
         /* restore old error mode settings */
         SetErrorMode(old_mode);
 #else
-        extern size_t winrt_getinstallpath(wchar_t *buffer, size_t cch);
+        extern size_t uwp_getinstallpath(wchar_t *buffer, size_t cch);
 
-        /* Windows Store apps require libraries to be packaged */
-        len = winrt_getinstallpath(packagepath, MAX_PATH);
+        /* UWP apps require libraries to be packaged */
+        len = uwp_getinstallpath(packagepath, MAX_PATH);
         if (len >= 0 && wcsnicmp(packagepath, wpathname, len) == 0)
         {
             if (wpathname[len] == '\\' || wpathname[len] == '/')

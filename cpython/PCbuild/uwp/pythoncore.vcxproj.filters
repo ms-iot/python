@@ -432,7 +432,7 @@
     <ClInclude Include="..\..\PC\StdListener.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\PC\pythonwinrt.h">
+    <ClInclude Include="..\..\PC\pythonuwp.h">
       <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>
@@ -960,12 +960,12 @@
     <ClCompile Include="..\..\Modules\_threadmodule.c">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\PC\winrtapi.cpp" />
+    <ClCompile Include="..\..\PC\uwpapi.cpp" />
     <ClCompile Include="..\..\PC\StdListener.cpp" />
     <ClCompile Include="..\..\Python\pylifecycle.c">
       <Filter>Python</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\PC\pythonwinrt.cpp" />
+    <ClCompile Include="..\..\PC\pythonuwp.cpp" />
     <ClCompile Include="..\..\PC\invalid_parameter_handler.c" />
     <ClCompile Include="..\..\Python\pystrhex.c">
       <Filter>Python</Filter>

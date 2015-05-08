@@ -446,7 +446,7 @@ PyErr_SetFromErrnoWithFilenameObjects(PyObject *exc, PyObject *filenameObject, P
 #ifdef MS_WINDOWS
     WCHAR *s_buf = NULL;
 #endif /* Unix/Windows */
-#ifdef MS_WINRT
+#ifdef MS_UWP
     const int s_buf_len = 512;
     WCHAR s_buf_local[512];
     s_buf = s_buf_local;
@@ -483,7 +483,7 @@ PyErr_SetFromErrnoWithFilenameObjects(PyObject *exc, PyObject *filenameObject, P
         }
         else {
             int len = FormatMessageW(
-#ifndef MS_WINRT
+#ifndef MS_UWP
                 FORMAT_MESSAGE_ALLOCATE_BUFFER |
 #endif
                 FORMAT_MESSAGE_FROM_SYSTEM |
@@ -513,7 +513,7 @@ PyErr_SetFromErrnoWithFilenameObjects(PyObject *exc, PyObject *filenameObject, P
 
     if (message == NULL)
     {
-#if defined(MS_WINDOWS) && !defined(MS_WINRT)
+#if defined(MS_WINDOWS) && !defined(MS_UWP)
         LocalFree(s_buf);
 #endif
         return NULL;
@@ -538,7 +538,7 @@ PyErr_SetFromErrnoWithFilenameObjects(PyObject *exc, PyObject *filenameObject, P
             Py_DECREF(v);
         }
     }
-#if defined(MS_WINDOWS) && !defined(MS_WINRT)
+#if defined(MS_WINDOWS) && !defined(MS_UWP)
     LocalFree(s_buf);
 #endif
     return NULL;
@@ -590,7 +590,7 @@ PyObject *PyErr_SetExcFromWindowsErrWithFilenameObjects(
     PyObject *filenameObject2)
 {
     int len;
-#ifdef MS_WINRT
+#ifdef MS_UWP
     const int s_buf_len = 0;
     WCHAR *s_buf = NULL; /* Free via LocalFree */
 #else
@@ -604,7 +604,7 @@ PyObject *PyErr_SetExcFromWindowsErrWithFilenameObjects(
     if (err==0) err = GetLastError();
     len = FormatMessageW(
         /* Error API error */
-#ifndef MS_WINRT
+#ifndef MS_UWP
         FORMAT_MESSAGE_ALLOCATE_BUFFER |
 #endif
         FORMAT_MESSAGE_FROM_SYSTEM |
@@ -629,7 +629,7 @@ PyObject *PyErr_SetExcFromWindowsErrWithFilenameObjects(
 
     if (message == NULL)
     {
-#ifndef MS_WINRT
+#ifndef MS_UWP
         LocalFree(s_buf);
 #endif
         return NULL;
@@ -654,7 +654,7 @@ PyObject *PyErr_SetExcFromWindowsErrWithFilenameObjects(
             Py_DECREF(v);
         }
     }
-#ifndef MS_WINRT
+#ifndef MS_UWP
     LocalFree(s_buf);
 #endif
     return NULL;

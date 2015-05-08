@@ -4,9 +4,9 @@
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
 
-    <OutDirRoot Condition="'$(ApplicationTypeRevision)'!=''">$(SolutionDir)winrt\$(ApplicationTypeRevision)\$(ArchName)\</OutDirRoot>
+    <OutDirRoot Condition="'$(ApplicationTypeRevision)'!=''">$(SolutionDir)uwp\$(ApplicationTypeRevision)\$(ArchName)\</OutDirRoot>
     <OutDirRoot Condition="'$(OutDirRoot)'==''">$(BuildPath)</OutDirRoot>
-    <IntDirRoot Condition="'$(ApplicationTypeRevision)'!=''">$(SolutionDir)winrt\$(ApplicationTypeRevision)\$(ArchName)\</IntDirRoot>
+    <IntDirRoot Condition="'$(ApplicationTypeRevision)'!=''">$(SolutionDir)uwp\$(ApplicationTypeRevision)\$(ArchName)\</IntDirRoot>
     <IntDirRoot Condition="'$(IntDirRoot)'==''">$(SolutionDir)</IntDirRoot>
     <OutDir>$(OutDirRoot)</OutDir>
     <IntDir>$(IntDirRoot)obj\$(ArchName)_$(Configuration)\$(ProjectName)\</IntDir>
@@ -21,7 +21,7 @@
     <SupportSigning Condition="'$(ConfigurationType)' == 'StaticLibrary'">false</SupportSigning>
   </PropertyGroup>
 
-  <Import Condition="'$(ApplicationTypeRevision)'!=''" Project="winrt.props" />
+  <Import Condition="'$(ApplicationTypeRevision)'!=''" Project="uwp.props" />
   <PropertyGroup>
     <_DebugPreprocessorDefinition>NDEBUG;</_DebugPreprocessorDefinition>
     <_DebugPreprocessorDefinition Condition="$(Configuration) == 'Debug'">_DEBUG;</_DebugPreprocessorDefinition>

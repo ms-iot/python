@@ -50,7 +50,7 @@ _Py_device_encoding(int fd)
         Py_RETURN_NONE;
 
 #if defined(MS_WINDOWS)
-#ifndef MS_WINRT
+#ifndef MS_UWP
     if (fd == 0)
         cp = GetConsoleCP();
     else if (fd == 1 || fd == 2)
@@ -561,7 +561,7 @@ attributes_to_mode(DWORD attr)
     return m;
 }
 
-#ifdef MS_WINRT
+#ifdef MS_UWP
 void
 _Py_attribute_data_to_stat(FILE_BASIC_INFO *basicInfo, FILE_STANDARD_INFO *standardInfo, int reparse_tag, struct _Py_stat_struct *result)
 {
@@ -621,7 +621,7 @@ int
 _Py_fstat_noraise(int fd, struct _Py_stat_struct *status)
 {
 #ifdef MS_WINDOWS
-#ifdef MS_WINRT
+#ifdef MS_UWP
     FILE_BASIC_INFO fbi;
     FILE_STANDARD_INFO fsi;
 #else
@@ -646,7 +646,7 @@ _Py_fstat_noraise(int fd, struct _Py_stat_struct *status)
     }
     memset(status, 0, sizeof(*status));
 
-#ifdef MS_WINRT
+#ifdef MS_UWP
     if (!GetFileInformationByHandleEx(h, FileBasicInfo, &fbi, sizeof(fbi))) {
         return -1;
     }
@@ -762,7 +762,7 @@ static int
 get_inheritable(int fd, int raise)
 {
 #ifdef MS_WINDOWS
-#ifdef MS_WINRT
+#ifdef MS_UWP
     return 0;
 #else
     HANDLE handle;
@@ -817,7 +817,7 @@ static int
 set_inheritable(int fd, int inheritable, int raise, int *atomic_flag_works)
 {
 #ifdef MS_WINDOWS
-#ifndef MS_WINRT
+#ifndef MS_UWP
     HANDLE handle;
     DWORD flags;
 #endif
@@ -848,7 +848,7 @@ set_inheritable(int fd, int inheritable, int raise, int *atomic_flag_works)
     }
 
 #ifdef MS_WINDOWS
-#ifdef MS_WINRT
+#ifdef MS_UWP
     return 0;
 #else
     if (!_PyVerify_fd(fd)) {
@@ -1462,7 +1462,7 @@ _Py_wrealpath(const wchar_t *path,
 wchar_t*
 _Py_wgetcwd(wchar_t *buf, size_t size)
 {
-#ifdef MS_WINRT
+#ifdef MS_UWP
     return L"";
 #elif defined(MS_WINDOWS)
     int isize = (int)Py_MIN(size, INT_MAX);
@@ -1514,7 +1514,7 @@ _Py_dup(int fd)
         return -1;
     }
 
-#ifdef MS_WINRT
+#ifdef MS_UWP
     ftype = FILE_TYPE_UNKNOWN;
 #else
     /* get the file type, ignore the error if it failed */

@@ -125,7 +125,7 @@ corresponding Unix manual entries for more information on calls.");
 #include <sys/sysctl.h>
 #endif
 
-#if defined(MS_WINDOWS) && !defined(MS_WINRT)
+#if defined(MS_WINDOWS) && !defined(MS_UWP)
 #  define TERMSIZE_USE_CONIO
 #elif defined(HAVE_SYS_IOCTL_H)
 #  include <sys/ioctl.h>
@@ -135,7 +135,7 @@ corresponding Unix manual entries for more information on calls.");
 #  if defined(TIOCGWINSZ)
 #    define TERMSIZE_USE_IOCTL
 #  endif
-#endif /* MS_WINDOWS && !MS_WINRT */
+#endif /* MS_WINDOWS && !MS_UWP */
 
 /* Various compilers have only certain posix functions */
 /* XXX Gosh I wish these were all moved into pyconfig.h */
@@ -144,7 +144,7 @@ corresponding Unix manual entries for more information on calls.");
 #define HAVE_SYSTEM     1
 #include <process.h>
 #else
-#if defined(MS_WINRT)   /* Microsoft compiler for Windows Store apps */
+#if defined(MS_UWP)   /* Microsoft compiler for UWP apps */
 #define HAVE_GETCWD     1 /* uses a fake getcwd */
 #define HAVE_FSYNC      1
 #define fsync _commit
@@ -303,7 +303,7 @@ extern int lstat(const char *, struct stat *);
 #include "osdefs.h"
 #include <malloc.h>
 #include <windows.h>
-#ifndef MS_WINRT
+#ifndef MS_UWP
 #include <shellapi.h>   /* for ShellExecute() */
 #include <lmcons.h>     /* for UNLEN */
 #ifdef SE_CREATE_SYMBOLIC_LINK_NAME /* Available starting with Vista */
@@ -380,9 +380,9 @@ static int win32_can_symlink = 0;
 #define DWORD_MAX 4294967295U
 
 #ifdef MS_WINDOWS
-#ifdef MS_WINRT
-#define INITFUNC PyInit_winrt_os
-#define MODNAME "winrt_os"
+#ifdef MS_UWP
+#define INITFUNC PyInit_uwp_os
+#define MODNAME "uwp_os"
 #else
 #define INITFUNC PyInit_nt
 #define MODNAME "nt"
@@ -395,7 +395,7 @@ static int win32_can_symlink = 0;
 #ifdef MS_WINDOWS
 /* defined in fileutils.c */
 PyAPI_FUNC(void) _Py_time_t_to_FILE_TIME(time_t, int, FILETIME *);
-#ifdef MS_WINRT
+#ifdef MS_UWP
 PyAPI_FUNC(void) _Py_attribute_data_to_stat(FILE_BASIC_INFO *, FILE_STANDARD_INFO *,
     int, struct _Py_stat_struct *);
 #else
@@ -909,8 +909,8 @@ path_converter(PyObject *o, void *p) {
         return 0;
     }
 
-#if defined(MS_WINRT)
-    /* Windows Store apps cannot support narrow paths */
+#if defined(MS_UWP)
+    /* UWP apps cannot support narrow paths */
     Py_DECREF(bytes);
     return 0;
 #elif defined(MS_WINDOWS)
@@ -1089,7 +1089,7 @@ _PyVerify_fd_dup2(int fd1, int fd2)
 #define _PyVerify_fd_dup2(fd1, fd2) (_PyVerify_fd(fd1) && (fd2) >= 0)
 #endif
 
-#if defined(MS_WINDOWS) && !defined(MS_WINRT)
+#if defined(MS_WINDOWS) && !defined(MS_UWP)
 
 static int
 win32_get_reparse_tag(HANDLE reparse_point_handle, ULONG *reparse_tag)
@@ -1113,16 +1113,16 @@ win32_get_reparse_tag(HANDLE reparse_point_handle, ULONG *reparse_tag)
     return TRUE;
 }
 
-#endif /* MS_WINDOWS && !MS_WINRT */
+#endif /* MS_WINDOWS && !MS_UWP */
 
-#ifdef MS_WINRT
+#ifdef MS_UWP
 
-PyObject* winrt_defaultenviron(void);
+PyObject* uwp_defaultenviron(void);
 
 static PyObject *
 convertenviron(void)
 {
-    return winrt_defaultenviron();
+    return uwp_defaultenviron();
 }
 
 #else
@@ -1319,16 +1319,16 @@ posix_fildes_fd(int fd, int (*func)(int))
     Py_RETURN_NONE;
 }
 
-#ifdef MS_WINRT
+#ifdef MS_UWP
 
-/* Changing the current directory is not supported for Windows Store apps,
+/* Changing the current directory is not supported for UWP apps,
     so these are implemented to provide warnings only. */
  
  static BOOL __stdcall
   win32_chdir(LPCSTR path)
   {
     PyErr_WarnEx(PyExc_DeprecationWarning,
-        "os.chdir has been deprecated for Windows Store apps, "
+        "os.chdir has been deprecated for UWP apps, "
          "use absolute paths instead.",
         0);
     return TRUE;
@@ -1338,7 +1338,7 @@ static BOOL __stdcall
  win32_wchdir(LPCWSTR path)
  {
     PyErr_WarnEx(PyExc_DeprecationWarning,
-        "os.chdir has been deprecated for Windows Store apps, "
+        "os.chdir has been deprecated for UWP apps, "
          "use absolute paths instead.",
         0);
     return TRUE;
@@ -1421,7 +1421,7 @@ win32_wchdir(LPCWSTR path)
 #define HAVE_STAT_NSEC 1
 #define HAVE_STRUCT_STAT_ST_FILE_ATTRIBUTES 1
 
-#ifdef MS_WINRT
+#ifdef MS_UWP
 
 static BOOL
 attributes_from_dir_w(LPCWSTR pszFile, FILE_BASIC_INFO *fbi, FILE_STANDARD_INFO *fsi, ULONG *reparse_tag)
@@ -1912,7 +1912,7 @@ win32_stat_w(const wchar_t* path, struct _Py_stat_struct *result)
     return win32_xstat_w(path, result, TRUE);
 }
 
-#endif /* MS_WINDOWS || MS_WINRT */
+#endif /* MS_WINDOWS || MS_UWP */
 
 PyDoc_STRVAR(stat_result__doc__,
 "stat_result: Result from stat, fstat, or lstat.\n\n\
@@ -2324,7 +2324,7 @@ posix_do_stat(char *function_name, path_t *path,
     }
     else
 #endif
-#if defined(HAVE_LSTAT) || (defined(MS_WINDOWS) && !defined(MS_WINRT))
+#if defined(HAVE_LSTAT) || (defined(MS_WINDOWS) && !defined(MS_UWP))
     if ((!follow_symlinks) && (dir_fd == DEFAULT_DIR_FD))
         result = LSTAT(path->narrow, &st);
     else
@@ -2764,7 +2764,7 @@ os_access_impl(PyModuleDef *module, path_t *path, int mode, int dir_fd,
 #ifdef MS_WINDOWS
     Py_BEGIN_ALLOW_THREADS
         if (path->wide != NULL)
-#ifdef MS_WINRT
+#ifdef MS_UWP
         {
             WIN32_FILE_ATTRIBUTE_DATA fad;
 
@@ -2899,7 +2899,7 @@ os_chdir_impl(PyModuleDef *module, path_t *path)
 {
     int result;
 
-#ifndef MS_WINRT
+#ifndef MS_UWP
     Py_BEGIN_ALLOW_THREADS
 #endif
 #ifdef MS_WINDOWS
@@ -2916,7 +2916,7 @@ os_chdir_impl(PyModuleDef *module, path_t *path)
 #endif
         result = chdir(path->narrow);
 #endif
-#ifndef MS_WINRT
+#ifndef MS_UWP
     Py_END_ALLOW_THREADS
 #endif
     if (result) {
@@ -3004,7 +3004,7 @@ os_chmod_impl(PyModuleDef *module, path_t *path, int mode, int dir_fd,
 #ifdef MS_WINDOWS
     Py_BEGIN_ALLOW_THREADS
     if (path->wide)
-#ifdef MS_WINRT
+#ifdef MS_UWP
     {
         WIN32_FILE_ATTRIBUTE_DATA fad;
 
@@ -3027,7 +3027,7 @@ os_chmod_impl(PyModuleDef *module, path_t *path, int mode, int dir_fd,
             attr |= FILE_ATTRIBUTE_READONLY;
         if (path->wide)
             result = SetFileAttributesW(path->wide, attr);
-#ifndef MS_WINRT
+#ifndef MS_UWP
         else
             result = SetFileAttributesA(path->narrow, attr);
 #endif
@@ -3476,8 +3476,8 @@ os_lchown_impl(PyModuleDef *module, path_t *path, uid_t uid, gid_t gid)
 }
 #endif /* HAVE_LCHOWN */
 
-#ifdef MS_WINRT
-extern Py_ssize_t winrt_getinstallpath(wchar_t *buffer, Py_ssize_t cch);
+#ifdef MS_UWP
+extern Py_ssize_t uwp_getinstallpath(wchar_t *buffer, Py_ssize_t cch);
 #endif
 
 static PyObject *
@@ -3496,8 +3496,8 @@ posix_getcwd(int use_bytes)
         PyObject *resobj;
         DWORD len;
         Py_BEGIN_ALLOW_THREADS
-#ifdef MS_WINRT
-            len = winrt_getinstallpath(wbuf, Py_ARRAY_LENGTH(wbuf));
+#ifdef MS_UWP
+            len = uwp_getinstallpath(wbuf, Py_ARRAY_LENGTH(wbuf));
 #else
             len = GetCurrentDirectoryW(Py_ARRAY_LENGTH(wbuf), wbuf);
 #endif
@@ -3507,8 +3507,8 @@ posix_getcwd(int use_bytes)
         if (len >= Py_ARRAY_LENGTH(wbuf)) {
             wbuf2 = PyMem_RawMalloc(len * sizeof(wchar_t));
             if (wbuf2)
-#ifdef MS_WINRT
-                len = winrt_getinstallpath(wbuf2, len);
+#ifdef MS_UWP
+                len = uwp_getinstallpath(wbuf2, len);
 #else
                 len = GetCurrentDirectoryW(len, wbuf2);
 #endif
@@ -3533,7 +3533,7 @@ posix_getcwd(int use_bytes)
         return NULL;
 #endif
     buf = cwd = NULL;
-#ifndef MS_WINRT
+#ifndef MS_UWP
     Py_BEGIN_ALLOW_THREADS
     do {
         buflen += chunk;
@@ -3589,7 +3589,7 @@ os_getcwdb_impl(PyModuleDef *module)
 }
 
 
-#if (!defined(HAVE_LINK)) && defined(MS_WINDOWS) && !defined(MS_WINRT)
+#if (!defined(HAVE_LINK)) && defined(MS_WINDOWS) && !defined(MS_UWP)
 #define HAVE_LINK 1
 #endif
 
@@ -3682,7 +3682,7 @@ _listdir_windows_no_opendir(path_t *path, PyObject *list)
     PyObject *v;
     HANDLE hFindFile = INVALID_HANDLE_VALUE;
     BOOL result;
-    #ifndef MS_WINRT
+    #ifndef MS_UWP
         WIN32_FIND_DATAA FileData;
     #endif
     char namebuf[MAX_PATH+4]; /* Overallocate for "\*.*" */
@@ -3720,7 +3720,7 @@ _listdir_windows_no_opendir(path_t *path, PyObject *list)
             goto exit;
         }
         Py_BEGIN_ALLOW_THREADS
-#ifdef MS_WINRT
+#ifdef MS_UWP
         hFindFile = FindFirstFileExW(wnamebuf, FindExInfoBasic, &wFileData, FindExSearchNameMatch, NULL, 0);
 #else
         hFindFile = FindFirstFileW(wnamebuf, &wFileData);
@@ -3768,7 +3768,7 @@ _listdir_windows_no_opendir(path_t *path, PyObject *list)
         goto exit;
     }
 
-#ifndef MS_WINRT
+#ifndef MS_UWP
     strcpy(namebuf, path->narrow);
     len = path->length;
     if (len > 0) {
@@ -3980,7 +3980,7 @@ os_listdir_impl(PyModuleDef *module, path_t *path)
 }
 
 #ifdef MS_WINDOWS
-#ifndef MS_WINRT
+#ifndef MS_UWP
 /* A helper function for abspath on win32 */
 /* AC 3.5: probably just convert to using path converter */
 static PyObject *
@@ -4198,18 +4198,18 @@ exit:
 static PyObject *
 os__getvolumepathname_impl(PyModuleDef *module, PyObject *path)
 {
-    PyErr_SetString(PyExc_NotImplementedError, "getvolumepathname is not implemented for Windows Store Apps");
+    PyErr_SetString(PyExc_NotImplementedError, "getvolumepathname is not implemented for UWP Apps");
     return NULL;
 }
 
 static PyObject *
 os__getfinalpathname_impl(PyModuleDef *module, PyObject *path)
 {
-    PyErr_SetString(PyExc_NotImplementedError, "getfinalpathname is not implemented for Windows Store Apps");
+    PyErr_SetString(PyExc_NotImplementedError, "getfinalpathname is not implemented for UWP Apps");
     return NULL;
 }
 
-#endif /* !MS_WINRT */
+#endif /* !MS_UWP */
 #endif /* MS_WINDOWS */
 
 
@@ -4246,7 +4246,7 @@ os_mkdir_impl(PyModuleDef *module, path_t *path, int mode, int dir_fd)
     Py_BEGIN_ALLOW_THREADS
     if (path->wide)
         result = CreateDirectoryW(path->wide, NULL);
-#ifndef MS_WINRT
+#ifndef MS_UWP
     else
         result = CreateDirectoryA(path->narrow, NULL);
 #endif
@@ -4402,7 +4402,7 @@ internal_rename(path_t *src, path_t *dst, int src_dir_fd, int dst_dir_fd, int is
     Py_BEGIN_ALLOW_THREADS
     if (src->wide)
         result = MoveFileExW(src->wide, dst->wide, flags);
-#ifndef MS_WINRT
+#ifndef MS_UWP
     else
         result = MoveFileExA(src->narrow, dst->narrow, flags);
 #endif
@@ -4501,7 +4501,7 @@ os_rmdir_impl(PyModuleDef *module, path_t *path, int dir_fd)
 #ifdef MS_WINDOWS
     if (path->wide)
         result = RemoveDirectoryW(path->wide);
-#ifndef MS_WINRT
+#ifndef MS_UWP
     else
         result = RemoveDirectoryA(path->narrow);
 #endif
@@ -4606,7 +4606,7 @@ BOOL WINAPI Py_DeleteFileW(LPCWSTR lpFileName)
            it is a symlink */
         if(is_directory &&
            info.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
-#ifdef MS_WINRT
+#ifdef MS_UWP
             find_data_handle = FindFirstFileExW(lpFileName, FindExInfoBasic, &find_data, FindExSearchNameMatch, NULL, 0);
 #else
             find_data_handle = FindFirstFileW(lpFileName, &find_data);
@@ -4626,7 +4626,7 @@ BOOL WINAPI Py_DeleteFileW(LPCWSTR lpFileName)
 
     return DeleteFileW(lpFileName);
 }
-#endif /* MS_WINDOWS && !MS_WINRT */
+#endif /* MS_WINDOWS && !MS_UWP */
 
 
 /*[clinic input]
@@ -4656,7 +4656,7 @@ os_unlink_impl(PyModuleDef *module, path_t *path, int dir_fd)
 #ifdef MS_WINDOWS
     if (path->wide)
         result = Py_DeleteFileW(path->wide);
-#ifndef MS_WINRT
+#ifndef MS_UWP
     else
         result = DeleteFileA(path->narrow);
 #endif
@@ -4995,7 +4995,7 @@ os_utime_impl(PyModuleDef *module, path_t *path, PyObject *times,
               PyObject *ns, int dir_fd, int follow_symlinks)
 /*[clinic end generated code: output=31f3434e560ba2f0 input=1f18c17d5941aa82]*/
 {
-#if defined(MS_WINRT)
+#if defined(MS_UWP)
     HANDLE hFile = INVALID_HANDLE_VALUE;
     FILETIME atime, mtime;
     CREATEFILE2_EXTENDED_PARAMETERS cep;
@@ -5078,7 +5078,7 @@ os_utime_impl(PyModuleDef *module, path_t *path, PyObject *times,
     }
 #endif
 
-#if defined(MS_WINRT)
+#if defined(MS_UWP)
     memset(&cep, 0, sizeof(cep));
     cep.dwSize = sizeof(cep);
     cep.dwFileFlags = FILE_FLAG_BACKUP_SEMANTICS;
@@ -5148,7 +5148,7 @@ os_utime_impl(PyModuleDef *module, path_t *path, PyObject *times,
         PyErr_SetFromWindowsErr(0);
         goto exit;
     }
-#else /* MS_WINRT || MS_WINDOWS */
+#else /* MS_UWP || MS_WINDOWS */
     Py_BEGIN_ALLOW_THREADS
 
 #if UTIME_HAVE_NOFOLLOW_SYMLINKS
@@ -5179,7 +5179,7 @@ os_utime_impl(PyModuleDef *module, path_t *path, PyObject *times,
         goto exit;
     }
 
-#endif /* MS_WINRT || MS_WINDOWS */
+#endif /* MS_UWP || MS_WINDOWS */
 
     Py_INCREF(Py_None);
     return_value = Py_None;
@@ -6795,7 +6795,7 @@ os_getuid_impl(PyModuleDef *module)
 #endif /* HAVE_GETUID */
 
 
-#if defined(MS_WINDOWS) && !defined(MS_WINRT)
+#if defined(MS_WINDOWS) && !defined(MS_UWP)
 #define HAVE_KILL
 #endif /* MS_WINDOWS */
 
@@ -6813,7 +6813,7 @@ Kill a process with a signal.
 static PyObject *
 os_kill_impl(PyModuleDef *module, pid_t pid, Py_ssize_t signal)
 /*[clinic end generated code: output=74f907dd00a83c26 input=61a36b86ca275ab9]*/
-#if !defined(MS_WINDOWS) || defined(MS_WINRT)
+#if !defined(MS_WINDOWS) || defined(MS_UWP)
 {
     if (kill(pid, (int)signal) == -1)
         return posix_error();
@@ -7444,7 +7444,7 @@ exit:
 
 #endif /* HAVE_READLINK */
 
-#if !defined(HAVE_READLINK) && defined(MS_WINDOWS) && !defined(MS_WINRT)
+#if !defined(HAVE_READLINK) && defined(MS_WINDOWS) && !defined(MS_UWP)
 
 static PyObject *
 win_readlink(PyObject *self, PyObject *args, PyObject *kwargs)
@@ -7517,7 +7517,7 @@ win_readlink(PyObject *self, PyObject *args, PyObject *kwargs)
     return result;
 }
 
-#endif /* !defined(HAVE_READLINK) && defined(MS_WINDOWS) && !defined(MS_WINRT) */
+#endif /* !defined(HAVE_READLINK) && defined(MS_WINDOWS) && !defined(MS_UWP) */
 
 
 
@@ -7849,7 +7849,7 @@ os_times_impl(PyModuleDef *module)
 /*[clinic end generated code: output=df0a63ebe6e6f091 input=2bf9df3d6ab2e48b]*/
 #ifdef MS_WINDOWS
 {
-#ifdef MS_WINRT
+#ifdef MS_UWP
     /* No process times are available to Store apps */
     return build_times_result(
         (double)0 /* t.tms_utime / HZ */,
@@ -9801,7 +9801,7 @@ os__getdiskusage_impl(PyModuleDef *module, Py_UNICODE *path)
 
     return Py_BuildValue("(LL)", total.QuadPart, free.QuadPart);
 }
-#endif /* MS_WINDOWS && !MS_WINRT */
+#endif /* MS_WINDOWS && !MS_UWP */
 
 
 /* This is used for fpathconf(), pathconf(), confstr() and sysconf().
@@ -10878,14 +10878,14 @@ The filepath is relative to the current directory.  If you want to use\n\
 an absolute path, make sure the first character is not a slash (\"/\");\n\
 the underlying Win32 ShellExecute function doesn't work if it is.");
 
-#ifdef MS_WINRT
-BOOL winrt_startfile(const wchar_t *operation, const wchar_t *path);
+#ifdef MS_UWP
+BOOL uwp_startfile(const wchar_t *operation, const wchar_t *path);
 #endif
 
 static PyObject *
 win32_startfile(PyObject *self, PyObject *args)
 {
-#ifndef MS_WINRT
+#ifndef MS_UWP
     PyObject *ofilepath;
     char *filepath;
 #endif
@@ -10920,8 +10920,8 @@ win32_startfile(PyObject *self, PyObject *args)
         woperation = NULL;
 
     Py_BEGIN_ALLOW_THREADS
-#ifdef MS_WINRT
-    rc = winrt_startfile(woperation, wpath) ? (HINSTANCE)33 : (HINSTANCE)0;
+#ifdef MS_UWP
+    rc = uwp_startfile(woperation, wpath) ? (HINSTANCE)33 : (HINSTANCE)0;
 #else
     rc = ShellExecuteW((HWND)0, woperation, wpath,
                        NULL, NULL, SW_SHOWNORMAL);
@@ -10937,7 +10937,7 @@ win32_startfile(PyObject *self, PyObject *args)
     return Py_None;
 
 normal:
-#ifdef MS_WINRT
+#ifdef MS_UWP
     return NULL;
 #else
     PyErr_Clear();
@@ -11607,7 +11607,7 @@ static int
 os_get_handle_inheritable_impl(PyModuleDef *module, Py_intptr_t handle)
 /*[clinic end generated code: output=3b7b3e1b43f312b6 input=5f7759443aae3dc5]*/
 {
-#ifdef MS_WINRT
+#ifdef MS_UWP
     return 0;
 #else
     DWORD flags;
@@ -11634,7 +11634,7 @@ os_set_handle_inheritable_impl(PyModuleDef *module, Py_intptr_t handle,
                                int inheritable)
 /*[clinic end generated code: output=d2e111a96c9eb296 input=e64b2b2730469def]*/
 {
-#ifdef MS_WINRT
+#ifdef MS_UWP
     return NULL;
 #else
     DWORD flags = inheritable ? HANDLE_FLAG_INHERIT : 0;
@@ -12106,7 +12106,7 @@ static PyObject *
 DirEntry_from_find_data(path_t *path, WIN32_FIND_DATAW *dataW)
 {
     DirEntry *entry;
-#ifdef MS_WINRT
+#ifdef MS_UWP
     FILE_BASIC_INFO file_basic_info;
     FILE_STANDARD_INFO file_standard_info;
 #else
@@ -12137,7 +12137,7 @@ DirEntry_from_find_data(path_t *path, WIN32_FIND_DATAW *dataW)
     if (!entry->path)
         goto error;
 
-#ifdef MS_WINRT
+#ifdef MS_UWP
     joined_path = join_path_filenameW(path->wide, dataW->cFileName);
     if (!joined_path)
         goto error;
@@ -12459,7 +12459,7 @@ posix_scandir(PyObject *self, PyObject *args, PyObject *kwargs)
         goto error;
 
     Py_BEGIN_ALLOW_THREADS
-#ifdef MS_WINRT
+#ifdef MS_UWP
     iterator->handle = FindFirstFileExW(path_strW, FindExInfoBasic, &iterator->file_data, FindExSearchNameMatch, NULL, 0);
 #else
     iterator->handle = FindFirstFileW(path_strW, &iterator->file_data);
@@ -12535,7 +12535,7 @@ static PyMethodDef posix_methods[] = {
                         METH_VARARGS | METH_KEYWORDS,
                         readlink__doc__},
 #endif /* HAVE_READLINK */
-#if !defined(HAVE_READLINK) && defined(MS_WINDOWS) && !defined(MS_WINRT)
+#if !defined(HAVE_READLINK) && defined(MS_WINDOWS) && !defined(MS_UWP)
     {"readlink",        (PyCFunction)win_readlink,
                         METH_VARARGS | METH_KEYWORDS,
                         readlink__doc__},
@@ -12664,7 +12664,7 @@ static PyMethodDef posix_methods[] = {
     OS_FPATHCONF_METHODDEF
     OS_PATHCONF_METHODDEF
     OS_ABORT_METHODDEF
-#if defined(MS_WINDOWS) && !defined(MS_WINRT)
+#if defined(MS_WINDOWS) && !defined(MS_UWP)
     {"_getfullpathname",        posix__getfullpathname, METH_VARARGS, NULL},
     {"_isdir",                  posix__isdir, METH_VARARGS, posix__isdir__doc__},
 #endif

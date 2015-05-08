@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "StartupTask.h"
 #include "Python.h"
-#include "pythonwinrt.h"
+#include "pythonuwp.h"
 
 #define STARTUP_FILE L"startupinfo.json"
 
@@ -86,9 +86,18 @@ void StartupTask::Run(IBackgroundTaskInstance^ taskInstance)
 void StartupTask::CheckPythonDebuggerPresence(Vector<String^>^ argumentsVector)
 {
 	wchar_t debugCommand[4096] = { 0 };
+    const DWORD argCount = 3;
+    ULONG_PTR args[argCount];
+    bool isPresent = false;
+
+    args[0] = (ULONG_PTR)&isPresent;
+    args[1] = (ULONG_PTR)debugCommand;
+    args[2] = sizeof(debugCommand);
+
+    GetPythonDebugParams(0xEDCBA987, args, argCount);
 
 	// If debugger present, read out the debug arguments to append and launch the application
-	if (GetPythonDebugParams(0xEDCBA987, debugCommand, sizeof(debugCommand)))
+	if (isPresent)
 	{
         OutputDebugString(L"Python debugger is present\r\n");
 

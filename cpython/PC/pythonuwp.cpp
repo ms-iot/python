@@ -13,12 +13,13 @@
  * ***************************************************************************/
 
 #include <collection.h>
+#include <ppltasks.h>
 
 #include "Python.h"
 #include "Pythonrun.h"
 #include "StdListener.h"
 
-#include "pythonwinrt.h"
+#include "pythonuwp.h"
 
 using namespace Platform;
 using namespace Platform::Collections; 
@@ -27,9 +28,13 @@ bool GetPythonDebuggerParams(
     DWORD dwExceptionCode,
     wchar_t* debugCommand);
 
+void OutputDebugTimeString(PCWSTR message);
+
 void InitializePython()
 {
+    OutputDebugTimeString(L"Starting initialize");
     Py_Initialize();
+    OutputDebugTimeString(L"Finished initialize");
 }
 
 void FinalizePython()
@@ -64,6 +69,7 @@ int RunPython(
         args[i] = (wchar_t*)argumentsVector->GetAt(i)->Data();
     }
 
+    OutputDebugTimeString(L"Starting Py_Main...");
     result = Py_Main(argumentsVector->Size, args);
 
     free(args);
@@ -71,27 +77,40 @@ int RunPython(
     return result;
 }
 
-bool GetPythonDebugParams(
-    DWORD dwExceptionCode, 
-    wchar_t* debugCommand,
-    DWORD cbDebugCommand)
+void GetPythonDebugParams(
+    DWORD dwExceptionCode,
+    ULONG_PTR * pArguments,
+    DWORD nArguments)
 {
-    const DWORD argCount = 3;
-    ULONG_PTR args[argCount];
-    bool isPresent = false;
+    concurrency::task<void> raiseDebuggerExceptionTask(concurrency::create_async([=] {
+        // Try to get information back from debugger
+        __try
+        {
+            OutputDebugTimeString(L"Starting exception...");
+            RaiseException(dwExceptionCode, 0, nArguments, pArguments);
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER)
+        {
+            OutputDebugTimeString(L"finished exception.");
+        }
+    }));
 
-    args[0] = (ULONG_PTR)&isPresent;
-    args[1] = (ULONG_PTR)debugCommand;
-    args[2] = (ULONG_PTR)cbDebugCommand;
+    raiseDebuggerExceptionTask.wait();
+}
 
-    // Try to get information back from debugger
-    __try
-    {
-        RaiseException(dwExceptionCode, 0, argCount, args);
-    }
-    __except (EXCEPTION_EXECUTE_HANDLER)
-    {
-    }
+void OutputDebugTimeString(PCWSTR message)
+{
+    time_t ltime;
+    wchar_t timeBuf[256];
 
-    return isPresent;
+    time(&ltime);
+
+    _wctime_s(timeBuf, sizeof(timeBuf) / sizeof(timeBuf[0]), &ltime);
+    
+    timeBuf[wcsnlen_s(timeBuf, sizeof(timeBuf) / sizeof(timeBuf[0])) - 1] = 0;
+
+    OutputDebugString(timeBuf);
+    OutputDebugString(L": ");
+    OutputDebugString(message);
+    OutputDebugString(L"\n");
 }

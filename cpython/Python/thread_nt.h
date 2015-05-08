@@ -9,7 +9,7 @@
 #include <process.h>
 #endif
 
-#ifdef MS_WINRT
+#ifdef MS_UWP
 #include <thr/threads.h>
 #endif
 
@@ -79,7 +79,7 @@ EnterNonRecursiveMutex(PNRMUTEX mutex, DWORD milliseconds)
         }
     } else if (milliseconds != 0) {
         /* wait at least until the target */
-#ifdef MS_WINRT
+#ifdef MS_UWP
         ULONGLONG now, target = GetTickCount64() + milliseconds;
 #else
         DWORD now, target = GetTickCount() + milliseconds;
@@ -89,7 +89,7 @@ EnterNonRecursiveMutex(PNRMUTEX mutex, DWORD milliseconds)
                 result = WAIT_FAILED;
                 break;
             }
-#ifdef MS_WINRT
+#ifdef MS_UWP
             now = GetTickCount64();
 #else
             now = GetTickCount();
@@ -175,7 +175,7 @@ typedef struct {
 thread start function and the internally used one. */
 #if defined(MS_WINCE)
 static DWORD WINAPI
-#elif defined(MS_WINRT)
+#elif defined(MS_UWP)
 static int
 #else
 static unsigned __stdcall
@@ -193,7 +193,7 @@ bootstrap(void *call)
 long
 PyThread_start_new_thread(void(*func)(void *), void *arg)
 {
-#ifdef MS_WINRT
+#ifdef MS_UWP
 	int result;
 	thrd_t* thrd_t_ptr;
 #else
@@ -213,7 +213,7 @@ PyThread_start_new_thread(void(*func)(void *), void *arg)
 		return -1;
 	obj->func = func;
 	obj->arg = arg;
-#ifdef MS_WINRT
+#ifdef MS_UWP
 	thrd_t_ptr = malloc(sizeof(thrd_t));
 
 	result = thrd_create(thrd_t_ptr, bootstrap, obj);
@@ -287,7 +287,7 @@ PyThread_exit_thread(void)
         exit(0);
 #if defined(MS_WINCE)
     ExitThread(0);
-#elif defined(MS_WINRT)
+#elif defined(MS_UWP)
 	thrd_exit(0);
 #else
     _endthreadex(0);
@@ -408,7 +408,7 @@ _pythread_nt_set_stacksize(size_t size)
 #define THREAD_SET_STACKSIZE(x) _pythread_nt_set_stacksize(x)
 
 
-#ifndef MS_WINRT
+#ifndef MS_UWP
 /* use native Windows TLS functions */
 #define Py_HAVE_NATIVE_TLS
 #endif

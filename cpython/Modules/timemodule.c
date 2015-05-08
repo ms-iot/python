@@ -933,9 +933,9 @@ static PyObject*
 py_process_time(_Py_clock_info_t *info)
 {
 #if defined(MS_WINDOWS)
-#ifdef MS_WINRT
+#ifdef MS_UWP
     PyErr_SetString(PyExc_NotImplementedError,
-        "Process times are not available in Windows Store apps");
+        "Process times are not available in UWP apps");
     return NULL;
 #else
     HANDLE process;

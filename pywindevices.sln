@@ -5,7 +5,7 @@ VisualStudioVersion = 14.0.22730.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_wingpio", "wingpio\_wingpio.vcxproj", "{046FEA20-20F5-43C3-AD29-634A37AD8D00}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pythoncore", "cpython\PCbuild\winrt\pythoncore.vcxproj", "{91C36924-3E30-4482-BE39-4A780305C187}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pythoncore", "cpython\PCbuild\uwp\pythoncore.vcxproj", "{91C36924-3E30-4482-BE39-4A780305C187}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_wini2c", "wini2c\_wini2c.vcxproj", "{29E22DBD-4753-4A2F-93C6-3F093C0CCBF9}"
 EndProject

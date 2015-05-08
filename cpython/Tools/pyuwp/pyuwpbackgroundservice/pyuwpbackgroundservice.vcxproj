@@ -305,31 +305,31 @@
     <ClCompile Include="StartupTask.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\PCbuild\winrt\pyexpat.vcxproj">
+    <ProjectReference Include="..\..\..\PCbuild\uwp\pyexpat.vcxproj">
       <Project>{43ab54bd-cb0d-48d2-81c8-066ee4ded4b9}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\PCBuild\winrt\pythoncore.vcxproj">
+    <ProjectReference Include="..\..\..\PCBuild\uwp\pythoncore.vcxproj">
       <Project>{91c36924-3e30-4482-be39-4a780305c187}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\PCBuild\winrt\select.vcxproj">
+    <ProjectReference Include="..\..\..\PCBuild\uwp\select.vcxproj">
       <Project>{a1863edb-6843-4b69-896b-e9183e94751c}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\PCbuild\winrt\unicodedata.vcxproj">
+    <ProjectReference Include="..\..\..\PCbuild\uwp\unicodedata.vcxproj">
       <Project>{bbb70146-955e-4282-b2ce-e45d6217fc52}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\PCbuild\winrt\_bz2.vcxproj">
+    <ProjectReference Include="..\..\..\PCbuild\uwp\_bz2.vcxproj">
       <Project>{c63311d8-7796-479a-ab9d-8e681d36dcf3}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\PCBuild\winrt\_ctypes.vcxproj">
+    <ProjectReference Include="..\..\..\PCBuild\uwp\_ctypes.vcxproj">
       <Project>{6bccda23-80f4-4c46-a82e-133d64b13fdb}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\PCbuild\winrt\_elementtree.vcxproj">
+    <ProjectReference Include="..\..\..\PCbuild\uwp\_elementtree.vcxproj">
       <Project>{83fa65c4-177f-46d3-afc2-9232a127cc68}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\PCBuild\winrt\_socket.vcxproj">
+    <ProjectReference Include="..\..\..\PCBuild\uwp\_socket.vcxproj">
       <Project>{b2fbbf74-3e5a-4225-be87-54e54a4f88bc}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\PCbuild\winrt\_ssl.vcxproj">
+    <ProjectReference Include="..\..\..\PCbuild\uwp\_ssl.vcxproj">
       <Project>{5195eec7-59ab-4b59-a53b-83550aea89af}</Project>
     </ProjectReference>
   </ItemGroup>

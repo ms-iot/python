@@ -40,7 +40,7 @@ msvcrt_heapmin(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":heapmin"))
         return NULL;
 
-#ifndef MS_WINRT
+#ifndef MS_UWP
     if (_heapmin() != 0)
         return PyErr_SetFromErrno(PyExc_IOError);
 #endif
@@ -174,15 +174,15 @@ if fd is not recognized.");
 static PyObject *
 msvcrt_kbhit(PyObject *self, PyObject *args)
 {
-#ifndef MS_WINRT
+#ifndef MS_UWP
     int ok;
 #endif
 
     if (!PyArg_ParseTuple(args, ":kbhit"))
         return NULL;
 
-#ifdef MS_WINRT
-    PyErr_SetString(PyExc_NotImplementedError, "Not supported in Windows Store Apps");
+#ifdef MS_UWP
+    PyErr_SetString(PyExc_NotImplementedError, "Not supported in UWP Apps");
     return NULL;
 #else
     ok = _kbhit();
@@ -198,7 +198,7 @@ Return true if a keypress is waiting to be read.");
 static PyObject *
 msvcrt_getch(PyObject *self, PyObject *args)
 {
-#ifndef MS_WINRT
+#ifndef MS_UWP
     int ch;
     char s[1];
 #endif
@@ -206,8 +206,8 @@ msvcrt_getch(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":getch"))
         return NULL;
 
-#ifdef MS_WINRT
-    PyErr_SetString(PyExc_NotImplementedError, "Not supported in Windows Store Apps");
+#ifdef MS_UWP
+    PyErr_SetString(PyExc_NotImplementedError, "Not supported in UWP Apps");
     return NULL;
 #else
     Py_BEGIN_ALLOW_THREADS
@@ -252,7 +252,7 @@ Wide char variant of getch(), returning a Unicode value.");
 static PyObject *
 msvcrt_getche(PyObject *self, PyObject *args)
 {
-#ifndef MS_WINRT
+#ifndef MS_UWP
     int ch;
     char s[1];
 #endif
@@ -260,8 +260,8 @@ msvcrt_getche(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, ":getche"))
         return NULL;
 
-#ifdef MS_WINRT
-    PyErr_SetString(PyExc_NotImplementedError, "Not supported in Windows Store Apps");
+#ifdef MS_UWP
+    PyErr_SetString(PyExc_NotImplementedError, "Not supported in UWP Apps");
     return NULL;
 #else
     Py_BEGIN_ALLOW_THREADS
@@ -307,8 +307,8 @@ msvcrt_putch(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "c:putch", &ch))
         return NULL;
 
-#ifdef MS_WINRT
-    PyErr_SetString(PyExc_NotImplementedError, "Not supported in Windows Store Apps");
+#ifdef MS_UWP
+    PyErr_SetString(PyExc_NotImplementedError, "Not supported in UWP Apps");
     return NULL;
 #else
     _putch(ch);
@@ -350,8 +350,8 @@ msvcrt_ungetch(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "c:ungetch", &ch))
         return NULL;
 
-#ifdef MS_WINRT
-    PyErr_SetString(PyExc_NotImplementedError, "Not supported in Windows Store Apps");
+#ifdef MS_UWP
+    PyErr_SetString(PyExc_NotImplementedError, "Not supported in UWP Apps");
     return NULL;
 #else
     if (_ungetch(ch) == EOF)
@@ -450,14 +450,14 @@ static PyObject*
 seterrormode(PyObject *self, PyObject *args)
 {
 	unsigned int mode;
-#ifndef MS_WINRT
+#ifndef MS_UWP
 	unsigned int res;
 #endif
 
     if (!PyArg_ParseTuple(args, "I", &mode))
         return NULL;
-#ifdef MS_WINRT
-    PyErr_SetString(PyExc_NotImplementedError, "Not supported in Windows Store Apps");
+#ifdef MS_UWP
+    PyErr_SetString(PyExc_NotImplementedError, "Not supported in UWP Apps");
     return NULL;
 #else
     res = SetErrorMode(mode);
@@ -473,7 +473,7 @@ static struct PyMethodDef msvcrt_functions[] = {
     {"setmode",                 msvcrt_setmode, METH_VARARGS, setmode_doc},
     {"open_osfhandle",          msvcrt_open_osfhandle, METH_VARARGS, open_osfhandle_doc},
     {"get_osfhandle",           msvcrt_get_osfhandle, METH_VARARGS, get_osfhandle_doc},
-#ifndef MS_WINRT
+#ifndef MS_UWP
     {"kbhit",                   msvcrt_kbhit, METH_VARARGS, kbhit_doc},
     {"getch",                   msvcrt_getch, METH_VARARGS, getch_doc},
     {"getche",                  msvcrt_getche, METH_VARARGS, getche_doc},
@@ -485,7 +485,7 @@ static struct PyMethodDef msvcrt_functions[] = {
     {"CrtSetReportMode",        msvcrt_setreportmode, METH_VARARGS},
     {"set_error_mode",          msvcrt_seterrormode, METH_VARARGS},
 #endif /* DEBUG */
-#endif /* !MS_WINRT */
+#endif /* !MS_UWP */
 #ifdef _WCONIO_DEFINED
     {"getwch",                  msvcrt_getwch, METH_VARARGS, getwch_doc},
     {"getwche",                 msvcrt_getwche, METH_VARARGS, getwche_doc},
@@ -524,7 +524,7 @@ PyInit_msvcrt(void)
     insertint(d, "LK_NBRLCK", _LK_NBRLCK);
     insertint(d, "LK_RLCK", _LK_RLCK);
     insertint(d, "LK_UNLCK", _LK_UNLCK);
-#ifndef MS_WINRT
+#ifndef MS_UWP
     insertint(d, "SEM_FAILCRITICALERRORS", SEM_FAILCRITICALERRORS);
     insertint(d, "SEM_NOALIGNMENTFAULTEXCEPT", SEM_NOALIGNMENTFAULTEXCEPT);
     insertint(d, "SEM_NOGPFAULTERRORBOX", SEM_NOGPFAULTERRORBOX);

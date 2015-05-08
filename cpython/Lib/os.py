@@ -106,45 +106,45 @@ elif 'ce' in _names:
     except ImportError:
         pass
 
-elif 'winrt' in _names:
-    name = 'winrt'
+elif 'uwp' in _names:
+    name = 'uwp'
     linesep = '\r\n'
-    from winrt import *
+    from uwp import *
     
     try:
-        from winrt import _exit
+        from uwp import _exit
         __all__.append('_exit')
     except ImportError:
         pass
     import ntpath as path
 
-    import winrt
-    __all__.extend(_get_exports_list(winrt))
-    del winrt
+    import uwp
+    __all__.extend(_get_exports_list(uwp))
+    del uwp
 
     try:
-        from winrt import _have_functions
+        from uwp import _have_functions
     except ImportError:
         pass
 
-elif 'winrt_os' in _names:
-    name = 'winrt_os'
+elif 'uwp_os' in _names:
+    name = 'uwp_os'
     linesep = '\r\n'
-    from winrt_os import *
+    from uwp_os import *
     
     try:
-        from winrt_os import _exit
+        from uwp_os import _exit
         __all__.append('_exit')
     except ImportError:
         pass
     import ntpath as path
 
-    import winrt_os
-    __all__.extend(_get_exports_list(winrt_os))
-    del winrt_os
+    import uwp_os
+    __all__.extend(_get_exports_list(uwp_os))
+    del uwp_os
 
     try:
-        from winrt_os import _have_functions
+        from uwp_os import _have_functions
     except ImportError:
         pass
 
@@ -775,7 +775,7 @@ else:
         __all__.append("unsetenv")
 
 def _createenviron():
-    if name == 'nt' or name == 'winrt_os':
+    if name == 'nt' or name == 'uwp_os':
         # Where Env Var Names Must Be UPPERCASE
         def check_str(value):
             if not isinstance(value, str):
@@ -815,7 +815,7 @@ def getenv(key, default=None):
     key, default and the result are str."""
     return environ.get(key, default)
 
-supports_bytes_environ = (name != 'nt' and name != 'winrt_os')
+supports_bytes_environ = (name != 'nt' and name != 'uwp_os')
 __all__.extend(("getenv", "supports_bytes_environ"))
 
 if supports_bytes_environ:

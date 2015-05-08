@@ -82,37 +82,37 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libeay", "libeay.vcxproj", 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ssleay", "ssleay.vcxproj", "{10615B24-73BF-4EFA-93AA-236916321317}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "winrt", "winrt", "{D9B9BD28-F306-4AE8-919D-B8173029F90F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "uwp", "uwp", "{D9B9BD28-F306-4AE8-919D-B8173029F90F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pythoncore", "winrt\pythoncore.vcxproj", "{91C36924-3E30-4482-BE39-4A780305C187}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pythoncore", "uwp\pythoncore.vcxproj", "{91C36924-3E30-4482-BE39-4A780305C187}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_ctypes", "winrt\_ctypes.vcxproj", "{6BCCDA23-80F4-4C46-A82E-133D64B13FDB}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_ctypes", "uwp\_ctypes.vcxproj", "{6BCCDA23-80F4-4C46-A82E-133D64B13FDB}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_ctypes_test", "winrt\_ctypes_test.vcxproj", "{E557E75D-D541-4141-BE50-428C5589A5C4}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_ctypes_test", "uwp\_ctypes_test.vcxproj", "{E557E75D-D541-4141-BE50-428C5589A5C4}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_decimal", "winrt\_decimal.vcxproj", "{CA75580C-8307-466C-84F4-B7D6677E127A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_decimal", "uwp\_decimal.vcxproj", "{CA75580C-8307-466C-84F4-B7D6677E127A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_elementtree", "winrt\_elementtree.vcxproj", "{83FA65C4-177F-46D3-AFC2-9232A127CC68}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_elementtree", "uwp\_elementtree.vcxproj", "{83FA65C4-177F-46D3-AFC2-9232A127CC68}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pyexpat", "winrt\pyexpat.vcxproj", "{43AB54BD-CB0D-48D2-81C8-066EE4DED4B9}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pyexpat", "uwp\pyexpat.vcxproj", "{43AB54BD-CB0D-48D2-81C8-066EE4DED4B9}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unicodedata", "winrt\unicodedata.vcxproj", "{BBB70146-955E-4282-B2CE-E45D6217FC52}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unicodedata", "uwp\unicodedata.vcxproj", "{BBB70146-955E-4282-B2CE-E45D6217FC52}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_testcapi", "winrt\_testcapi.vcxproj", "{DD7BE91E-723A-4EF7-9ABD-ADD15CEB19F6}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_testcapi", "uwp\_testcapi.vcxproj", "{DD7BE91E-723A-4EF7-9ABD-ADD15CEB19F6}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_socket", "winrt\_socket.vcxproj", "{B2FBBF74-3E5A-4225-BE87-54E54A4F88BC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_socket", "uwp\_socket.vcxproj", "{B2FBBF74-3E5A-4225-BE87-54E54A4F88BC}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_lzma", "winrt\_lzma.vcxproj", "{09701B28-073C-4348-BA20-DE246DF5E89B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_lzma", "uwp\_lzma.vcxproj", "{09701B28-073C-4348-BA20-DE246DF5E89B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_bz2", "winrt\_bz2.vcxproj", "{C63311D8-7796-479A-AB9D-8E681D36DCF3}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_bz2", "uwp\_bz2.vcxproj", "{C63311D8-7796-479A-AB9D-8E681D36DCF3}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "select", "winrt\select.vcxproj", "{A1863EDB-6843-4B69-896B-E9183E94751C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "select", "uwp\select.vcxproj", "{A1863EDB-6843-4B69-896B-E9183E94751C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_testbuffer", "winrt\_testbuffer.vcxproj", "{B70DF009-89CA-4D54-B770-97FBA6CAFA9A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_testbuffer", "uwp\_testbuffer.vcxproj", "{B70DF009-89CA-4D54-B770-97FBA6CAFA9A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_testimportmultiple", "winrt\_testimportmultiple.vcxproj", "{6264398B-B2A3-4A30-86F3-82460780E715}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_testimportmultiple", "uwp\_testimportmultiple.vcxproj", "{6264398B-B2A3-4A30-86F3-82460780E715}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_ssl", "winrt\_ssl.vcxproj", "{5195EEC7-59AB-4B59-A53B-83550AEA89AF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_ssl", "uwp\_ssl.vcxproj", "{5195EEC7-59AB-4B59-A53B-83550AEA89AF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

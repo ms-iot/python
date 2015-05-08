@@ -109,7 +109,7 @@ PyCOND_TIMEDWAIT(PyCOND_T *cond, PyMUTEX_T *mut, PY_LONG_LONG us)
         return 0;
 }
 
-#elif defined(NT_THREADS) || defined(WINRT_THREADS)
+#elif defined(NT_THREADS) || defined(UWP_THREADS)
 /*
  * Windows (XP, 2003 server and later, as well as (hopefully) CE) support
  *

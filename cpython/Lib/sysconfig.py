@@ -60,7 +60,7 @@ _INSTALL_SCHEMES = {
         'scripts': '{userbase}/Python{py_version_nodot}/Scripts',
         'data': '{userbase}',
         },
-    'winrt_os': {
+    'uwp_os': {
         'stdlib': '{installed_base}/Lib',
         'platstdlib': '{base}/Lib',
         'purelib': '{base}/Lib/site-packages',
@@ -70,7 +70,7 @@ _INSTALL_SCHEMES = {
         'scripts': '{base}/Scripts',
         'data': '{base}',
         },
-    'winrt_os_user': {
+    'uwp_os_user': {
         'stdlib': '{userbase}/Python{py_version_nodot}',
         'platstdlib': '{userbase}/Python{py_version_nodot}',
         'purelib': '{userbase}/Python{py_version_nodot}/site-packages',
@@ -79,7 +79,7 @@ _INSTALL_SCHEMES = {
         'scripts': '{userbase}/Scripts',
         'data': '{userbase}',
         },
-    'winrt_os': {
+    'uwp_os': {
         'stdlib': '{installed_base}/Lib',
         'platstdlib': '{base}/Lib',
         'purelib': '{base}/Lib/site-packages',
@@ -89,7 +89,7 @@ _INSTALL_SCHEMES = {
         'scripts': '{base}/Scripts',
         'data': '{base}',
         },
-    'winrt_os_user': {
+    'uwp_os_user': {
         'stdlib': '{userbase}/Python{py_version_nodot}',
         'platstdlib': '{userbase}/Python{py_version_nodot}',
         'purelib': '{userbase}/Python{py_version_nodot}/site-packages',
@@ -202,7 +202,7 @@ def _expand_vars(scheme, vars):
     _extend_dict(vars, get_config_vars())
 
     for key, value in _INSTALL_SCHEMES[scheme].items():
-        if os.name in ('posix', 'nt', 'winrt_os'):
+        if os.name in ('posix', 'nt', 'uwp_os'):
             value = os.path.expanduser(value)
         res[key] = os.path.normpath(_subst_vars(value, vars))
     return res
@@ -565,7 +565,7 @@ def get_config_vars(*args):
 
         if os.name == 'nt':
             _init_non_posix(_CONFIG_VARS)
-        if os.name == 'winrt_os':
+        if os.name == 'uwp_os':
             _init_non_posix(_CONFIG_VARS)
         if os.name == 'posix':
             _init_posix(_CONFIG_VARS)

@@ -731,7 +731,7 @@ extern pid_t forkpty(int *, char *, struct termios *, struct winsize *);
 #endif
 
 /* only get special linkage if built as shared or platform is Cygwin */
-#if defined(Py_ENABLE_SHARED) || defined(MS_WINRT) || defined(__CYGWIN__)
+#if defined(Py_ENABLE_SHARED) || defined(MS_UWP) || defined(__CYGWIN__)
 #       if defined(HAVE_DECLSPEC_DLL)
 #               ifdef Py_BUILD_CORE
 #                       define PyAPI_FUNC(RTYPE) __declspec(dllexport) RTYPE
