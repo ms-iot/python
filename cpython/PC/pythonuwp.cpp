@@ -32,9 +32,9 @@ void OutputDebugTimeString(PCWSTR message);
 
 void InitializePython()
 {
-    OutputDebugTimeString(L"Starting initialize");
+    OutputDebugTimeString(L"Starting Py_Initialize");
     Py_Initialize();
-    OutputDebugTimeString(L"Finished initialize");
+    OutputDebugTimeString(L"Finished Py_Initialize");
 }
 
 void FinalizePython()
@@ -86,12 +86,10 @@ void PingPythonDebugger(
         // Try to get information back from debugger
         __try
         {
-            OutputDebugTimeString(L"Starting exception...");
             RaiseException(dwExceptionCode, 0, nArguments, pArguments);
         }
         __except (EXCEPTION_EXECUTE_HANDLER)
         {
-            OutputDebugTimeString(L"finished exception.");
         }
     }));
 
