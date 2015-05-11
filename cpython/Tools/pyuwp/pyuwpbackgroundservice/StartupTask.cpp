@@ -94,7 +94,7 @@ void StartupTask::CheckPythonDebuggerPresence(Vector<String^>^ argumentsVector)
     args[1] = (ULONG_PTR)debugCommand;
     args[2] = sizeof(debugCommand);
 
-    GetPythonDebugParams(0xEDCBA987, args, argCount);
+    PingPythonDebugger(0xEDCBA987, args, argCount);
 
 	// If debugger present, read out the debug arguments to append and launch the application
 	if (isPresent)

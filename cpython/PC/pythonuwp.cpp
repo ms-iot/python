@@ -77,10 +77,10 @@ int RunPython(
     return result;
 }
 
-void GetPythonDebugParams(
-    DWORD dwExceptionCode,
+void PingPythonDebugger(
+    unsigned int dwExceptionCode,
     ULONG_PTR * pArguments,
-    DWORD nArguments)
+    unsigned int nArguments)
 {
     concurrency::task<void> raiseDebuggerExceptionTask(concurrency::create_async([=] {
         // Try to get information back from debugger

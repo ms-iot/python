@@ -332,6 +332,9 @@
     <ProjectReference Include="..\..\..\PCbuild\uwp\_ssl.vcxproj">
       <Project>{5195eec7-59ab-4b59-a53b-83550aea89af}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\ptvsdhelper\_ptvsdhelper.vcxproj">
+      <Project>{18a52e7c-6207-43fc-879b-0dd7952967a2}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

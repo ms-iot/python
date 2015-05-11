@@ -23,16 +23,22 @@
 #endif
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 PyAPI_FUNC(void) InitializePython();
 
 PyAPI_FUNC(void) FinalizePython();
 
-PyAPI_FUNC(void) GetPythonDebugParams(
-    DWORD dwExceptionCode,
+PyAPI_FUNC(void) PingPythonDebugger(
+    unsigned int dwExceptionCode,
     ULONG_PTR * pArguments,
-    DWORD nArguments);
+    unsigned int nArguments);
 
+#ifdef __cplusplus
 PyAPI_FUNC(int) RunPython(
     std::function<void(Platform::String^)> stdOutFunc,
     std::function<void(Platform::String^)> stdErrFunc,
     Platform::Collections::Vector<Platform::String^>^ argumentsVector);
+}
+#endif
