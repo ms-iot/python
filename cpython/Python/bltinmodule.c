@@ -21,7 +21,7 @@
    Don't forget to modify PyUnicode_DecodeFSDefault() if you touch any of the
    values for Py_FileSystemDefaultEncoding!
 */
-#if defined(HAVE_MBCS) && !defined(MS_WINRT)
+#if defined(HAVE_MBCS) && !defined(MS_UWP)
 const char *Py_FileSystemDefaultEncoding = "mbcs";
 int Py_HasFileSystemDefaultEncoding = 1;
 #elif defined(__APPLE__)

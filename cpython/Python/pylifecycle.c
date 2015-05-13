@@ -214,7 +214,7 @@ static char*
 get_locale_encoding(void)
 {
 #ifdef MS_WINDOWS
-#ifdef MS_WINRT
+#ifdef MS_UWP
     return get_codec_name("cp65001");
 #else
     char codepage[100];
@@ -1372,7 +1372,7 @@ Py_FatalError(const char *msg)
 #endif /*MS_WINDOWS */
 
 exit:
-#if defined(_DEBUG) && defined(MS_WINDOWS) && !defined(MS_WINRT)
+#if defined(_DEBUG) && defined(MS_WINDOWS) && !defined(MS_UWP)
     DebugBreak();
 #endif
     abort();

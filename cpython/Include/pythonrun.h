@@ -179,7 +179,7 @@ PyAPI_DATA(PyThreadState*) _PyOS_ReadlineTState;
    to a 8k margin. */
 #define PYOS_STACK_MARGIN 2048
 
-#if defined(WIN32) && !defined(MS_WIN64) && !defined(MS_WINRT) && defined(_MSC_VER) && _MSC_VER >= 1300
+#if defined(WIN32) && !defined(MS_WIN64) && !defined(MS_UWP) && defined(_MSC_VER) && _MSC_VER >= 1300
 /* Enable stack checking under Microsoft C */
 #define USE_STACKCHECK
 #endif

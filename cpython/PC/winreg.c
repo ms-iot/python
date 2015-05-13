@@ -16,7 +16,7 @@
 #include "structmember.h"
 #include "windows.h"
 
-#ifndef MS_WINRT
+#ifndef MS_UWP
 
 static BOOL PyHKEY_AsHKEY(PyObject *ob, HKEY *pRes, BOOL bNoneOK);
 static PyObject *PyHKEY_FromHKEY(HKEY h);
@@ -1865,4 +1865,4 @@ PyMODINIT_FUNC PyInit_winreg(void)
     return m;
 }
 
-#endif /* MS_WINRT */
+#endif /* MS_UWP */

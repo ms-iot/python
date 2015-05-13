@@ -2,14 +2,14 @@
 #ifdef MS_WINDOWS
 #include <windows.h>
 #endif
-#ifdef MS_WINRT
+#ifdef MS_UWP
 #include <winsock2.h>         /* struct timeval */
 #endif
 #if defined(__APPLE__)
 #include <mach/mach_time.h>   /* mach_absolute_time(), mach_timebase_info() */
 #endif
 
-#if defined(MS_WINDOWS) && !defined(MS_WINRT)
+#if defined(MS_WINDOWS) && !defined(MS_UWP)
 static OSVERSIONINFOEX winver;
 #endif
 
@@ -443,13 +443,13 @@ pygettimeofday_new(_PyTime_t *tp, _Py_clock_info_t *info, int raise)
        days). */
     *tp = large.QuadPart * 100 - 11644473600000000000;
     if (info) {
-#ifndef MS_WINRT
+#ifndef MS_UWP
         DWORD timeAdjustment, timeIncrement;
         BOOL isTimeAdjustmentDisabled, ok;
 #endif
         info->implementation = "GetSystemTimeAsFileTime()";
         info->monotonic = 0;
-#ifndef MS_WINRT
+#ifndef MS_UWP
         ok = GetSystemTimeAdjustment(&timeAdjustment, &timeIncrement,
                                      &isTimeAdjustmentDisabled);
         if (!ok) {
@@ -549,7 +549,7 @@ pymonotonic_new(_PyTime_t *tp, _Py_clock_info_t *info, int raise)
     static _PyTime_t last = 0;
 #endif
 #if defined(MS_WINDOWS)
-#ifndef MS_WINRT
+#ifndef MS_UWP
     static ULONGLONG (*GetTickCount64) (void) = NULL;
     static ULONGLONG (CALLBACK *Py_GetTickCount64)(void);
 #endif
@@ -571,11 +571,12 @@ pymonotonic_new(_PyTime_t *tp, _Py_clock_info_t *info, int raise)
     }
 
     if (info) {
-        DWORD timeAdjustment, timeIncrement;
-        BOOL isTimeAdjustmentDisabled, ok;
         info->implementation = "GetTickCount64()";
         info->monotonic = 1;
-#ifndef MS_WINRT
+#ifndef MS_UWP
+        DWORD timeAdjustment, timeIncrement;
+        BOOL isTimeAdjustmentDisabled, ok;
+
         ok = GetSystemTimeAdjustment(&timeAdjustment, &timeIncrement,
                                      &isTimeAdjustmentDisabled);
         if (!ok) {

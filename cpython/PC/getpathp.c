@@ -123,7 +123,7 @@ reduce(wchar_t *dir)
 static int
 exists(wchar_t *filename)
 {
-#ifdef MS_WINRT
+#ifdef MS_UWP
     WIN32_FILE_ATTRIBUTE_DATA fad;
     return GetFileAttributesExW(filename, GetFileExInfoStandard, &fad) != 0;
 #else
@@ -210,7 +210,7 @@ search_for_prefix(wchar_t *argv0_path, wchar_t *landmark)
     return 0;
 }
 
-#if defined(MS_WINDOWS) && !defined(MS_WINRT)
+#if defined(MS_WINDOWS) && !defined(MS_UWP)
 #ifdef Py_ENABLE_SHARED
 
 /* a string loaded from the DLL at startup.*/
@@ -363,13 +363,13 @@ done:
 #endif /* Py_ENABLE_SHARED */
 #endif /* MS_WINDOWS */
 
-#ifdef MS_WINRT
+#ifdef MS_UWP
 
 static void
 get_progpath(void)
 {
     wchar_t *prog = Py_GetProgramName();
-    extern size_t winrt_getinstallpath(wchar_t *buffer, size_t cch);
+    extern size_t uwp_getinstallpath(wchar_t *buffer, size_t cch);
     
     if (progpath[0] != 0)
     {
@@ -377,7 +377,7 @@ get_progpath(void)
         return;
     }
 
-    if (!winrt_getinstallpath(progpath, MAXPATHLEN))
+    if (!uwp_getinstallpath(progpath, MAXPATHLEN))
     {
         progpath[0] = 0;
         return;
@@ -517,7 +517,7 @@ calculate_path(void)
     wchar_t zip_path[MAXPATHLEN+1];
     size_t len;
 
-#ifndef MS_WINRT
+#ifndef MS_UWP
     if (!Py_IgnoreEnvironmentFlag) {
         envpath = _wgetenv(L"PYTHONPATH");
     }
@@ -603,7 +603,7 @@ calculate_path(void)
 
     skiphome = pythonhome==NULL ? 0 : 1;
 #ifdef Py_ENABLE_SHARED
-#ifndef MS_WINRT
+#ifndef MS_UWP
     machinepath = getpythonregpath(HKEY_LOCAL_MACHINE, skiphome);
     userpath = getpythonregpath(HKEY_CURRENT_USER, skiphome);
 #endif
@@ -846,7 +846,7 @@ _Py_CheckPython3()
     if (!s)
         s = py3path;
     wcscpy(s, L"\\python3.dll");
-#ifndef MS_WINRT
+#ifndef MS_UWP
     hPython3 = LoadLibraryExW(py3path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
 #else
     hPython3 = LoadPackagedLibrary(py3path, 0);
@@ -857,7 +857,7 @@ _Py_CheckPython3()
     /* Check sys.prefix\DLLs\python3.dll */
     wcscpy(py3path, Py_GetPrefix());
     wcscat(py3path, L"\\DLLs\\python3.dll");
-#ifndef MS_WINRT
+#ifndef MS_UWP
     hPython3 = LoadLibraryExW(py3path, NULL, LOAD_WITH_ALTERED_SEARCH_PATH);
 #else
     hPython3 = LoadPackagedLibrary(py3path, 0);

@@ -22,7 +22,7 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
     <CopyBuildOutputToOutputDirectory>false</CopyBuildOutputToOutputDirectory>
     <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
-    <InputDir>$(SolutionDir)winrt\8.2</InputDir>
+    <InputDir>$(SolutionDir)uwp\8.2</InputDir>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -81,6 +81,10 @@
       <Link>Redist\Retail\x86\_elementtree.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="$(InputDir)\Win32\_ptvsdhelper.pyd">
+      <Link>Redist\Retail\x86\_ptvsdhelper.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="$(InputDir)\Win32\_socket.pyd">
       <Link>Redist\Retail\x86\_socket.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -119,6 +123,10 @@
     </Content>
     <Content Include="$(InputDir)\Win32\_elementtree_d.pyd">
       <Link>Redist\Debug\x86\_elementtree.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\_ptvsdhelper_d.pyd">
+      <Link>Redist\Debug\x86\_ptvsdhelper.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\_socket_d.pyd">
@@ -164,6 +172,10 @@
       <Link>Redist\Retail\x64\_elementtree.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="$(InputDir)\amd64\_ptvsdhelper.pyd">
+      <Link>Redist\Retail\x64\_ptvsdhelper.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="$(InputDir)\amd64\_socket.pyd">
       <Link>Redist\Retail\x64\_socket.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -198,6 +210,10 @@
     </Content>
     <Content Include="$(InputDir)\amd64\_elementtree_d.pyd">
       <Link>Redist\Debug\x64\_elementtree.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\_ptvsdhelper_d.pyd">
+      <Link>Redist\Debug\x64\_ptvsdhelper.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\_socket_d.pyd">
@@ -247,6 +263,10 @@
       <Link>Redist\Retail\arm\_elementtree.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="$(InputDir)\arm\_ptvsdhelper.pyd">
+      <Link>Redist\Retail\arm\_ptvsdhelper.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="$(InputDir)\arm\_socket.pyd">
       <Link>Redist\Retail\arm\_socket.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -281,6 +301,10 @@
     </Content>
     <Content Include="$(InputDir)\arm\_elementtree_d.pyd">
       <Link>Redist\Debug\arm\_elementtree.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\_ptvsdhelper_d.pyd">
+      <Link>Redist\Debug\arm\_ptvsdhelper.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\_socket_d.pyd">

@@ -2,8 +2,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <CPythonSDKPath>$(MSBuildThisFileDirectory)..\..\..\</CPythonSDKPath>
-    <PtvsLocation>$(LocalAppData)\Microsoft\VisualStudio\$(VisualStudioVersion)Exp\Extensions\Microsoft\Python Tools for Visual Studio\$(PtvsVersion)\</PtvsLocation>
-    <PtvsLocation Condition="'$(PtvsLocation)' == '' or !Exists('$(PtvsLocation)')">$(MSBuildProgramFiles32)\Microsoft Visual Studio $(VisualStudioVersion)\Common7\IDE\Extensions\Microsoft\Python Tools for Visual Studio\$(PtvsVersion)\</PtvsLocation>
     <RedistPlatform Condition="'$(Platform)'=='x64'">x64</RedistPlatform>
     <RedistPlatform Condition="'$(Platform)'=='ARM'">arm</RedistPlatform>
     <RedistPlatform Condition="'$(RedistPlatform)'==''">x86</RedistPlatform>
@@ -18,126 +16,16 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
 
   <ItemGroup>
-    <PtvsdFiles Include="$(PtvsLocation)\ptvsd\**\*" />
-    <VisualStudioPyFiles Include="$(PtvsLocation)\visualstudio_py_*.py" />
     <SDKReference Include="Microsoft.VCLibs.AppLocal, Version=14.0">
-      <Name>Microsoft Visual C++ 14 Runtime Package for Windows UAP</Name>
+      <Name>Microsoft Visual C++ 2015 Runtime Package for Windows UAP</Name>
     </SDKReference>
-  </ItemGroup>
-
-  <ItemGroup>
     <PythonHost Include="$(CPythonSDKPath)\Redist\$(RedistConfiguration)\$(RedistPlatform)\*"/>
     <PythonHost Include="$(CPythonSDKPath)\References\CommonConfiguration\Neutral\**\*" />
   </ItemGroup>
   
   <PropertyGroup>
-    <StartupInfoFile>$(TargetDir)startupinfo.xml</StartupInfoFile>
+    <StartupInfoFile>$(TargetDir)startupinfo.json</StartupInfoFile>
   </PropertyGroup>
-  
-  <ItemGroup>
-    <PythonHost Include="$(StartupInfoFile)" />
-  </ItemGroup>
-
-  <PropertyGroup>
-    <PythonArguments Condition="'$(PythonArguments)'==''">$(StartupFile)</PythonArguments>
-  </PropertyGroup>
-
-  <Target Name="ReferenceCopy" BeforeTargets="CoreCompile">
-    <Message Text="Reference copy" />
-    <Copy SourceFiles="@(Reference->'%(FullPath)')" DestinationFiles="$(OutputPath)\references\%(Reference.FileName)%(Reference.Extension)" />
-    <ItemGroup>
-      <OutputReferences Include="$(OutputPath)\references\**\*" />
-    </ItemGroup>
-  </Target>
-  
-  <Target Name="CustomOutputGroupForPackaging" Returns="@(CustomOutputGroupForPackagingOutput)">
-    <AssignTargetPath Files="@(PythonHost->'%(FullPath)')" RootFolder="$(OutputPath)">
-      <Output TaskParameter="AssignedFiles" ItemName="CustomOutputGroupForPackagingOutput" />
-    </AssignTargetPath>
-    <AssignTargetPath Files="@(Compile->'%(FullPath)')" RootFolder="$(OutputPath)">
-      <Output TaskParameter="AssignedFiles" ItemName="CustomOutputGroupForPackagingOutput" />
-    </AssignTargetPath>
-    <AssignTargetPath Files="@(PtvsdFiles->'%(FullPath)')" RootFolder="$(PtvsLocation)" Condition="Exists('$(PtvsLocation)')">
-      <Output TaskParameter="AssignedFiles" ItemName="CustomOutputGroupForPackagingOutput" />
-    </AssignTargetPath>
-    <AssignTargetPath Files="@(VisualStudioPyFiles->'%(FullPath)')" RootFolder="$(PtvsLocation)" Condition="Exists('$(PtvsLocation)')">
-      <Output TaskParameter="AssignedFiles" ItemName="CustomOutputGroupForPackagingOutput" />
-    </AssignTargetPath>
-    <AssignTargetPath Files="@(OutputReferences->'%(FullPath)')" RootFolder="$(OutputPath)references" Condition="Exists('$(OutputPath)references')">
-      <Output TaskParameter="AssignedFiles" ItemName="CustomOutputGroupForPackagingOutput" />
-    </AssignTargetPath>
-  </Target>
-
-  <UsingTask TaskName="CreateStartupInfo" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
-    <ParameterGroup>
-      <Arguments ParameterType="System.String" Required="true" />
-      <StartupInfoFile ParameterType="System.String" Required="true" />
-    </ParameterGroup>
-    <Task>
-      <Reference Include="System.Xml" />
-      <Using Namespace="System.IO" />
-      <Using Namespace="System.Xml" />
-      <Code Type="Fragment" Language="cs">
-          <![CDATA[
-        var xml = new XmlDocument();
-        
-        xml.LoadXml("<StartupInfo></StartupInfo>");
-        
-        var argArray = Arguments.Split(';');
-        
-        for (var i = 0; i < argArray.Length; i++)
-        {
-          var newArg = xml.CreateElement("Argument");
-          
-          newArg.InnerText = argArray[i];
-          
-          xml.DocumentElement.AppendChild(newArg);
-        }
-        
-        xml.Save(StartupInfoFile);
-      ]]></Code>
-    </Task>
-  </UsingTask>
-
-  <UsingTask TaskName="UnZip" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
-    <ParameterGroup>
-      <InputFileName ParameterType="System.String" Required="true" />
-      <OutputDirectory ParameterType="System.String" Required="true" />
-    </ParameterGroup>
-    <Task>
-      <Reference Include="System.IO.Compression" />
-      <Reference Include="System.IO.Compression.FileSystem" />
-      <Using Namespace="System.IO.Compression" />
-      <Using Namespace="System.IO" />
-      <Code Type="Fragment" Language="cs">
-        <![CDATA[
-        var outputDirectory = new DirectoryInfo(OutputDirectory);
-        var lastZipChangeTime = DateTime.MinValue;
-        
-        if (File.Exists(InputFileName))
-        {
-            lastZipChangeTime = new FileInfo(InputFileName).LastWriteTimeUtc;
-            
-            // Directory is older than the ZIP, so let's go ahead and delete it to force an unzip again
-            if (outputDirectory.Exists && outputDirectory.LastWriteTimeUtc < lastZipChangeTime)
-            {
-                outputDirectory.Delete(true);
-            }
-            
-            if (!outputDirectory.Exists)
-            {
-                ZipFile.ExtractToDirectory(InputFileName, OutputDirectory);
-            }
-        }
-      ]]>
-      </Code>
-    </Task>
-  </UsingTask>
-
-  <Target Name="BuildStartupInfo" BeforeTargets="CoreCompile">
-    <CreateStartupInfo Arguments="$(PythonArguments)" StartupInfoFile="$(StartupInfoFile)" />
-    <UnZip InputFileName="$(CPythonSDKPath)\References\CommonConfiguration\Neutral\lib.zip" OutputDirectory="$(ProjectDir)\lib.zip" />
-  </Target>
   
   <Target Name="CoreCompile" />
   <Target Name="CreateManifestResourceNames"/>

@@ -4157,9 +4157,9 @@ parseKeyUsage(PCCERT_CONTEXT pCertCtx, DWORD flags)
     return retval;
 }
 
-#ifdef MS_WINRT
+#ifdef MS_UWP
 
-PyObject * winrt_enumcertificates(void);
+PyObject * uwp_enumcertificates(void);
 
 #endif
 
@@ -4180,8 +4180,8 @@ static PyObject *
 _ssl_enum_certificates_impl(PyModuleDef *module, const char *store_name)
 /*[clinic end generated code: output=cc4ebc10b8adacfc input=915f60d70461ea4e]*/
 {
-#ifdef MS_WINRT
-    return winrt_enumcertificates();
+#ifdef MS_UWP
+    return uwp_enumcertificates();
 #else
     HCERTSTORE hStore = NULL;
     PCCERT_CONTEXT pCertCtx = NULL;
@@ -4270,7 +4270,7 @@ static PyObject *
 _ssl_enum_crls_impl(PyModuleDef *module, const char *store_name)
 /*[clinic end generated code: output=763490a2aa1c50d5 input=a1f1d7629f1c5d3d]*/
 {
-#ifdef MS_WINRT
+#ifdef MS_UWP
     return NULL;
 #else
     HCERTSTORE hStore = NULL;
@@ -4330,7 +4330,7 @@ _ssl_enum_crls_impl(PyModuleDef *module, const char *store_name)
         return PyErr_SetFromWindowsErr(GetLastError());
     }
     return result;
-#endif /* !MS_WINRT */
+#endif /* !MS_UWP */
 }
 
 #endif /* _MSC_VER */
@@ -4345,7 +4345,7 @@ static PyMethodDef PySSL_methods[] = {
     _SSL_RAND_STATUS_METHODDEF
     _SSL_GET_DEFAULT_VERIFY_PATHS_METHODDEF
     _SSL_ENUM_CERTIFICATES_METHODDEF
-#ifndef MS_WINRT
+#ifndef MS_UWP
     _SSL_ENUM_CRLS_METHODDEF
 #endif
     _SSL_TXT2OBJ_METHODDEF

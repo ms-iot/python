@@ -1468,7 +1468,7 @@ PyInit__signal(void)
 
 #ifdef MS_WINDOWS
     /* Create manual-reset event, initially unset */
-#ifdef MS_WINRT
+#ifdef MS_UWP
     sigint_event = CreateEventEx(NULL, NULL, CREATE_EVENT_MANUAL_RESET, SYNCHRONIZE | EVENT_MODIFY_STATE);
 #else
     sigint_event = CreateEvent(NULL, TRUE, FALSE, FALSE);

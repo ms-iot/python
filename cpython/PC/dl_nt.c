@@ -93,7 +93,7 @@ BOOL    WINAPI  DllMain (HANDLE hInst,
     {
         case DLL_PROCESS_ATTACH:
             PyWin_DLLhModule = hInst;
-#if !defined(MS_DLL_ID) && !defined(MS_WINRT)
+#if !defined(MS_DLL_ID) && !defined(MS_UWP)
             // If we have MS_DLL_ID, we don't need to load the string.
             // 1000 is a magic number I picked out of the air.  Could do with a #define, I spose...
             LoadString(hInst, 1000, dllVersionBuffer, sizeof(dllVersionBuffer));

@@ -71,7 +71,7 @@ for %%e in (
 )
 
 echo.Fetching %MSSVNROOT%...
-svn export %MSSVNROOT% openssl-winrt
+svn export %MSSVNROOT% openssl-uwp
 
 goto end
 

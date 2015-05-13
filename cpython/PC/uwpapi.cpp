@@ -1,6 +1,6 @@
 #include "Python.h"
 
-#ifdef MS_WINRT
+#ifdef MS_UWP
 
 #include <Windows.h>
 
@@ -25,13 +25,13 @@ extern "C" {
             buffer[i] = data2[i];
     }
 
-    /*BOOL*/ int winrt_startfile(const wchar_t *operation, const wchar_t *path)
+    /*BOOL*/ int uwp_startfile(const wchar_t *operation, const wchar_t *path)
     {
         /* TODO: Implement launcher */
         return FALSE;
     }
 
-    size_t winrt_getinstallpath(wchar_t *buffer, size_t cch)
+    size_t uwp_getinstallpath(wchar_t *buffer, size_t cch)
     {
         try
         {
@@ -74,7 +74,7 @@ extern "C" {
         return success;
     }
 
-    PyObject * winrt_defaultenviron()
+    PyObject * uwp_defaultenviron()
     {
         auto d = PyDict_New();
 
@@ -91,7 +91,7 @@ extern "C" {
         return nullptr;
     }
 
-    PyObject * winrt_enumcertificates()
+    PyObject * uwp_enumcertificates()
     {
         PyObject *result = NULL;
         PyObject *keyusage = NULL, *cert = NULL, *enc = NULL, *tup = NULL;

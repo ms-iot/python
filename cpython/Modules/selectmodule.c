@@ -49,7 +49,7 @@ extern void bzero(void *, int);
 
 #ifdef MS_WINDOWS
 #  define WIN32_LEAN_AND_MEAN
-#ifdef MS_WINRT
+#ifdef MS_UWP
 #include <WinSock2.h>
 #else
 #  include <winsock.h>

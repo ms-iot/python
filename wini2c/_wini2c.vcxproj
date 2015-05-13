@@ -149,7 +149,7 @@
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
-      <AdditionalLibraryDirectories>$(PythonDir)\Tools\pyuwp\winrt\8.2\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(PythonDir)\Tools\pyuwp\uwp\8.2\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ShowProgress>LinkVerbose</ShowProgress>
       <IgnoreSpecificDefaultLibraries>LIBC;ole32.lib;kernel32.lib;msvcrt.lib;msvcrtd.lib%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <AdditionalDependencies>%(AdditionalDependencies);vccorlibd.lib;msvcrtd.lib</AdditionalDependencies>
@@ -291,7 +291,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\cpython\PCbuild\winrt\pythoncore.vcxproj">
+    <ProjectReference Include="..\cpython\PCbuild\uwp\pythoncore.vcxproj">
       <Project>{91c36924-3e30-4482-be39-4a780305c187}</Project>
     </ProjectReference>
   </ItemGroup>

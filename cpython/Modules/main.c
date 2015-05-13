@@ -332,7 +332,7 @@ Py_Main(int argc, wchar_t **argv)
     wchar_t *module = NULL;
     FILE *fp = stdin;
     char *p;
-#if defined(MS_WINDOWS) && !defined(MS_WINRT)
+#if defined(MS_WINDOWS) && !defined(MS_UWP)
     wchar_t *wp;
 #endif
     int skipfirstline = 0;
@@ -363,8 +363,8 @@ Py_Main(int argc, wchar_t **argv)
             break;
         }
     }
-#ifdef MS_WINRT
-    /* Windows Store apps do not have environment variables */
+#ifdef MS_UWP
+    /* UWP apps do not have environment variables */
     Py_IgnoreEnvironmentFlag++;
 #endif
 
@@ -520,8 +520,8 @@ Py_Main(int argc, wchar_t **argv)
         (p = Py_GETENV("PYTHONNOUSERSITE")) && *p != '\0')
         Py_NoUserSiteDirectory = 1;
 
-#if defined(MS_WINRT)
-    /* Separate case because _wgetenv is an error for Windows Store apps
+#if defined(MS_UWP)
+    /* Separate case because _wgetenv is an error for UWP apps
        and the else block is always skipped anyway. */
 #elif defined(MS_WINDOWS)
     if (!Py_IgnoreEnvironmentFlag && (wp = _wgetenv(L"PYTHONWARNINGS")) &&

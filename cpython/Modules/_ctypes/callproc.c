@@ -233,7 +233,7 @@ static WCHAR *FormatError(DWORD code)
 {
     WCHAR *lpMsgBuf;
     DWORD n;
-#ifdef MS_WINRT
+#ifdef MS_UWP
 #define FORMATMSGSIZE 4096
 	lpMsgBuf = (WCHAR*)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, FORMATMSGSIZE * sizeof(wchar_t));
 	if (lpMsgBuf)
@@ -987,7 +987,7 @@ error:
 static PyObject *
 GetComError(HRESULT errcode, GUID *riid, IUnknown *pIunk)
 {
-#ifdef MS_WINRT
+#ifdef MS_UWP
 	return Py_None;
 #else
     HRESULT hr;
@@ -1047,7 +1047,7 @@ GetComError(HRESULT errcode, GUID *riid, IUnknown *pIunk)
         PyErr_SetObject(ComError, obj);
         Py_DECREF(obj);
     }
-#ifdef MS_WINRT
+#ifdef MS_UWP
 	HeapFree(GetProcessHeap(), 0, text);
 #else
     LocalFree(text);
@@ -1241,7 +1241,7 @@ static PyObject *format_error(PyObject *self, PyObject *args)
     lpMsgBuf = FormatError(code);
     if (lpMsgBuf) {
         result = PyUnicode_FromWideChar(lpMsgBuf, wcslen(lpMsgBuf));
-#ifdef MS_WINRT
+#ifdef MS_UWP
 		HeapFree(GetProcessHeap(), 0, lpMsgBuf);
 #else
         LocalFree(lpMsgBuf);
@@ -1252,7 +1252,7 @@ static PyObject *format_error(PyObject *self, PyObject *args)
     return result;
 }
 
-#ifdef MS_WINRT
+#ifdef MS_UWP
 WINBASEAPI
 _Ret_maybenull_
 HMODULE
@@ -1284,7 +1284,7 @@ static PyObject *load_library(PyObject *self, PyObject *args)
     if (!name)
         return NULL;
 
-#ifdef MS_WINRT
+#ifdef MS_UWP
 	hMod = LoadLibraryExW(name, 0, LOAD_PACKAGED_LIBRARY);
 #else
     hMod = LoadLibraryW(name);

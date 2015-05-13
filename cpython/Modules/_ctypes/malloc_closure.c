@@ -39,7 +39,7 @@ static void more_core(void)
 #if defined(MS_WIN32) || defined(MS_ARM)
     if (!_pagesize) {
         SYSTEM_INFO systeminfo;
-#ifdef MS_WINRT
+#ifdef MS_UWP
 		GetNativeSystemInfo(&systeminfo);
 #else
         GetSystemInfo(&systeminfo);
@@ -61,7 +61,7 @@ static void more_core(void)
 
     /* allocate a memory block */
 #ifdef MS_WINDOWS
-#ifdef MS_WINRT
+#ifdef MS_UWP
 	item = (ITEM *)malloc(count * sizeof(ITEM));
 #else
     item = (ITEM *)VirtualAlloc(NULL,

@@ -446,7 +446,7 @@ mmap_size_method(mmap_object *self,
     if (self->file_handle != INVALID_HANDLE_VALUE) {
         DWORD low,high;
         PY_LONG_LONG size;
-#ifdef MS_WINRT
+#ifdef MS_UWP
         FILE_STANDARD_INFO fileStandardInfo;
         if (!GetFileInformationByHandleEx(self->file_handle, FileStandardInfo, &fileStandardInfo, sizeof(fileStandardInfo)))
         {
@@ -510,7 +510,7 @@ mmap_resize_method(mmap_object *self,
         !is_resizeable(self)) {
         return NULL;
 #ifdef MS_WINDOWS
-#ifndef MS_WINRT
+#ifndef MS_UWP
     }
     else {
         DWORD dwErrCode = 0;
@@ -564,7 +564,7 @@ mmap_resize_method(mmap_object *self,
             dwErrCode = GetLastError();
         }
         PyErr_SetFromWindowsErr(dwErrCode);
-#else /* MS_WINRT */
+#else /* MS_UWP */
     } else {
         return NULL;
 #endif
@@ -1288,7 +1288,7 @@ new_mmap_object(PyTypeObject *type, PyObject *args, PyObject *kwdict)
 static PyObject *
 new_mmap_object(PyTypeObject *type, PyObject *args, PyObject *kwdict)
 {
-#ifndef MS_WINRT
+#ifndef MS_UWP
     mmap_object *m_obj;
     PyObject *map_size_obj = NULL;
     Py_ssize_t map_size;
@@ -1482,7 +1482,7 @@ new_mmap_object(PyTypeObject *type, PyObject *args, PyObject *kwdict)
         dwErr = GetLastError();
     Py_DECREF(m_obj);
     PyErr_SetFromWindowsErr(dwErr);
-#endif /* MS_WINRT */
+#endif /* MS_UWP */
     return NULL;
 }
 #endif /* MS_WINDOWS */

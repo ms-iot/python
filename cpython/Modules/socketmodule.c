@@ -284,7 +284,7 @@ if_indextoname(index) -- return the corresponding interface name\n\
 #  include <fcntl.h>
 # endif
 
-#if !defined(MS_WINRT) && defined(_MSC_VER) && _MSC_VER >= 1800
+#if !defined(MS_UWP) && defined(_MSC_VER) && _MSC_VER >= 1800
 /* Provides the IsWindows7SP1OrGreater() function */
 #include <VersionHelpers.h>
 #endif
@@ -2241,7 +2241,7 @@ sock_accept(PySocketSockObject *s)
     newfd = ctx.result;
 
 #ifdef MS_WINDOWS
-#ifndef MS_WINRT
+#ifndef MS_UWP
     if (!SetHandleInformation((HANDLE)newfd, HANDLE_FLAG_INHERIT, 0)) {
         PyErr_SetFromWindowsErr(0);
         SOCKETCLOSE(newfd);
@@ -4296,7 +4296,7 @@ sock_initobj(PyObject *self, PyObject *args, PyObject *kwds)
             set_error();
             return -1;
         }
-#ifndef MS_WINRT
+#ifndef MS_UWP
         if (!support_wsa_no_inherit) {
             if (!SetHandleInformation((HANDLE)fd, HANDLE_FLAG_INHERIT, 0)) {
                 closesocket(fd);
@@ -4402,7 +4402,7 @@ socket_gethostname(PyObject *self, PyObject *unused)
 	PyObject *result;
 
 #ifdef MS_WINDOWS
-#ifdef MS_WINRT
+#ifdef MS_UWP
 #define MAX_HOSTNAME_CHARS 256
 	wchar_t name[MAX_HOSTNAME_CHARS];
 
@@ -4450,7 +4450,7 @@ socket_gethostname(PyObject *self, PyObject *unused)
 
     result = PyUnicode_FromWideChar(name, size);
 
-#ifndef MS_WINRT
+#ifndef MS_UWP
     PyMem_Free(name);
 #endif
 
@@ -4944,7 +4944,7 @@ socket_dup(PyObject *self, PyObject *fdobj)
                       &info, 0, WSA_FLAG_OVERLAPPED);
     if (newfd == INVALID_SOCKET)
         return set_error();
-#ifndef MS_WINRT
+#ifndef MS_UWP
     if (!SetHandleInformation((HANDLE)newfd, HANDLE_FLAG_INHERIT, 0)) {
         closesocket(newfd);
         PyErr_SetFromWindowsErr(0);
@@ -5342,7 +5342,7 @@ socket_inet_pton(PyObject *self, PyObject *args)
     char* ip;
     struct sockaddr_in6 addr;
     INT ret, size;
-#ifdef MS_WINRT
+#ifdef MS_UWP
 	wchar_t* wchip[INET6_ADDRSTRLEN];
 	int usize;
 #endif
@@ -5353,7 +5353,7 @@ socket_inet_pton(PyObject *self, PyObject *args)
 
     size = sizeof(addr);
 
-#ifdef MS_WINRT
+#ifdef MS_UWP
 	usize = MultiByteToWideChar(CP_ACP, 0, ip, -1, (LPWSTR)wchip, sizeof(wchip));
 	ret = WSAStringToAddressW((LPWSTR)wchip, af, NULL, (LPSOCKADDR)&addr, &size);
 #else
@@ -5454,7 +5454,7 @@ socket_inet_ntop(PyObject *self, PyObject *args)
     Py_buffer packed_ip;
     struct sockaddr_in6 addr;
     DWORD addrlen, ret, retlen;
-#ifdef MS_WINRT
+#ifdef MS_UWP
 	wchar_t ip[Py_MAX(INET_ADDRSTRLEN, INET6_ADDRSTRLEN) + 1];
 #elif defined(ENABLE_IPV6)
     char ip[Py_MAX(INET_ADDRSTRLEN, INET6_ADDRSTRLEN) + 1];
@@ -5503,7 +5503,7 @@ socket_inet_ntop(PyObject *self, PyObject *args)
     PyBuffer_Release(&packed_ip);
 
     retlen = sizeof(ip)/sizeof(*ip);
-#ifdef MS_WINRT
+#ifdef MS_UWP
 	ret = WSAAddressToStringW((struct sockaddr*)&addr, addrlen, NULL, ip, &retlen);
 #else
     ret = WSAAddressToStringA((struct sockaddr*)&addr, addrlen, NULL,
@@ -5514,7 +5514,7 @@ socket_inet_ntop(PyObject *self, PyObject *args)
         PyErr_SetExcFromWindowsErr(PyExc_OSError, WSAGetLastError());
         return NULL;
     } else {
-#ifdef MS_WINRT
+#ifdef MS_UWP
 		return PyUnicode_FromWideChar(ip, retlen);
 #else
         return PyUnicode_FromString(ip);
@@ -6115,7 +6115,7 @@ PyInit__socket(void)
 
 #ifdef MS_WINDOWS
     if (support_wsa_no_inherit == -1) {
-#ifdef MS_WINRT
+#ifdef MS_UWP
 		support_wsa_no_inherit = 1;
 #elif defined(_MSC_VER) && _MSC_VER >= 1800
         support_wsa_no_inherit = IsWindows7SP1OrGreater();

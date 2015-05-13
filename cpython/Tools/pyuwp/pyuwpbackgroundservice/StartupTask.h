@@ -10,10 +10,7 @@ namespace pyuwpbackgroundservice
     public:
         virtual void Run(Windows::ApplicationModel::Background::IBackgroundTaskInstance^ taskInstance);
 	private:
-		bool IsPythonDebuggerPresent(wchar_t* debugXmlString);
-		void CheckPythonDebuggerPresence(Platform::Collections::Vector<Platform::String^>^ argumentsVector);
 		int RunPy(Platform::Collections::Vector<Platform::String^>^ argumentsVector);
-	private:
-		Windows::ApplicationModel::Background::BackgroundTaskDeferral^ deferral;
+        void CheckPythonDebuggerPresence(Platform::Collections::Vector<Platform::String^>^ argumentsVector);
     };
 }

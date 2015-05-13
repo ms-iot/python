@@ -280,7 +280,7 @@ exit:
 }
 #endif
 
-#if defined(MS_WINDOWS) && !defined(MS_WINRT)
+#if defined(MS_WINDOWS) && !defined(MS_UWP)
 static PyObject*
 PyLocale_getdefaultlocale(PyObject* self)
 {
@@ -317,7 +317,7 @@ PyLocale_getdefaultlocale(PyObject* self)
 }
 #endif
 
-#if defined(MS_WINRT)
+#if defined(MS_UWP)
 static PyObject*
 PyLocale_getdefaultlocale(PyObject* self)
 {

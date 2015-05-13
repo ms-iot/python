@@ -1402,7 +1402,7 @@ def _setup(_bootstrap_module):
         setattr(self_module, builtin_name, builtin_module)
 
     # Directly load the os module (needed during bootstrap).
-    os_details = ('posix', ['/']), ('nt', ['\\', '/']), ('winrt_os', ['\\', '/'])
+    os_details = ('posix', ['/']), ('nt', ['\\', '/']), ('uwp_os', ['\\', '/'])
     for builtin_os, path_separators in os_details:
         # Assumption made in _path_join()
         assert all(len(sep) == 1 for sep in path_separators)
@@ -1417,7 +1417,7 @@ def _setup(_bootstrap_module):
             except ImportError:
                 continue
     else:
-        raise ImportError('importlib requires posix or nt or winrt_os')
+        raise ImportError('importlib requires posix or nt or uwp_os')
     setattr(self_module, '_os', os_module)
     setattr(self_module, 'path_sep', path_sep)
     setattr(self_module, 'path_separators', ''.join(path_separators))
@@ -1442,7 +1442,7 @@ def _setup(_bootstrap_module):
     # Constants
     setattr(self_module, '_relax_case', _make_relax_case())
     EXTENSION_SUFFIXES.extend(_imp.extension_suffixes())
-    if builtin_os == 'nt' or builtin_os == 'winrt_os':
+    if builtin_os == 'nt' or builtin_os == 'uwp_os':
         SOURCE_SUFFIXES.append('.pyw')
         if '_d.pyd' in EXTENSION_SUFFIXES:
             WindowsRegistryFinder.DEBUG_BUILD = True

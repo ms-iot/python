@@ -65,7 +65,7 @@
 
 #define DWORD_MAX 4294967295U
 
-#ifndef MS_WINRT
+#ifndef MS_UWP
 /* Grab CancelIoEx dynamically from kernel32 */
 static int has_CancelIoEx = -1;
 static BOOL (CALLBACK *Py_CancelIoEx)(HANDLE, LPOVERLAPPED);
@@ -297,7 +297,7 @@ new_overlapped(HANDLE handle)
     return self;
 }
 
-#endif /* !MS_WINRT */
+#endif /* !MS_UWP */
 
 /* -------------------------------------------------------------------- */
 /* windows API functions */
@@ -326,7 +326,7 @@ winapi_CloseHandle(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-#ifndef MS_WINRT
+#ifndef MS_UWP
 
 static PyObject *
 winapi_ConnectNamedPipe(PyObject *self, PyObject *args, PyObject *kwds)
@@ -334,7 +334,7 @@ winapi_ConnectNamedPipe(PyObject *self, PyObject *args, PyObject *kwds)
     HANDLE hNamedPipe;
     int use_overlapped = 0;
     BOOL success;
-#ifndef MS_WINRT
+#ifndef MS_UWP
     OverlappedObject *overlapped = NULL;
 #endif
     static char *kwlist[] = {"handle", "overlapped", NULL};
@@ -374,7 +374,7 @@ winapi_ConnectNamedPipe(PyObject *self, PyObject *args, PyObject *kwds)
 
     Py_RETURN_NONE;
 }
-#endif /* !MS_WINRT */
+#endif /* !MS_UWP */
 
 static PyObject *
 winapi_CreateFile(PyObject *self, PyObject *args)
@@ -387,7 +387,7 @@ winapi_CreateFile(PyObject *self, PyObject *args)
     DWORD dwFlagsAndAttributes;
     HANDLE hTemplateFile;
     HANDLE handle;
-#ifdef MS_WINRT
+#ifdef MS_UWP
     CREATEFILE2_EXTENDED_PARAMETERS params;
 #endif
 
@@ -399,7 +399,7 @@ winapi_CreateFile(PyObject *self, PyObject *args)
         return NULL;
 
     Py_BEGIN_ALLOW_THREADS
-#ifndef MS_WINRT
+#ifndef MS_UWP
     handle = CreateFile(lpFileName, dwDesiredAccess,
                         dwShareMode, lpSecurityAttributes,
                         dwCreationDisposition,
@@ -423,7 +423,7 @@ winapi_CreateFile(PyObject *self, PyObject *args)
     return Py_BuildValue(F_HANDLE, handle);
 }
 
-#ifndef MS_WINRT
+#ifndef MS_UWP
 static PyObject *
 winapi_CreateJunction(PyObject *self, PyObject *args)
 {
@@ -559,7 +559,7 @@ cleanup:
 }
 #endif
 
-#ifndef MS_WINRT
+#ifndef MS_UWP
 static PyObject *
 winapi_CreateNamedPipe(PyObject *self, PyObject *args)
 {
@@ -626,7 +626,7 @@ winapi_CreatePipe(PyObject* self, PyObject* args)
     return Py_BuildValue(
         "NN", HANDLE_TO_PYNUM(read_pipe), HANDLE_TO_PYNUM(write_pipe));
 }
-#endif /* !MS_WINRT */
+#endif /* !MS_UWP */
 
 /* helpers for createprocess */
 
@@ -747,7 +747,7 @@ getenvironment(PyObject* environment)
     return NULL;
 }
 
-#ifndef MS_WINRT
+#ifndef MS_UWP
 
 PyDoc_STRVAR(CreateProcess_doc,
 "CreateProcess(app_name, cmd_line, proc_attrs, thread_attrs,\n\
@@ -844,7 +844,7 @@ winapi_CreateProcess(PyObject* self, PyObject* args)
                          pi.dwProcessId,
                          pi.dwThreadId);
 }
-#endif /* !MS_WINRT */
+#endif /* !MS_UWP */
 
 PyDoc_STRVAR(DuplicateHandle_doc,
 "DuplicateHandle(source_proc_handle, source_handle,\n\
@@ -899,7 +899,7 @@ winapi_DuplicateHandle(PyObject* self, PyObject* args)
     return HANDLE_TO_PYNUM(target_handle);
 }
 
-#ifndef MS_WINRT
+#ifndef MS_UWP
 
 static PyObject *
 winapi_ExitProcess(PyObject *self, PyObject *args)
@@ -957,7 +957,7 @@ winapi_GetExitCodeProcess(PyObject* self, PyObject* args)
     return PyLong_FromUnsignedLong(exit_code);
 }
 
-#endif /* MS_WINRT */
+#endif /* MS_UWP */
 
 PyDoc_STRVAR(GetLastError_doc, 
 "GetLastError() -> int\n\
@@ -970,7 +970,7 @@ winapi_GetLastError(PyObject *self, PyObject *args)
     return Py_BuildValue(F_DWORD, GetLastError());
 }
 
-#ifndef MS_WINRT
+#ifndef MS_UWP
 
 PyDoc_STRVAR(GetModuleFileName_doc,
 "GetModuleFileName(module) -> path\n\
@@ -1121,7 +1121,7 @@ winapi_PeekNamedPipe(PyObject *self, PyObject *args)
     }
 }
 
-#endif /* MS_WINRT */
+#endif /* MS_UWP */
 
 static PyObject *
 winapi_ReadFile(PyObject *self, PyObject *args, PyObject *kwds)
@@ -1133,7 +1133,7 @@ winapi_ReadFile(PyObject *self, PyObject *args, PyObject *kwds)
     BOOL ret;
     int use_overlapped = 0;
     DWORD err;
-#ifndef MS_WINRT
+#ifndef MS_UWP
     OverlappedObject *overlapped = NULL;
 #endif
     static char *kwlist[] = {"handle", "size", "overlapped", NULL};
@@ -1147,7 +1147,7 @@ winapi_ReadFile(PyObject *self, PyObject *args, PyObject *kwds)
     if (!buf)
         return NULL;
     if (use_overlapped) {
-#ifndef MS_WINRT
+#ifndef MS_UWP
         overlapped = new_overlapped(handle);
         if (!overlapped) {
             Py_DECREF(buf);
@@ -1156,14 +1156,14 @@ winapi_ReadFile(PyObject *self, PyObject *args, PyObject *kwds)
         /* Steals reference to buf */
         overlapped->read_buffer = buf;
 #else
-        PyErr_SetString(PyExc_NotImplementedError, "overlapped is not supported for Windows Store Apps");
+        PyErr_SetString(PyExc_NotImplementedError, "overlapped is not supported for UWP Apps");
         return NULL;
 #endif
     }
 
     Py_BEGIN_ALLOW_THREADS
     ret = ReadFile(handle, PyBytes_AS_STRING(buf), size, &nread,
-#ifndef MS_WINRT
+#ifndef MS_UWP
                    overlapped ? &overlapped->overlapped : NULL
 #else
                    NULL
@@ -1173,7 +1173,7 @@ winapi_ReadFile(PyObject *self, PyObject *args, PyObject *kwds)
 
     err = ret ? 0 : GetLastError();
 
-#ifndef MS_WINRT
+#ifndef MS_UWP
     if (overlapped) {
         if (!ret) {
             if (err == ERROR_IO_PENDING)
@@ -1196,7 +1196,7 @@ winapi_ReadFile(PyObject *self, PyObject *args, PyObject *kwds)
     return Py_BuildValue("NI", buf, err);
 }
 
-#ifndef MS_WINRT
+#ifndef MS_UWP
 
 static PyObject *
 winapi_SetNamedPipeHandleState(PyObject *self, PyObject *args)
@@ -1272,7 +1272,7 @@ winapi_WaitNamedPipe(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-#endif /* !MS_WINRT */
+#endif /* !MS_UWP */
 
 static PyObject *
 winapi_WaitForMultipleObjects(PyObject* self, PyObject* args)
@@ -1381,7 +1381,7 @@ winapi_WriteFile(PyObject *self, PyObject *args, PyObject *kwds)
     BOOL ret;
     int use_overlapped = 0;
     DWORD err;
-#ifndef MS_WINRT
+#ifndef MS_UWP
     OverlappedObject *overlapped = NULL;
 #endif
     static char *kwlist[] = {"handle", "buffer", "overlapped", NULL};
@@ -1393,13 +1393,13 @@ winapi_WriteFile(PyObject *self, PyObject *args, PyObject *kwds)
         return NULL;
 
     if (use_overlapped) {
-#ifndef MS_WINRT
+#ifndef MS_UWP
         overlapped = new_overlapped(handle);
         if (!overlapped)
             return NULL;
         buf = &overlapped->write_buffer;
 #else
-        PyErr_SetString(PyExc_NotImplementedError, "overlapped is not supported for Windows Store Apps");
+        PyErr_SetString(PyExc_NotImplementedError, "overlapped is not supported for UWP Apps");
         return NULL;
 #endif
     }
@@ -1407,7 +1407,7 @@ winapi_WriteFile(PyObject *self, PyObject *args, PyObject *kwds)
         buf = &_buf;
 
     if (!PyArg_Parse(bufobj, "y*", buf)) {
-#ifndef MS_WINRT
+#ifndef MS_UWP
         Py_XDECREF(overlapped);
 #endif
         return NULL;
@@ -1416,7 +1416,7 @@ winapi_WriteFile(PyObject *self, PyObject *args, PyObject *kwds)
     Py_BEGIN_ALLOW_THREADS
     len = (DWORD)Py_MIN(buf->len, DWORD_MAX);
     ret = WriteFile(handle, buf->buf, len, &written,
-#ifndef MS_WINRT
+#ifndef MS_UWP
                     overlapped ? &overlapped->overlapped : NULL);
 #else
         NULL);
@@ -1425,7 +1425,7 @@ winapi_WriteFile(PyObject *self, PyObject *args, PyObject *kwds)
 
     err = ret ? 0 : GetLastError();
 
-#ifndef MS_WINRT
+#ifndef MS_UWP
     if (overlapped) {
         if (!ret) {
             if (err == ERROR_IO_PENDING)
@@ -1449,13 +1449,13 @@ winapi_WriteFile(PyObject *self, PyObject *args, PyObject *kwds)
 static PyMethodDef winapi_functions[] = {
     {"CloseHandle", winapi_CloseHandle, METH_VARARGS,
      CloseHandle_doc},
-#ifndef MS_WINRT
+#ifndef MS_UWP
     { "ConnectNamedPipe", (PyCFunction)winapi_ConnectNamedPipe,
      METH_VARARGS | METH_KEYWORDS, ""},
 #endif
     {"CreateFile", winapi_CreateFile, METH_VARARGS,
      ""},
-#ifndef MS_WINRT
+#ifndef MS_UWP
     { "CreateJunction", winapi_CreateJunction, METH_VARARGS,
      ""},
     {"CreateNamedPipe", winapi_CreateNamedPipe, METH_VARARGS,
@@ -1467,7 +1467,7 @@ static PyMethodDef winapi_functions[] = {
 #endif
     {"DuplicateHandle", winapi_DuplicateHandle, METH_VARARGS,
      DuplicateHandle_doc},
-#ifndef MS_WINRT
+#ifndef MS_UWP
     { "ExitProcess", winapi_ExitProcess, METH_VARARGS,
      ""},
     {"GetCurrentProcess", winapi_GetCurrentProcess, METH_VARARGS,
@@ -1477,7 +1477,7 @@ static PyMethodDef winapi_functions[] = {
 #endif
     {"GetLastError", winapi_GetLastError, METH_NOARGS,
      GetLastError_doc},
-#ifndef MS_WINRT
+#ifndef MS_UWP
     { "GetModuleFileName", winapi_GetModuleFileName, METH_VARARGS,
      GetModuleFileName_doc},
     {"GetStdHandle", winapi_GetStdHandle, METH_VARARGS,
@@ -1491,7 +1491,7 @@ static PyMethodDef winapi_functions[] = {
 #endif
     {"ReadFile", (PyCFunction)winapi_ReadFile, METH_VARARGS | METH_KEYWORDS,
      ""},
-#ifndef MS_WINRT
+#ifndef MS_UWP
     {"SetNamedPipeHandleState", winapi_SetNamedPipeHandleState, METH_VARARGS,
      ""},
     {"TerminateProcess", winapi_TerminateProcess, METH_VARARGS,
@@ -1529,7 +1529,7 @@ PyInit__winapi(void)
     PyObject *d;
     PyObject *m;
 
-#ifndef MS_WINRT
+#ifndef MS_UWP
     if (PyType_Ready(&OverlappedType) < 0)
         return NULL;
 #endif
@@ -1539,7 +1539,7 @@ PyInit__winapi(void)
         return NULL;
     d = PyModule_GetDict(m);
 
-#ifndef MS_WINRT
+#ifndef MS_UWP
     PyDict_SetItemString(d, "Overlapped", (PyObject *) &OverlappedType);
 #endif
 
@@ -1579,7 +1579,7 @@ PyInit__winapi(void)
     WINAPI_CONSTANT(F_DWORD, PIPE_WAIT);
     WINAPI_CONSTANT(F_DWORD, PROCESS_ALL_ACCESS);
     WINAPI_CONSTANT(F_DWORD, PROCESS_DUP_HANDLE);
-#ifdef MS_WINRT
+#ifdef MS_UWP
 #define STARTF_USESHOWWINDOW 0
 #define STARTF_USESTDHANDLES 0
 #endif
