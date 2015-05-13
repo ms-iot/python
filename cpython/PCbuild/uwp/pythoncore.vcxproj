@@ -68,8 +68,6 @@
       <AdditionalIncludeDirectories>..\..\Python;..\..\Modules\zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_USRDLL;Py_BUILD_CORE;Py_ENABLE_SHARED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)'=='Debug'">_DEBUG;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Optimization Condition="'$(Configuration)'=='Release'">Disabled</Optimization>
-      <WholeProgramOptimization Condition="'$(Configuration)'=='Release'">false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <AdditionalDependencies>%(AdditionalDependencies);ws2_32.lib</AdditionalDependencies>

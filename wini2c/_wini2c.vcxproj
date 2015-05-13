@@ -149,7 +149,6 @@
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
-      <AdditionalLibraryDirectories>$(PythonDir)\Tools\pyuwp\uwp\8.2\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ShowProgress>LinkVerbose</ShowProgress>
       <IgnoreSpecificDefaultLibraries>LIBC;ole32.lib;kernel32.lib;msvcrt.lib;msvcrtd.lib%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <AdditionalDependencies>%(AdditionalDependencies);vccorlibd.lib;msvcrtd.lib</AdditionalDependencies>
