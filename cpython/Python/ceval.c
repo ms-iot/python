@@ -2517,7 +2517,7 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
 
                     if (PySet_GET_SIZE(intersection)) {
                         Py_ssize_t idx = 0;
-                        PyObject *key;
+                        PyObject *key = NULL;
                         PyObject *func = PEEK(function_location + num_maps);
                         Py_hash_t hash;
                         _PySet_NextEntry(intersection, &idx, &key, &hash);
