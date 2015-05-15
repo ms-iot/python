@@ -6,7 +6,7 @@
     <Description>Python UWP Interpreter</Description>
   </Metadata>
   <Installation Scope="Global" AllUsers="true">
-    <InstallationTarget Id="Microsoft.ExtensionSDK" TargetPlatformIdentifier="Windows" TargetPlatformVersion="v10.0" SdkName="PyUWP" SdkVersion="3.5" />
+    <InstallationTarget Id="Microsoft.ExtensionSDK" TargetPlatformIdentifier="Windows" TargetPlatformVersion="v10.0" SdkName="Python UWP" SdkVersion="3.5" />
   </Installation>
   <Dependencies>
   </Dependencies>
