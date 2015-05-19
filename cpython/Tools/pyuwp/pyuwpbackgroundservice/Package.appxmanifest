@@ -9,14 +9,14 @@
 
   <Identity
     Name="pyuwpbackgroundservice"
-    Publisher="CN=juanyaw"
+    Publisher="CN=Microsoft"
     Version="1.0.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="26b44f15-6bf2-4315-9550-243a8d9409c1" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>pyuwpbackgroundservice</DisplayName>
-    <PublisherDisplayName>juanyaw</PublisherDisplayName>
+    <PublisherDisplayName>Microsoft</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
