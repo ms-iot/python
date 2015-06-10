@@ -722,10 +722,10 @@ class PyIOTest(IOTest):
 @support.cpython_only
 class APIMismatchTest(unittest.TestCase):
 
-    @unittest.expectedFailure  # Test to be fixed by issue9858.
     def test_RawIOBase_io_in_pyio_match(self):
         """Test that pyio RawIOBase class has all c RawIOBase methods"""
-        mismatch = support.detect_api_mismatch(pyio.RawIOBase, io.RawIOBase)
+        mismatch = support.detect_api_mismatch(pyio.RawIOBase, io.RawIOBase,
+                                               ignore=('__weakref__',))
         self.assertEqual(mismatch, set(), msg='Python RawIOBase does not have all C RawIOBase methods')
 
     def test_RawIOBase_pyio_in_io_match(self):
@@ -1190,6 +1190,14 @@ class BufferedReaderTest(unittest.TestCase, CommonBufferedTests):
             self.assertEqual(bufio.read(n), b"x" * n)
             self.assertEqual(rawio._extraneous_reads, 0,
                              "failed for {}: {} != 0".format(n, rawio._extraneous_reads))
+
+    def test_read_on_closed(self):
+        # Issue #23796
+        b = io.BufferedReader(io.BytesIO(b"12"))
+        b.read(1)
+        b.close()
+        self.assertRaises(ValueError, b.peek)
+        self.assertRaises(ValueError, b.read1, 1)
 
 
 class CBufferedReaderTest(BufferedReaderTest, SizeofTest):

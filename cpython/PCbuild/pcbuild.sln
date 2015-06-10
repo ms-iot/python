@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.22823.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{553EC33E-9816-4996-A660-5D6186A0B0B3}"
 	ProjectSection(SolutionItems) = preProject
@@ -71,6 +71,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_overlapped", "_overlapped.vcxproj", "{EB6E69DD-04BF-4543-9B92-49FAABCEAC2E}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_testembed", "_testembed.vcxproj", "{6DAC66D9-E703-4624-BE03-49112AB5AA62}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "_testmultiphase", "_testmultiphase.vcxproj", "{16BFE6F0-22EF-40B5-B831-7E937119EF10}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tcl", "tcl.vcxproj", "{B5FD6F1D-129E-4BFF-9340-03606FAC7283}"
 EndProject
@@ -588,6 +590,20 @@ Global
 		{6DAC66D9-E703-4624-BE03-49112AB5AA62}.Release|Win32.Build.0 = Release|Win32
 		{6DAC66D9-E703-4624-BE03-49112AB5AA62}.Release|x64.ActiveCfg = Release|x64
 		{6DAC66D9-E703-4624-BE03-49112AB5AA62}.Release|x64.Build.0 = Release|x64
+		{16BFE6F0-22EF-40B5-B831-7E937119EF10}.Debug|Win32.ActiveCfg = Debug|Win32
+		{16BFE6F0-22EF-40B5-B831-7E937119EF10}.Debug|Win32.Build.0 = Debug|Win32
+		{16BFE6F0-22EF-40B5-B831-7E937119EF10}.Debug|x64.ActiveCfg = Debug|x64
+		{16BFE6F0-22EF-40B5-B831-7E937119EF10}.Debug|x64.Build.0 = Debug|x64
+		{16BFE6F0-22EF-40B5-B831-7E937119EF10}.PGInstrument|Win32.ActiveCfg = Release|Win32
+		{16BFE6F0-22EF-40B5-B831-7E937119EF10}.PGInstrument|x64.ActiveCfg = Release|x64
+		{16BFE6F0-22EF-40B5-B831-7E937119EF10}.PGUpdate|Win32.ActiveCfg = Release|Win32
+		{16BFE6F0-22EF-40B5-B831-7E937119EF10}.PGUpdate|Win32.Build.0 = Release|Win32
+		{16BFE6F0-22EF-40B5-B831-7E937119EF10}.PGUpdate|x64.ActiveCfg = Release|x64
+		{16BFE6F0-22EF-40B5-B831-7E937119EF10}.PGUpdate|x64.Build.0 = Release|x64
+		{16BFE6F0-22EF-40B5-B831-7E937119EF10}.Release|Win32.ActiveCfg = Release|Win32
+		{16BFE6F0-22EF-40B5-B831-7E937119EF10}.Release|Win32.Build.0 = Release|Win32
+		{16BFE6F0-22EF-40B5-B831-7E937119EF10}.Release|x64.ActiveCfg = Release|x64
+		{16BFE6F0-22EF-40B5-B831-7E937119EF10}.Release|x64.Build.0 = Release|x64
 		{B5FD6F1D-129E-4BFF-9340-03606FAC7283}.Debug|Win32.ActiveCfg = Debug|Win32
 		{B5FD6F1D-129E-4BFF-9340-03606FAC7283}.Debug|Win32.Build.0 = Debug|Win32
 		{B5FD6F1D-129E-4BFF-9340-03606FAC7283}.Debug|x64.ActiveCfg = Debug|x64

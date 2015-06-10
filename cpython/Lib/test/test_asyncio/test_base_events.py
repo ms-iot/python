@@ -16,10 +16,15 @@ from asyncio import constants
 from asyncio import test_utils
 try:
     from test import support
-    from test.support.script_helper import assert_python_ok
 except ImportError:
     from asyncio import test_support as support
-    from asyncio.test_support import assert_python_ok
+try:
+    from test.support.script_helper import assert_python_ok
+except ImportError:
+    try:
+        from test.script_helper import assert_python_ok
+    except ImportError:
+        from asyncio.test_support import assert_python_ok
 
 
 MOCK_ANY = mock.ANY
@@ -56,7 +61,8 @@ class BaseEventLoopTests(test_utils.TestCase):
             NotImplementedError,
             self.loop._make_write_pipe_transport, m, m)
         gen = self.loop._make_subprocess_transport(m, m, m, m, m, m, m)
-        self.assertRaises(NotImplementedError, next, iter(gen))
+        with self.assertRaises(NotImplementedError):
+            gen.send(None)
 
     def test_close(self):
         self.assertFalse(self.loop.is_closed())
@@ -499,7 +505,7 @@ class BaseEventLoopTests(test_utils.TestCase):
 
         # Test Future.__del__
         with mock.patch('asyncio.base_events.logger') as log:
-            fut = asyncio.async(zero_error_coro(), loop=self.loop)
+            fut = asyncio.ensure_future(zero_error_coro(), loop=self.loop)
             fut.add_done_callback(lambda *args: self.loop.stop())
             self.loop.run_forever()
             fut = None # Trigger Future.__del__ or futures._TracebackLogger
@@ -623,6 +629,42 @@ class BaseEventLoopTests(test_utils.TestCase):
             self.assertIs(type(_context['context']['exception']),
                           ZeroDivisionError)
 
+    def test_set_task_factory_invalid(self):
+        with self.assertRaisesRegex(
+            TypeError, 'task factory must be a callable or None'):
+
+            self.loop.set_task_factory(1)
+
+        self.assertIsNone(self.loop.get_task_factory())
+
+    def test_set_task_factory(self):
+        self.loop._process_events = mock.Mock()
+
+        class MyTask(asyncio.Task):
+            pass
+
+        @asyncio.coroutine
+        def coro():
+            pass
+
+        factory = lambda loop, coro: MyTask(coro, loop=loop)
+
+        self.assertIsNone(self.loop.get_task_factory())
+        self.loop.set_task_factory(factory)
+        self.assertIs(self.loop.get_task_factory(), factory)
+
+        task = self.loop.create_task(coro())
+        self.assertTrue(isinstance(task, MyTask))
+        self.loop.run_until_complete(task)
+
+        self.loop.set_task_factory(None)
+        self.assertIsNone(self.loop.get_task_factory())
+
+        task = self.loop.create_task(coro())
+        self.assertTrue(isinstance(task, asyncio.Task))
+        self.assertFalse(isinstance(task, MyTask))
+        self.loop.run_until_complete(task)
+
     def test_env_var_debug(self):
         code = '\n'.join((
             'import asyncio',
@@ -662,7 +704,7 @@ class BaseEventLoopTests(test_utils.TestCase):
         self.set_event_loop(loop)
 
         coro = test()
-        task = asyncio.async(coro, loop=loop)
+        task = asyncio.ensure_future(coro, loop=loop)
         self.assertIsInstance(task, MyTask)
 
         # make warnings quiet
@@ -1224,7 +1266,7 @@ class BaseEventLoopWithSelectorTests(test_utils.TestCase):
                          "took .* seconds$")
 
         # slow task
-        asyncio.async(stop_loop_coro(self.loop), loop=self.loop)
+        asyncio.ensure_future(stop_loop_coro(self.loop), loop=self.loop)
         self.loop.run_forever()
         fmt, *args = m_logger.warning.call_args[0]
         self.assertRegex(fmt % tuple(args),

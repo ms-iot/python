@@ -1,5 +1,6 @@
 import asyncore
 import email.mime.text
+from email.message import EmailMessage
 import email.utils
 import socket
 import smtpd
@@ -10,7 +11,7 @@ import sys
 import time
 import select
 import errno
-import base64
+import textwrap
 
 import unittest
 from test import support, mock_socket
@@ -976,6 +977,169 @@ class SMTPSimTests(unittest.TestCase):
             smtp.sendmail('John@foo.org', ['Sally@foo.org'], 'test message')
         self.assertIsNone(smtp.sock)
         self.assertEqual(self.serv._SMTPchannel.rcpt_count, 0)
+
+    def test_smtputf8_NotSupportedError_if_no_server_support(self):
+        smtp = smtplib.SMTP(
+            HOST, self.port, local_hostname='localhost', timeout=3)
+        self.addCleanup(smtp.close)
+        smtp.ehlo()
+        self.assertTrue(smtp.does_esmtp)
+        self.assertFalse(smtp.has_extn('smtputf8'))
+        self.assertRaises(
+            smtplib.SMTPNotSupportedError,
+            smtp.sendmail,
+            'John', 'Sally', '', mail_options=['BODY=8BITMIME', 'SMTPUTF8'])
+        self.assertRaises(
+            smtplib.SMTPNotSupportedError,
+            smtp.mail, 'John', options=['BODY=8BITMIME', 'SMTPUTF8'])
+
+    def test_send_unicode_without_SMTPUTF8(self):
+        smtp = smtplib.SMTP(
+            HOST, self.port, local_hostname='localhost', timeout=3)
+        self.addCleanup(smtp.close)
+        self.assertRaises(UnicodeEncodeError, smtp.sendmail, 'Alice', 'Böb', '')
+        self.assertRaises(UnicodeEncodeError, smtp.mail, 'Älice')
+
+
+class SimSMTPUTF8Server(SimSMTPServer):
+
+    def __init__(self, *args, **kw):
+        # The base SMTP server turns these on automatically, but our test
+        # server is set up to munge the EHLO response, so we need to provide
+        # them as well.  And yes, the call is to SMTPServer not SimSMTPServer.
+        self._extra_features = ['SMTPUTF8', '8BITMIME']
+        smtpd.SMTPServer.__init__(self, *args, **kw)
+
+    def handle_accepted(self, conn, addr):
+        self._SMTPchannel = self.channel_class(
+            self._extra_features, self, conn, addr,
+            decode_data=self._decode_data,
+            enable_SMTPUTF8=self.enable_SMTPUTF8,
+        )
+
+    def process_message(self, peer, mailfrom, rcpttos, data, mail_options=None,
+                                                             rcpt_options=None):
+        self.last_peer = peer
+        self.last_mailfrom = mailfrom
+        self.last_rcpttos = rcpttos
+        self.last_message = data
+        self.last_mail_options = mail_options
+        self.last_rcpt_options = rcpt_options
+
+
+@unittest.skipUnless(threading, 'Threading required for this test.')
+class SMTPUTF8SimTests(unittest.TestCase):
+
+    maxDiff = None
+
+    def setUp(self):
+        self.real_getfqdn = socket.getfqdn
+        socket.getfqdn = mock_socket.getfqdn
+        self.serv_evt = threading.Event()
+        self.client_evt = threading.Event()
+        # Pick a random unused port by passing 0 for the port number
+        self.serv = SimSMTPUTF8Server((HOST, 0), ('nowhere', -1),
+                                      decode_data=False,
+                                      enable_SMTPUTF8=True)
+        # Keep a note of what port was assigned
+        self.port = self.serv.socket.getsockname()[1]
+        serv_args = (self.serv, self.serv_evt, self.client_evt)
+        self.thread = threading.Thread(target=debugging_server, args=serv_args)
+        self.thread.start()
+
+        # wait until server thread has assigned a port number
+        self.serv_evt.wait()
+        self.serv_evt.clear()
+
+    def tearDown(self):
+        socket.getfqdn = self.real_getfqdn
+        # indicate that the client is finished
+        self.client_evt.set()
+        # wait for the server thread to terminate
+        self.serv_evt.wait()
+        self.thread.join()
+
+    def test_test_server_supports_extensions(self):
+        smtp = smtplib.SMTP(
+            HOST, self.port, local_hostname='localhost', timeout=3)
+        self.addCleanup(smtp.close)
+        smtp.ehlo()
+        self.assertTrue(smtp.does_esmtp)
+        self.assertTrue(smtp.has_extn('smtputf8'))
+
+    def test_send_unicode_with_SMTPUTF8_via_sendmail(self):
+        m = '¡a test message containing unicode!'.encode('utf-8')
+        smtp = smtplib.SMTP(
+            HOST, self.port, local_hostname='localhost', timeout=3)
+        self.addCleanup(smtp.close)
+        smtp.sendmail('Jőhn', 'Sálly', m,
+                      mail_options=['BODY=8BITMIME', 'SMTPUTF8'])
+        self.assertEqual(self.serv.last_mailfrom, 'Jőhn')
+        self.assertEqual(self.serv.last_rcpttos, ['Sálly'])
+        self.assertEqual(self.serv.last_message, m)
+        self.assertIn('BODY=8BITMIME', self.serv.last_mail_options)
+        self.assertIn('SMTPUTF8', self.serv.last_mail_options)
+        self.assertEqual(self.serv.last_rcpt_options, [])
+
+    def test_send_unicode_with_SMTPUTF8_via_low_level_API(self):
+        m = '¡a test message containing unicode!'.encode('utf-8')
+        smtp = smtplib.SMTP(
+            HOST, self.port, local_hostname='localhost', timeout=3)
+        self.addCleanup(smtp.close)
+        smtp.ehlo()
+        self.assertEqual(
+            smtp.mail('Jő', options=['BODY=8BITMIME', 'SMTPUTF8']),
+            (250, b'OK'))
+        self.assertEqual(smtp.rcpt('János'), (250, b'OK'))
+        self.assertEqual(smtp.data(m), (250, b'OK'))
+        self.assertEqual(self.serv.last_mailfrom, 'Jő')
+        self.assertEqual(self.serv.last_rcpttos, ['János'])
+        self.assertEqual(self.serv.last_message, m)
+        self.assertIn('BODY=8BITMIME', self.serv.last_mail_options)
+        self.assertIn('SMTPUTF8', self.serv.last_mail_options)
+        self.assertEqual(self.serv.last_rcpt_options, [])
+
+    def test_send_message_uses_smtputf8_if_addrs_non_ascii(self):
+        msg = EmailMessage()
+        msg['From'] = "Páolo <főo@bar.com>"
+        msg['To'] = 'Dinsdale'
+        msg['Subject'] = 'Nudge nudge, wink, wink \u1F609'
+        # XXX I don't know why I need two \n's here, but this is an existing
+        # bug (if it is one) and not a problem with the new functionality.
+        msg.set_content("oh là là, know what I mean, know what I mean?\n\n")
+        # XXX smtpd converts received /r/n to /n, so we can't easily test that
+        # we are successfully sending /r/n :(.
+        expected = textwrap.dedent("""\
+            From: Páolo <főo@bar.com>
+            To: Dinsdale
+            Subject: Nudge nudge, wink, wink \u1F609
+            Content-Type: text/plain; charset="utf-8"
+            Content-Transfer-Encoding: 8bit
+            MIME-Version: 1.0
+
+            oh là là, know what I mean, know what I mean?
+            """)
+        smtp = smtplib.SMTP(
+            HOST, self.port, local_hostname='localhost', timeout=3)
+        self.addCleanup(smtp.close)
+        self.assertEqual(smtp.send_message(msg), {})
+        self.assertEqual(self.serv.last_mailfrom, 'főo@bar.com')
+        self.assertEqual(self.serv.last_rcpttos, ['Dinsdale'])
+        self.assertEqual(self.serv.last_message.decode(), expected)
+        self.assertIn('BODY=8BITMIME', self.serv.last_mail_options)
+        self.assertIn('SMTPUTF8', self.serv.last_mail_options)
+        self.assertEqual(self.serv.last_rcpt_options, [])
+
+    def test_send_message_error_on_non_ascii_addrs_if_no_smtputf8(self):
+        msg = EmailMessage()
+        msg['From'] = "Páolo <főo@bar.com>"
+        msg['To'] = 'Dinsdale'
+        msg['Subject'] = 'Nudge nudge, wink, wink \u1F609'
+        smtp = smtplib.SMTP(
+            HOST, self.port, local_hostname='localhost', timeout=3)
+        self.addCleanup(smtp.close)
+        self.assertRaises(smtplib.SMTPNotSupportedError,
+                          smtp.send_message(msg))
 
 
 @support.reap_threads

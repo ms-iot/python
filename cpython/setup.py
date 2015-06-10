@@ -620,6 +620,8 @@ class PyBuildExt(build_ext):
         exts.append( Extension('_testbuffer', ['_testbuffer.c']) )
         # Test loading multiple modules from one compiled file (http://bugs.python.org/issue16421)
         exts.append( Extension('_testimportmultiple', ['_testimportmultiple.c']) )
+        # Test multi-phase extension module init (PEP 489)
+        exts.append( Extension('_testmultiphase', ['_testmultiphase.c']) )
         # profiler (_lsprof is for cProfile.py)
         exts.append( Extension('_lsprof', ['_lsprof.c', 'rotatingtree.c']) )
         # static Unicode character database
@@ -1575,7 +1577,7 @@ class PyBuildExt(build_ext):
 
         if 'd' not in sys.abiflags:
             ext = Extension('xxlimited', ['xxlimited.c'],
-                            define_macros=[('Py_LIMITED_API', '0x03040000')])
+                            define_macros=[('Py_LIMITED_API', '0x03050000')])
             self.extensions.append(ext)
 
         return missing

@@ -297,7 +297,7 @@ _enter_buffered_busy(buffered *self)
          * Note that non-daemon threads have already exited here, so this
          * shouldn't affect carefully written threaded I/O code.
          */
-        st = PyThread_acquire_lock_timed(self->lock, 1e6, 0);
+        st = PyThread_acquire_lock_timed(self->lock, (PY_TIMEOUT_T)1e6, 0);
     }
     Py_END_ALLOW_THREADS
     if (relax_locking && st != PY_LOCK_ACQUIRED) {
@@ -871,6 +871,8 @@ _io__Buffered_peek_impl(buffered *self, Py_ssize_t size)
     PyObject *res = NULL;
 
     CHECK_INITIALIZED(self)
+    CHECK_CLOSED(self, "peek of closed file")
+
     if (!ENTER_BUFFERED(self))
         return NULL;
 
@@ -947,6 +949,9 @@ _io__Buffered_read1_impl(buffered *self, Py_ssize_t n)
                         "read length must be positive");
         return NULL;
     }
+
+    CHECK_CLOSED(self, "read of closed file")
+
     if (n == 0)
         return PyBytes_FromStringAndSize(NULL, 0);
 

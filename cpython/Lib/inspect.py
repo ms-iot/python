@@ -33,6 +33,7 @@ __author__ = ('Ka-Ping Yee <ping@lfw.org>',
 
 import ast
 import dis
+import collections.abc
 import enum
 import importlib.machinery
 import itertools
@@ -174,7 +175,22 @@ def isgeneratorfunction(object):
 
     See help(isfunction) for attributes listing."""
     return bool((isfunction(object) or ismethod(object)) and
-                object.__code__.co_flags & CO_GENERATOR)
+                object.__code__.co_flags & CO_GENERATOR and
+                not object.__code__.co_flags & CO_COROUTINE)
+
+def iscoroutinefunction(object):
+    """Return true if the object is a coroutine function.
+
+    Coroutine functions are defined with "async def" syntax,
+    or generators decorated with "types.coroutine".
+    """
+    return bool((isfunction(object) or ismethod(object)) and
+                object.__code__.co_flags & (CO_ITERABLE_COROUTINE |
+                                            CO_COROUTINE))
+
+def isawaitable(object):
+    """Return true if the object can be used in "await" expression."""
+    return isinstance(object, collections.abc.Awaitable)
 
 def isgenerator(object):
     """Return true if the object is a generator.
@@ -191,7 +207,12 @@ def isgenerator(object):
         send            resumes the generator and "sends" a value that becomes
                         the result of the current yield-expression
         throw           used to raise an exception inside the generator"""
-    return isinstance(object, types.GeneratorType)
+    return (isinstance(object, types.GeneratorType) and
+            not object.gi_code.co_flags & CO_COROUTINE)
+
+def iscoroutine(object):
+    """Return true if the object is a coroutine."""
+    return isinstance(object, collections.abc.Coroutine)
 
 def istraceback(object):
     """Return true if the object is a traceback.
@@ -374,7 +395,7 @@ def classify_class_attrs(cls):
                     # first look in the classes
                     for srch_cls in class_bases:
                         srch_obj = getattr(srch_cls, name, None)
-                        if srch_obj == get_obj:
+                        if srch_obj is get_obj:
                             last_cls = srch_cls
                     # then check the metaclasses
                     for srch_cls in metamro:
@@ -382,7 +403,7 @@ def classify_class_attrs(cls):
                             srch_obj = srch_cls.__getattr__(cls, name)
                         except AttributeError:
                             continue
-                        if srch_obj == get_obj:
+                        if srch_obj is get_obj:
                             last_cls = srch_cls
                     if last_cls is not None:
                         homecls = last_cls
@@ -396,7 +417,7 @@ def classify_class_attrs(cls):
             # unable to locate the attribute anywhere, most likely due to
             # buggy custom __dir__; discard and move on
             continue
-        obj = get_obj or dict_obj
+        obj = get_obj if get_obj is not None else dict_obj
         # Classify the object or its descriptor.
         if isinstance(dict_obj, staticmethod):
             kind = "static method"
@@ -1012,7 +1033,9 @@ def getargspec(func):
     and keyword arguments are supported. getargspec() will raise ValueError
     if the func has either annotations or keyword arguments.
     """
-
+    warnings.warn("inspect.getargspec() is deprecated, "
+                  "use inspect.signature() instead", DeprecationWarning,
+                  stacklevel=2)
     args, varargs, varkw, defaults, kwonlyargs, kwonlydefaults, ann = \
         getfullargspec(func)
     if kwonlyargs or ann:
@@ -1036,6 +1059,8 @@ def getfullargspec(func):
     'annotations' is a dictionary mapping argument names to annotations.
 
     The first four items in the tuple correspond to getargspec().
+
+    This function is deprecated, use inspect.signature() instead.
     """
 
     try:
@@ -1995,6 +2020,87 @@ def _signature_from_builtin(cls, func, skip_bound_arg=True):
     return _signature_fromstr(cls, func, s, skip_bound_arg)
 
 
+def _signature_from_function(cls, func):
+    """Private helper: constructs Signature for the given python function."""
+
+    is_duck_function = False
+    if not isfunction(func):
+        if _signature_is_functionlike(func):
+            is_duck_function = True
+        else:
+            # If it's not a pure Python function, and not a duck type
+            # of pure function:
+            raise TypeError('{!r} is not a Python function'.format(func))
+
+    Parameter = cls._parameter_cls
+
+    # Parameter information.
+    func_code = func.__code__
+    pos_count = func_code.co_argcount
+    arg_names = func_code.co_varnames
+    positional = tuple(arg_names[:pos_count])
+    keyword_only_count = func_code.co_kwonlyargcount
+    keyword_only = arg_names[pos_count:(pos_count + keyword_only_count)]
+    annotations = func.__annotations__
+    defaults = func.__defaults__
+    kwdefaults = func.__kwdefaults__
+
+    if defaults:
+        pos_default_count = len(defaults)
+    else:
+        pos_default_count = 0
+
+    parameters = []
+
+    # Non-keyword-only parameters w/o defaults.
+    non_default_count = pos_count - pos_default_count
+    for name in positional[:non_default_count]:
+        annotation = annotations.get(name, _empty)
+        parameters.append(Parameter(name, annotation=annotation,
+                                    kind=_POSITIONAL_OR_KEYWORD))
+
+    # ... w/ defaults.
+    for offset, name in enumerate(positional[non_default_count:]):
+        annotation = annotations.get(name, _empty)
+        parameters.append(Parameter(name, annotation=annotation,
+                                    kind=_POSITIONAL_OR_KEYWORD,
+                                    default=defaults[offset]))
+
+    # *args
+    if func_code.co_flags & CO_VARARGS:
+        name = arg_names[pos_count + keyword_only_count]
+        annotation = annotations.get(name, _empty)
+        parameters.append(Parameter(name, annotation=annotation,
+                                    kind=_VAR_POSITIONAL))
+
+    # Keyword-only parameters.
+    for name in keyword_only:
+        default = _empty
+        if kwdefaults is not None:
+            default = kwdefaults.get(name, _empty)
+
+        annotation = annotations.get(name, _empty)
+        parameters.append(Parameter(name, annotation=annotation,
+                                    kind=_KEYWORD_ONLY,
+                                    default=default))
+    # **kwargs
+    if func_code.co_flags & CO_VARKEYWORDS:
+        index = pos_count + keyword_only_count
+        if func_code.co_flags & CO_VARARGS:
+            index += 1
+
+        name = arg_names[index]
+        annotation = annotations.get(name, _empty)
+        parameters.append(Parameter(name, annotation=annotation,
+                                    kind=_VAR_KEYWORD))
+
+    # Is 'func' is a pure Python function - don't validate the
+    # parameters list (for correct order and defaults), it should be OK.
+    return cls(parameters,
+               return_annotation=annotations.get('return', _empty),
+               __validate_parameters__=is_duck_function)
+
+
 def _signature_from_callable(obj, *,
                              follow_wrapper_chains=True,
                              skip_bound_arg=True,
@@ -2024,6 +2130,15 @@ def _signature_from_callable(obj, *,
     # Was this function wrapped by a decorator?
     if follow_wrapper_chains:
         obj = unwrap(obj, stop=(lambda f: hasattr(f, "__signature__")))
+        if isinstance(obj, types.MethodType):
+            # If the unwrapped object is a *method*, we might want to
+            # skip its first parameter (self).
+            # See test_signature_wrapped_bound_method for details.
+            return _signature_from_callable(
+                obj,
+                follow_wrapper_chains=follow_wrapper_chains,
+                skip_bound_arg=skip_bound_arg,
+                sigcls=sigcls)
 
     try:
         sig = obj.__signature__
@@ -2066,7 +2181,7 @@ def _signature_from_callable(obj, *,
     if isfunction(obj) or _signature_is_functionlike(obj):
         # If it's a pure Python function, or an object that is duck type
         # of a Python function (Cython functions, for instance), then:
-        return sigcls.from_function(obj)
+        return _signature_from_function(sigcls, obj)
 
     if _signature_is_builtin(obj):
         return _signature_from_builtin(sigcls, obj,
@@ -2140,9 +2255,13 @@ def _signature_from_callable(obj, *,
             if type not in obj.__mro__:
                 # We have a class (not metaclass), but no user-defined
                 # __init__ or __new__ for it
-                if obj.__init__ is object.__init__:
+                if (obj.__init__ is object.__init__ and
+                    obj.__new__ is object.__new__):
                     # Return a signature of 'object' builtin.
                     return signature(object)
+                else:
+                    raise ValueError(
+                        'no signature found for builtin type {!r}'.format(obj))
 
     elif not isinstance(obj, _NonUserDefinedCallables):
         # An object with __call__
@@ -2324,18 +2443,21 @@ class Parameter:
         return formatted
 
     def __repr__(self):
-        return '<{} at {:#x} "{}">'.format(self.__class__.__name__,
-                                           id(self), self)
+        return '<{} "{}">'.format(self.__class__.__name__, self)
 
     def __hash__(self):
         return hash((self.name, self.kind, self.annotation, self.default))
 
     def __eq__(self, other):
-        return (issubclass(other.__class__, Parameter) and
-                self._name == other._name and
-                self._kind == other._kind and
-                self._default == other._default and
-                self._annotation == other._annotation)
+        return (self is other or
+                    (issubclass(other.__class__, Parameter) and
+                     self._name == other._name and
+                     self._kind == other._kind and
+                     self._default == other._default and
+                     self._annotation == other._annotation))
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
 class BoundArguments:
@@ -2354,6 +2476,8 @@ class BoundArguments:
     * kwargs : dict
         Dict of keyword arguments values.
     """
+
+    __slots__ = ('arguments', '_signature', '__weakref__')
 
     def __init__(self, signature, arguments):
         self.arguments = arguments
@@ -2416,10 +2540,57 @@ class BoundArguments:
 
         return kwargs
 
+    def apply_defaults(self):
+        """Set default values for missing arguments.
+
+        For variable-positional arguments (*args) the default is an
+        empty tuple.
+
+        For variable-keyword arguments (**kwargs) the default is an
+        empty dict.
+        """
+        arguments = self.arguments
+        if not arguments:
+            return
+        new_arguments = []
+        for name, param in self._signature.parameters.items():
+            try:
+                new_arguments.append((name, arguments[name]))
+            except KeyError:
+                if param.default is not _empty:
+                    val = param.default
+                elif param.kind is _VAR_POSITIONAL:
+                    val = ()
+                elif param.kind is _VAR_KEYWORD:
+                    val = {}
+                else:
+                    # This BoundArguments was likely produced by
+                    # Signature.bind_partial().
+                    continue
+                new_arguments.append((name, val))
+        self.arguments = OrderedDict(new_arguments)
+
     def __eq__(self, other):
-        return (issubclass(other.__class__, BoundArguments) and
-                self.signature == other.signature and
-                self.arguments == other.arguments)
+        return (self is other or
+                    (issubclass(other.__class__, BoundArguments) and
+                     self.signature == other.signature and
+                     self.arguments == other.arguments))
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __setstate__(self, state):
+        self._signature = state['_signature']
+        self.arguments = state['arguments']
+
+    def __getstate__(self):
+        return {'_signature': self._signature, 'arguments': self.arguments}
+
+    def __repr__(self):
+        args = []
+        for arg, value in self.arguments.items():
+            args.append('{}={!r}'.format(arg, value))
+        return '<{} ({})>'.format(self.__class__.__name__, ', '.join(args))
 
 
 class Signature:
@@ -2507,92 +2678,25 @@ class Signature:
     def from_function(cls, func):
         """Constructs Signature for the given python function."""
 
-        is_duck_function = False
-        if not isfunction(func):
-            if _signature_is_functionlike(func):
-                is_duck_function = True
-            else:
-                # If it's not a pure Python function, and not a duck type
-                # of pure function:
-                raise TypeError('{!r} is not a Python function'.format(func))
-
-        Parameter = cls._parameter_cls
-
-        # Parameter information.
-        func_code = func.__code__
-        pos_count = func_code.co_argcount
-        arg_names = func_code.co_varnames
-        positional = tuple(arg_names[:pos_count])
-        keyword_only_count = func_code.co_kwonlyargcount
-        keyword_only = arg_names[pos_count:(pos_count + keyword_only_count)]
-        annotations = func.__annotations__
-        defaults = func.__defaults__
-        kwdefaults = func.__kwdefaults__
-
-        if defaults:
-            pos_default_count = len(defaults)
-        else:
-            pos_default_count = 0
-
-        parameters = []
-
-        # Non-keyword-only parameters w/o defaults.
-        non_default_count = pos_count - pos_default_count
-        for name in positional[:non_default_count]:
-            annotation = annotations.get(name, _empty)
-            parameters.append(Parameter(name, annotation=annotation,
-                                        kind=_POSITIONAL_OR_KEYWORD))
-
-        # ... w/ defaults.
-        for offset, name in enumerate(positional[non_default_count:]):
-            annotation = annotations.get(name, _empty)
-            parameters.append(Parameter(name, annotation=annotation,
-                                        kind=_POSITIONAL_OR_KEYWORD,
-                                        default=defaults[offset]))
-
-        # *args
-        if func_code.co_flags & CO_VARARGS:
-            name = arg_names[pos_count + keyword_only_count]
-            annotation = annotations.get(name, _empty)
-            parameters.append(Parameter(name, annotation=annotation,
-                                        kind=_VAR_POSITIONAL))
-
-        # Keyword-only parameters.
-        for name in keyword_only:
-            default = _empty
-            if kwdefaults is not None:
-                default = kwdefaults.get(name, _empty)
-
-            annotation = annotations.get(name, _empty)
-            parameters.append(Parameter(name, annotation=annotation,
-                                        kind=_KEYWORD_ONLY,
-                                        default=default))
-        # **kwargs
-        if func_code.co_flags & CO_VARKEYWORDS:
-            index = pos_count + keyword_only_count
-            if func_code.co_flags & CO_VARARGS:
-                index += 1
-
-            name = arg_names[index]
-            annotation = annotations.get(name, _empty)
-            parameters.append(Parameter(name, annotation=annotation,
-                                        kind=_VAR_KEYWORD))
-
-        # Is 'func' is a pure Python function - don't validate the
-        # parameters list (for correct order and defaults), it should be OK.
-        return cls(parameters,
-                   return_annotation=annotations.get('return', _empty),
-                   __validate_parameters__=is_duck_function)
+        warnings.warn("inspect.Signature.from_function() is deprecated, "
+                      "use Signature.from_callable()",
+                      DeprecationWarning, stacklevel=2)
+        return _signature_from_function(cls, func)
 
     @classmethod
     def from_builtin(cls, func):
         """Constructs Signature for the given builtin function."""
+
+        warnings.warn("inspect.Signature.from_builtin() is deprecated, "
+                      "use Signature.from_callable()",
+                      DeprecationWarning, stacklevel=2)
         return _signature_from_builtin(cls, func)
 
     @classmethod
-    def from_callable(cls, obj):
+    def from_callable(cls, obj, *, follow_wrapped=True):
         """Constructs Signature for the given callable object."""
-        return _signature_from_callable(obj, sigcls=cls)
+        return _signature_from_callable(obj, sigcls=cls,
+                                        follow_wrapper_chains=follow_wrapped)
 
     @property
     def parameters(self):
@@ -2632,8 +2736,12 @@ class Signature:
         return hash((params, kwo_params, return_annotation))
 
     def __eq__(self, other):
-        return (isinstance(other, Signature) and
-                self._hash_basis() == other._hash_basis())
+        return (self is other or
+                    (isinstance(other, Signature) and
+                     self._hash_basis() == other._hash_basis()))
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def _bind(self, args, kwargs, *, partial=False):
         """Private method. Don't use directly."""
@@ -2684,7 +2792,7 @@ class Signature:
                             parameters_ex = (param,)
                             break
                         else:
-                            msg = '{arg!r} parameter lacking default value'
+                            msg = 'missing a required argument: {arg!r}'
                             msg = msg.format(arg=param.name)
                             raise TypeError(msg) from None
             else:
@@ -2697,7 +2805,8 @@ class Signature:
                     if param.kind in (_VAR_KEYWORD, _KEYWORD_ONLY):
                         # Looks like we have no parameter for this positional
                         # argument
-                        raise TypeError('too many positional arguments')
+                        raise TypeError(
+                            'too many positional arguments') from None
 
                     if param.kind == _VAR_POSITIONAL:
                         # We have an '*args'-like argument, let's fill it with
@@ -2709,8 +2818,9 @@ class Signature:
                         break
 
                     if param.name in kwargs:
-                        raise TypeError('multiple values for argument '
-                                        '{arg!r}'.format(arg=param.name))
+                        raise TypeError(
+                            'multiple values for argument {arg!r}'.format(
+                                arg=param.name)) from None
 
                     arguments[param.name] = arg_val
 
@@ -2739,7 +2849,7 @@ class Signature:
                 # arguments.
                 if (not partial and param.kind != _VAR_POSITIONAL and
                                                     param.default is _empty):
-                    raise TypeError('{arg!r} parameter lacking default value'. \
+                    raise TypeError('missing a required argument: {arg!r}'. \
                                     format(arg=param_name)) from None
 
             else:
@@ -2758,7 +2868,9 @@ class Signature:
                 # Process our '**kwargs'-like parameter
                 arguments[kwargs_param.name] = kwargs
             else:
-                raise TypeError('too many keyword arguments')
+                raise TypeError(
+                    'got an unexpected keyword argument {arg!r}'.format(
+                        arg=next(iter(kwargs))))
 
         return self._bound_arguments_cls(self, arguments)
 
@@ -2785,8 +2897,7 @@ class Signature:
         self._return_annotation = state['_return_annotation']
 
     def __repr__(self):
-        return '<{} at {:#x} "{}">'.format(self.__class__.__name__,
-                                           id(self), self)
+        return '<{} {}>'.format(self.__class__.__name__, self)
 
     def __str__(self):
         result = []
@@ -2834,9 +2945,9 @@ class Signature:
         return rendered
 
 
-def signature(obj):
+def signature(obj, *, follow_wrapped=True):
     """Get a signature object for the passed callable."""
-    return Signature.from_callable(obj)
+    return Signature.from_callable(obj, follow_wrapped=follow_wrapped)
 
 
 def _main():

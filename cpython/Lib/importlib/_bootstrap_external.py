@@ -221,12 +221,13 @@ _code_type = type(_write_atomic.__code__)
 #     Python 3.4rc2 3310 (alter __qualname__ computation)
 #     Python 3.5a0  3320 (matrix multiplication operator)
 #     Python 3.5b1  3330 (PEP 448: Additional Unpacking Generalizations)
+#     Python 3.5b2  3340 (fix dictionary display evaluation order #11205)
 #
 # MAGIC must change whenever the bytecode emitted by the compiler may no
 # longer be understood by older implementations of the eval loop (usually
 # due to the addition of new opcodes).
 
-MAGIC_NUMBER = (3330).to_bytes(2, 'little') + b'\r\n'
+MAGIC_NUMBER = (3340).to_bytes(2, 'little') + b'\r\n'
 _RAW_MAGIC_NUMBER = int.from_bytes(MAGIC_NUMBER, 'little')  # For import.c
 
 _PYCACHE = '__pycache__'
@@ -378,7 +379,8 @@ def _check_name(method):
         if name is None:
             name = self.name
         elif self.name != name:
-            raise ImportError('loader cannot handle %s' % name, name=name)
+            raise ImportError('loader for %s cannot handle %s' %
+                                (self.name, name), name=name)
         return method(self, name, *args, **kwargs)
     try:
         _wrap = _bootstrap._wrap
@@ -408,22 +410,6 @@ def _find_module_shim(self, fullname):
         msg = 'Not importing directory {}: missing __init__'
         _warnings.warn(msg.format(portions[0]), ImportWarning)
     return loader
-
-
-# Typically used by loader classes as a method replacement.
-def _load_module_shim(self, fullname):
-    """Load the specified module into sys.modules and return it.
-
-    This method is deprecated.  Use loader.exec_module instead.
-
-    """
-    spec = spec_from_loader(fullname, self)
-    if fullname in sys.modules:
-        module = sys.modules[fullname]
-        _bootstrap._exec(spec, module)
-        return sys.modules[fullname]
-    else:
-        return _bootstrap._load(spec)
 
 
 def _validate_bytecode_header(data, source_stats=None, name=None, path=None):
@@ -516,28 +502,6 @@ def decode_source(source_bytes):
 
 
 # Module specifications #######################################################
-
-def spec_from_loader(name, loader, *, origin=None, is_package=None):
-    """Return a module spec based on various loader methods."""
-    if hasattr(loader, 'get_filename'):
-        if is_package is None:
-            return spec_from_file_location(name, loader=loader)
-        search = [] if is_package else None
-        return spec_from_file_location(name, loader=loader,
-                                       submodule_search_locations=search)
-
-    if is_package is None:
-        if hasattr(loader, 'is_package'):
-            try:
-                is_package = loader.is_package(name)
-            except ImportError:
-                is_package = None  # aka, undefined
-        else:
-            # the default
-            is_package = False
-
-    return _bootstrap.ModuleSpec(name, loader, origin=origin, is_package=is_package)
-
 
 _POPULATE = object()
 
@@ -653,8 +617,9 @@ class WindowsRegistryFinder:
             return None
         for loader, suffixes in _get_supported_file_loaders():
             if filepath.endswith(tuple(suffixes)):
-                spec = spec_from_loader(fullname, loader(fullname, filepath),
-                                        origin=filepath)
+                spec = _bootstrap.spec_from_loader(fullname,
+                                                   loader(fullname, filepath),
+                                                   origin=filepath)
                 return spec
 
     @classmethod
@@ -695,7 +660,8 @@ class _LoaderBasics:
                               'returns None'.format(module.__name__))
         _bootstrap._call_with_frames_removed(exec, code, module.__dict__)
 
-    load_module = _load_module_shim
+    def load_module(self, fullname):
+        return _bootstrap._load_module_shim(self, fullname)
 
 
 class SourceLoader(_LoaderBasics):
@@ -911,7 +877,7 @@ class SourcelessFileLoader(FileLoader, _LoaderBasics):
 EXTENSION_SUFFIXES = []
 
 
-class ExtensionFileLoader:
+class ExtensionFileLoader(FileLoader, _LoaderBasics):
 
     """Loader for extension modules.
 
@@ -930,23 +896,19 @@ class ExtensionFileLoader:
     def __hash__(self):
         return hash(self.name) ^ hash(self.path)
 
-    @_check_name
-    def load_module(self, fullname):
-        """Load an extension module."""
-        # Once an exec_module() implementation is added we can also
-        # add a deprecation warning here.
-        with _bootstrap._ManageReload(fullname):
-            module = _bootstrap._call_with_frames_removed(_imp.load_dynamic,
-                                                          fullname, self.path)
-        _verbose_message('extension module loaded from {!r}', self.path)
-        is_package = self.is_package(fullname)
-        if is_package and not hasattr(module, '__path__'):
-            module.__path__ = [_path_split(self.path)[0]]
-        module.__loader__ = self
-        module.__package__ = module.__name__
-        if not is_package:
-            module.__package__ = module.__package__.rpartition('.')[0]
+    def create_module(self, spec):
+        """Create an unitialized extension module"""
+        module = _bootstrap._call_with_frames_removed(
+            _imp.create_dynamic, spec)
+        _verbose_message('extension module {!r} loaded from {!r}',
+                         spec.name, self.path)
         return module
+
+    def exec_module(self, module):
+        """Initialize an extension module"""
+        _bootstrap._call_with_frames_removed(_imp.exec_dynamic, module)
+        _verbose_message('extension module {!r} executed from {!r}',
+                         self.name, self.path)
 
     def is_package(self, fullname):
         """Return True if the extension module is a package."""
@@ -1061,7 +1023,7 @@ class _NamespaceLoader:
         """
         # The import system never calls this method.
         _verbose_message('namespace module loaded with path {!r}', self._path)
-        return _load_module_shim(self, fullname)
+        return _bootstrap._load_module_shim(self, fullname)
 
 
 # Finders #####################################################################
@@ -1127,7 +1089,7 @@ class PathFinder:
             loader = finder.find_module(fullname)
             portions = []
         if loader is not None:
-            return spec_from_loader(fullname, loader)
+            return _bootstrap.spec_from_loader(fullname, loader)
         spec = _bootstrap.ModuleSpec(fullname, None)
         spec.submodule_search_locations = portions
         return spec

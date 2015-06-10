@@ -1926,11 +1926,133 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             goto fast_block_end;
         }
 
+        TARGET(GET_AITER) {
+            unaryfunc getter = NULL;
+            PyObject *iter = NULL;
+            PyObject *awaitable = NULL;
+            PyObject *obj = TOP();
+            PyTypeObject *type = Py_TYPE(obj);
+
+            if (type->tp_as_async != NULL)
+                getter = type->tp_as_async->am_aiter;
+
+            if (getter != NULL) {
+                iter = (*getter)(obj);
+                Py_DECREF(obj);
+                if (iter == NULL) {
+                    SET_TOP(NULL);
+                    goto error;
+                }
+            }
+            else {
+                SET_TOP(NULL);
+                PyErr_Format(
+                    PyExc_TypeError,
+                    "'async for' requires an object with "
+                    "__aiter__ method, got %.100s",
+                    type->tp_name);
+                Py_DECREF(obj);
+                goto error;
+            }
+
+            awaitable = _PyGen_GetAwaitableIter(iter);
+            if (awaitable == NULL) {
+                SET_TOP(NULL);
+                PyErr_Format(
+                    PyExc_TypeError,
+                    "'async for' received an invalid object "
+                    "from __aiter__: %.100s",
+                    Py_TYPE(iter)->tp_name);
+
+                Py_DECREF(iter);
+                goto error;
+            } else
+                Py_DECREF(iter);
+
+            SET_TOP(awaitable);
+            DISPATCH();
+        }
+
+        TARGET(GET_ANEXT) {
+            unaryfunc getter = NULL;
+            PyObject *next_iter = NULL;
+            PyObject *awaitable = NULL;
+            PyObject *aiter = TOP();
+            PyTypeObject *type = Py_TYPE(aiter);
+
+            if (type->tp_as_async != NULL)
+                getter = type->tp_as_async->am_anext;
+
+            if (getter != NULL) {
+                next_iter = (*getter)(aiter);
+                if (next_iter == NULL) {
+                    goto error;
+                }
+            }
+            else {
+                PyErr_Format(
+                    PyExc_TypeError,
+                    "'async for' requires an iterator with "
+                    "__anext__ method, got %.100s",
+                    type->tp_name);
+                goto error;
+            }
+
+            awaitable = _PyGen_GetAwaitableIter(next_iter);
+            if (awaitable == NULL) {
+                PyErr_Format(
+                    PyExc_TypeError,
+                    "'async for' received an invalid object "
+                    "from __anext__: %.100s",
+                    Py_TYPE(next_iter)->tp_name);
+
+                Py_DECREF(next_iter);
+                goto error;
+            } else
+                Py_DECREF(next_iter);
+
+            PUSH(awaitable);
+            DISPATCH();
+        }
+
+        TARGET(GET_AWAITABLE) {
+            PyObject *iterable = TOP();
+            PyObject *iter = _PyGen_GetAwaitableIter(iterable);
+
+            Py_DECREF(iterable);
+
+            SET_TOP(iter); /* Even if it's NULL */
+
+            if (iter == NULL) {
+                goto error;
+            }
+
+            DISPATCH();
+        }
+
         TARGET(YIELD_FROM) {
             PyObject *v = POP();
             PyObject *reciever = TOP();
             int err;
             if (PyGen_CheckExact(reciever)) {
+                if (
+                    (((PyCodeObject*) \
+                        ((PyGenObject*)reciever)->gi_code)->co_flags &
+                                                        CO_COROUTINE)
+                    && !(co->co_flags & (CO_COROUTINE | CO_ITERABLE_COROUTINE)))
+                {
+                    /* If we're yielding-from a coroutine object from a regular
+                       generator object - raise an error. */
+
+                    Py_CLEAR(v);
+                    Py_CLEAR(reciever);
+                    SET_TOP(NULL);
+
+                    PyErr_SetString(PyExc_TypeError,
+                                    "cannot 'yield from' a coroutine object "
+                                    "from a generator");
+                    goto error;
+                }
                 retval = _PyGen_Send((PyGenObject *)reciever, v);
             } else {
                 _Py_IDENTIFIER(send);
@@ -2462,8 +2584,8 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
                 goto error;
             while (--oparg >= 0) {
                 int err;
-                PyObject *key = TOP();
-                PyObject *value = SECOND();
+                PyObject *value = TOP();
+                PyObject *key = SECOND();
                 STACKADJ(-2);
                 err = PyDict_SetItem(map, key, value);
                 Py_DECREF(value);
@@ -2555,21 +2677,6 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             while (num_maps--)
                 Py_DECREF(POP());
             PUSH(sum);
-            DISPATCH();
-        }
-
-        TARGET(STORE_MAP) {
-            PyObject *key = TOP();
-            PyObject *value = SECOND();
-            PyObject *map = THIRD();
-            int err;
-            STACKADJ(-2);
-            assert(PyDict_CheckExact(map));
-            err = PyDict_SetItem(map, key, value);
-            Py_DECREF(value);
-            Py_DECREF(key);
-            if (err != 0)
-                goto error;
             DISPATCH();
         }
 
@@ -2822,11 +2929,26 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
         TARGET(GET_ITER) {
             /* before: [obj]; after [getiter(obj)] */
             PyObject *iterable = TOP();
-            PyObject *iter = PyObject_GetIter(iterable);
-            Py_DECREF(iterable);
-            SET_TOP(iter);
-            if (iter == NULL)
-                goto error;
+            PyObject *iter;
+            /* If we have a generator object on top -- keep it there,
+               it's already an iterator.
+
+               This is needed to allow use of 'async def' coroutines
+               in 'yield from' expression from generator-based coroutines
+               (decorated with types.coroutine()).
+
+               'yield from' is compiled to GET_ITER..YIELD_FROM combination,
+               but since coroutines raise TypeError in their 'tp_iter' we
+               need a way for them to "pass through" the GET_ITER.
+            */
+            if (!PyGen_CheckExact(iterable)) {
+                /* `iterable` is not a generator. */
+                iter = PyObject_GetIter(iterable);
+                Py_DECREF(iterable);
+                SET_TOP(iter);
+                if (iter == NULL)
+                    goto error;
+            }
             PREDICT(FOR_ITER);
             DISPATCH();
         }
@@ -2883,6 +3005,39 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             DISPATCH();
         }
 
+        TARGET(BEFORE_ASYNC_WITH) {
+            _Py_IDENTIFIER(__aexit__);
+            _Py_IDENTIFIER(__aenter__);
+
+            PyObject *mgr = TOP();
+            PyObject *exit = special_lookup(mgr, &PyId___aexit__),
+                     *enter;
+            PyObject *res;
+            if (exit == NULL)
+                goto error;
+            SET_TOP(exit);
+            enter = special_lookup(mgr, &PyId___aenter__);
+            Py_DECREF(mgr);
+            if (enter == NULL)
+                goto error;
+            res = PyObject_CallFunctionObjArgs(enter, NULL);
+            Py_DECREF(enter);
+            if (res == NULL)
+                goto error;
+            PUSH(res);
+            DISPATCH();
+        }
+
+        TARGET(SETUP_ASYNC_WITH) {
+            PyObject *res = POP();
+            /* Setup the finally block before pushing the result
+               of __aenter__ on the stack. */
+            PyFrame_BlockSetup(f, SETUP_FINALLY, INSTR_OFFSET() + oparg,
+                               STACK_LEVEL());
+            PUSH(res);
+            DISPATCH();
+        }
+
         TARGET(SETUP_WITH) {
             _Py_IDENTIFIER(__exit__);
             _Py_IDENTIFIER(__enter__);
@@ -2909,7 +3064,7 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             DISPATCH();
         }
 
-        TARGET(WITH_CLEANUP) {
+        TARGET(WITH_CLEANUP_START) {
             /* At the top of the stack are 1-6 values indicating
                how/why we entered the finally clause:
                - TOP = None
@@ -2937,7 +3092,6 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
 
             PyObject *exit_func;
             PyObject *exc = TOP(), *val = Py_None, *tb = Py_None, *res;
-            int err;
             if (exc == Py_None) {
                 (void)POP();
                 exit_func = TOP();
@@ -2987,11 +3141,26 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             if (res == NULL)
                 goto error;
 
+            Py_INCREF(exc); /* Duplicating the exception on the stack */
+            PUSH(exc);
+            PUSH(res);
+            PREDICT(WITH_CLEANUP_FINISH);
+            DISPATCH();
+        }
+
+        PREDICTED(WITH_CLEANUP_FINISH);
+        TARGET(WITH_CLEANUP_FINISH) {
+            PyObject *res = POP();
+            PyObject *exc = POP();
+            int err;
+
             if (exc != Py_None)
                 err = PyObject_IsTrue(res);
             else
                 err = 0;
+
             Py_DECREF(res);
+            Py_DECREF(exc);
 
             if (err < 0)
                 goto error;
@@ -3751,6 +3920,20 @@ _PyEval_EvalCodeWithName(PyObject *_co, PyObject *globals, PyObject *locals,
     }
 
     if (co->co_flags & CO_GENERATOR) {
+        PyObject *gen;
+        PyObject *coro_wrapper = tstate->coroutine_wrapper;
+        int is_coro = co->co_flags & (CO_COROUTINE | CO_ITERABLE_COROUTINE);
+
+        if (is_coro && tstate->in_coroutine_wrapper) {
+            assert(coro_wrapper != NULL);
+            PyErr_Format(PyExc_RuntimeError,
+                         "coroutine wrapper %.200R attempted "
+                         "to recursively wrap %.200R",
+                         coro_wrapper,
+                         co);
+            goto fail;
+        }
+
         /* Don't need to keep the reference to f_back, it will be set
          * when the generator is resumed. */
         Py_CLEAR(f->f_back);
@@ -3759,7 +3942,19 @@ _PyEval_EvalCodeWithName(PyObject *_co, PyObject *globals, PyObject *locals,
 
         /* Create a new generator that owns the ready to run frame
          * and return that as the value. */
-        return PyGen_NewWithQualName(f, name, qualname);
+        gen = PyGen_NewWithQualName(f, name, qualname);
+        if (gen == NULL)
+            return NULL;
+
+        if (is_coro && coro_wrapper != NULL) {
+            PyObject *wrapped;
+            tstate->in_coroutine_wrapper = 1;
+            wrapped = PyObject_CallFunction(coro_wrapper, "N", gen);
+            tstate->in_coroutine_wrapper = 0;
+            return wrapped;
+        }
+
+        return gen;
     }
 
     retval = PyEval_EvalFrameEx(f,0);
@@ -4203,6 +4398,24 @@ PyEval_SetTrace(Py_tracefunc func, PyObject *arg)
     /* Flag that tracing or profiling is turned on */
     tstate->use_tracing = ((func != NULL)
                            || (tstate->c_profilefunc != NULL));
+}
+
+void
+_PyEval_SetCoroutineWrapper(PyObject *wrapper)
+{
+    PyThreadState *tstate = PyThreadState_GET();
+
+    Py_CLEAR(tstate->coroutine_wrapper);
+
+    Py_XINCREF(wrapper);
+    tstate->coroutine_wrapper = wrapper;
+}
+
+PyObject *
+_PyEval_GetCoroutineWrapper(void)
+{
+    PyThreadState *tstate = PyThreadState_GET();
+    return tstate->coroutine_wrapper;
 }
 
 PyObject *
