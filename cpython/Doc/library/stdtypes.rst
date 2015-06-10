@@ -1937,6 +1937,16 @@ expression support in the :mod:`re` module).
       >>> 'www.example.com'.strip('cmowz.')
       'example'
 
+   The outermost leading and trailing *chars* argument values are stripped
+   from the string. Characters are removed from the leading end until
+   reaching a string character that is not contained in the set of
+   characters in *chars*. A similar action takes place on the trailing end.
+   For example::
+
+      >>> comment_string = '#....... Section 3.2.1 Issue #32 .......'
+      >>> comment_string.strip('.#! ')
+      'Section 3.2.1 Issue #32'
+
 
 .. method:: str.swapcase()
 
@@ -2509,7 +2519,7 @@ arbitrary binary data.
    Return a bytes or bytearray object which is the concatenation of the
    binary data sequences in the :term:`iterable` *iterable*.  A
    :exc:`TypeError` will be raised if there are any values in *iterable*
-   that are note :term:`bytes-like objects <bytes-like object>`, including
+   that are not :term:`bytes-like objects <bytes-like object>`, including
    :class:`str` objects.  The separator between elements is the contents
    of the bytes or bytearray object providing this method.
 

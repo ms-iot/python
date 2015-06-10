@@ -478,12 +478,14 @@ The :mod:`socket` module also offers various network-related services:
    method.
 
    The following example fetches address information for a hypothetical TCP
-   connection to ``www.python.org`` on port 80 (results may differ on your
+   connection to ``example.org`` on port 80 (results may differ on your
    system if IPv6 isn't enabled)::
 
-      >>> socket.getaddrinfo("www.python.org", 80, proto=socket.IPPROTO_TCP)
-      [(2, 1, 6, '', ('82.94.164.162', 80)),
-       (10, 1, 6, '', ('2001:888:2000:d::a2', 80, 0, 0))]
+      >>> socket.getaddrinfo("example.org", 80, proto=socket.IPPROTO_TCP)
+      [(<AddressFamily.AF_INET6: 10>, <SocketType.SOCK_STREAM: 1>,
+       6, '', ('2606:2800:220:1:248:1893:25c8:1946', 80, 0, 0)),
+       (<AddressFamily.AF_INET: 2>, <SocketType.SOCK_STREAM: 1>,
+       6, '', ('93.184.216.34', 80))]
 
    .. versionchanged:: 3.2
       parameters can now be passed using keyword arguments.
@@ -530,7 +532,7 @@ The :mod:`socket` module also offers various network-related services:
    always hold.
 
    Note: :func:`gethostname` doesn't always return the fully qualified domain
-   name; use ``getfqdn()`` (see above).
+   name; use :func:`getfqdn` for that.
 
 
 .. function:: gethostbyaddr(ip_address)

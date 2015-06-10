@@ -22,6 +22,8 @@ work. One should use importlib as the public-facing version of this module.
 
 # Bootstrap-related code ######################################################
 
+_bootstrap_external = None
+
 def _wrap(new, old):
     """Simple substitute for functools.update_wrapper."""
     for replace in ['__module__', '__name__', '__qualname__', '__doc__']:
@@ -405,7 +407,8 @@ class ModuleSpec:
     def cached(self):
         if self._cached is None:
             if self.origin is not None and self._set_fileattr:
-                import _frozen_importlib_external as _bootstrap_external  # XXX yuck
+                if _bootstrap_external is None:
+                    raise NotImplementedError
                 self._cached = _bootstrap_external._get_cached(self.origin)
         return self._cached
 
@@ -433,7 +436,10 @@ class ModuleSpec:
 def spec_from_loader(name, loader, *, origin=None, is_package=None):
     """Return a module spec based on various loader methods."""
     if hasattr(loader, 'get_filename'):
-        from ._bootstrap_external import spec_from_file_location  # XXX yuck
+        if _bootstrap_external is None:
+            raise NotImplementedError
+        spec_from_file_location = _bootstrap_external.spec_from_file_location
+
         if is_package is None:
             return spec_from_file_location(name, loader=loader)
         search = [] if is_package else None
@@ -516,7 +522,10 @@ def _init_module_attrs(spec, module, *, override=False):
         if loader is None:
             # A backward compatibility hack.
             if spec.submodule_search_locations is not None:
-                from ._bootstrap_external import _NamespaceLoader  # XXX yuck
+                if _bootstrap_external is None:
+                    raise NotImplementedError
+                _NamespaceLoader = _bootstrap_external._NamespaceLoader
+
                 loader = _NamespaceLoader.__new__(_NamespaceLoader)
                 loader._path = spec.submodule_search_locations
         try:
@@ -726,16 +735,17 @@ class BuiltinImporter:
         return spec.loader if spec is not None else None
 
     @classmethod
-    @_requires_builtin
-    def load_module(cls, fullname):
-        """Load a built-in module."""
-        # Once an exec_module() implementation is added we can also
-        # add a deprecation warning here.
-        with _ManageReload(fullname):
-            module = _call_with_frames_removed(_imp.init_builtin, fullname)
-        module.__loader__ = cls
-        module.__package__ = ''
-        return module
+    def create_module(self, spec):
+        """Create a built-in module"""
+        if spec.name not in sys.builtin_module_names:
+            raise ImportError('{!r} is not a built-in module'.format(spec.name),
+                              name=spec.name)
+        return _call_with_frames_removed(_imp.create_builtin, spec)
+
+    @classmethod
+    def exec_module(self, module):
+        """Exec a built-in module"""
+        _call_with_frames_removed(_imp.exec_dynamic, module)
 
     @classmethod
     @_requires_builtin
@@ -754,6 +764,8 @@ class BuiltinImporter:
     def is_package(cls, fullname):
         """Return False as built-in modules are never packages."""
         return False
+
+    load_module = classmethod(_load_module_shim)
 
 
 class FrozenImporter:
@@ -810,7 +822,6 @@ class FrozenImporter:
         This method is deprecated.  Use exec_module() instead.
 
         """
-        from ._bootstrap_external import _load_module_shim  # XXX yuck
         return _load_module_shim(cls, fullname)
 
     @classmethod
@@ -1125,6 +1136,7 @@ def _install(sys_module, _imp_module):
     sys.meta_path.append(BuiltinImporter)
     sys.meta_path.append(FrozenImporter)
 
+    global _bootstrap_external
     import _frozen_importlib_external
+    _bootstrap_external = _frozen_importlib_external
     _frozen_importlib_external._install(sys.modules[__name__])
-    sys.modules[__name__]._bootstrap_external = _frozen_importlib_external
