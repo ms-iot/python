@@ -11,6 +11,10 @@ import textwrap
 from io import StringIO, BytesIO
 from itertools import chain
 from random import choice
+try:
+    from threading import Thread
+except ImportError:
+    from dummy_threading import Thread
 
 import email
 import email.policy
@@ -34,7 +38,7 @@ from email import iterators
 from email import base64mime
 from email import quoprimime
 
-from test.support import unlink
+from test.support import unlink, start_threads
 from test.test_email import openfile, TestEmailBase
 
 # These imports are documented to work, but we are testing them using a
@@ -585,6 +589,17 @@ class TestMessageAPI(TestEmailBase):
         eq(msg.keys(), ['First', 'Second', 'Third', 'First'])
         eq(msg.values(), ['One Hundred', 'Twenty', 'Three', 'Eleven'])
         self.assertRaises(KeyError, msg.replace_header, 'Fourth', 'Missing')
+
+    def test_get_content_disposition(self):
+        msg = Message()
+        self.assertIsNone(msg.get_content_disposition())
+        msg.add_header('Content-Disposition', 'attachment',
+                       filename='random.avi')
+        self.assertEqual(msg.get_content_disposition(), 'attachment')
+        msg.replace_header('Content-Disposition', 'inline')
+        self.assertEqual(msg.get_content_disposition(), 'inline')
+        msg.replace_header('Content-Disposition', 'InlinE')
+        self.assertEqual(msg.get_content_disposition(), 'inline')
 
     # test_defect_handling:test_invalid_chars_in_base64_payload
     def test_broken_base64_payload(self):
@@ -3155,6 +3170,25 @@ Foo
         eq = self.assertEqual
         addrs = utils.getaddresses(['User ((nested comment)) <foo@bar.com>'])
         eq(addrs[0][1], 'foo@bar.com')
+
+    def test_make_msgid_collisions(self):
+        # Test make_msgid uniqueness, even with multiple threads
+        class MsgidsThread(Thread):
+            def run(self):
+                # generate msgids for 3 seconds
+                self.msgids = []
+                append = self.msgids.append
+                make_msgid = utils.make_msgid
+                clock = time.clock
+                tfin = clock() + 3.0
+                while clock() < tfin:
+                    append(make_msgid(domain='testdomain-string'))
+
+        threads = [MsgidsThread() for i in range(5)]
+        with start_threads(threads):
+            pass
+        all_ids = sum([t.msgids for t in threads], [])
+        self.assertEqual(len(set(all_ids)), len(all_ids))
 
     def test_utils_quote_unquote(self):
         eq = self.assertEqual

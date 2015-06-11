@@ -51,6 +51,11 @@ typedef struct {
 */
 #define CO_NOFREE       0x0040
 
+/* The CO_COROUTINE flag is set for coroutine functions (defined with
+   ``async def`` keywords) */
+#define CO_COROUTINE            0x0080
+#define CO_ITERABLE_COROUTINE   0x0100
+
 /* These are no longer used. */
 #if 0
 #define CO_GENERATOR_ALLOWED    0x1000
@@ -62,6 +67,7 @@ typedef struct {
 #define CO_FUTURE_UNICODE_LITERALS 0x20000
 
 #define CO_FUTURE_BARRY_AS_BDFL  0x40000
+#define CO_FUTURE_GENERATOR_STOP  0x80000
 
 /* This value is found in the co_cell2arg array when the associated cell
    variable does not correspond to an argument. The maximum number of

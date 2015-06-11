@@ -24,6 +24,19 @@ _PyGen_Finalize(PyObject *self)
     PyObject *res;
     PyObject *error_type, *error_value, *error_traceback;
 
+    /* If `gen` is a coroutine, and if it was never awaited on,
+       issue a RuntimeWarning. */
+    if (gen->gi_code != NULL
+            && ((PyCodeObject *)gen->gi_code)->co_flags & (CO_COROUTINE
+                                                       | CO_ITERABLE_COROUTINE)
+            && gen->gi_frame != NULL
+            && gen->gi_frame->f_lasti == -1
+            && !PyErr_Occurred()
+            && PyErr_WarnFormat(PyExc_RuntimeWarning, 1,
+                                "coroutine '%.50S' was never awaited",
+                                gen->gi_qualname))
+        return;
+
     if (gen->gi_frame == NULL || gen->gi_frame->f_stacktop == NULL)
         /* Generator isn't paused, so no need to close */
         return;
@@ -129,6 +142,48 @@ gen_send_ex(PyGenObject *gen, PyObject *arg, int exc)
             }
         }
         Py_CLEAR(result);
+    }
+    else if (!result && PyErr_ExceptionMatches(PyExc_StopIteration)) {
+        /* Check for __future__ generator_stop and conditionally turn
+         * a leaking StopIteration into RuntimeError (with its cause
+         * set appropriately). */
+        if (((PyCodeObject *)gen->gi_code)->co_flags &
+              (CO_FUTURE_GENERATOR_STOP | CO_COROUTINE | CO_ITERABLE_COROUTINE))
+        {
+            PyObject *exc, *val, *val2, *tb;
+            PyErr_Fetch(&exc, &val, &tb);
+            PyErr_NormalizeException(&exc, &val, &tb);
+            if (tb != NULL)
+                PyException_SetTraceback(val, tb);
+            Py_DECREF(exc);
+            Py_XDECREF(tb);
+            PyErr_SetString(PyExc_RuntimeError,
+                "generator raised StopIteration");
+            PyErr_Fetch(&exc, &val2, &tb);
+            PyErr_NormalizeException(&exc, &val2, &tb);
+            Py_INCREF(val);
+            PyException_SetCause(val2, val);
+            PyException_SetContext(val2, val);
+            PyErr_Restore(exc, val2, tb);
+        }
+        else {
+            PyObject *exc, *val, *tb;
+
+            /* Pop the exception before issuing a warning. */
+            PyErr_Fetch(&exc, &val, &tb);
+
+            if (PyErr_WarnFormat(PyExc_PendingDeprecationWarning, 1,
+                                 "generator '%.50S' raised StopIteration",
+                                 gen->gi_qualname)) {
+                /* Warning was converted to an error. */
+                Py_XDECREF(exc);
+                Py_XDECREF(val);
+                Py_XDECREF(tb);
+            }
+            else {
+                PyErr_Restore(exc, val, tb);
+            }
+        }
     }
 
     if (!result || f->f_stacktop == NULL) {
@@ -377,6 +432,12 @@ failed_throw:
 static PyObject *
 gen_iternext(PyGenObject *gen)
 {
+    if (((PyCodeObject*)gen->gi_code)->co_flags & CO_COROUTINE) {
+        PyErr_SetString(PyExc_TypeError,
+                        "coroutine-objects do not support iteration");
+        return NULL;
+    }
+
     return gen_send_ex(gen, NULL, 0);
 }
 
@@ -398,8 +459,7 @@ _PyGen_FetchStopIterationValue(PyObject **pvalue) {
         PyErr_Fetch(&et, &ev, &tb);
         if (ev) {
             /* exception will usually be normalised already */
-            if (Py_TYPE(ev) == (PyTypeObject *) et
-                || PyObject_IsInstance(ev, PyExc_StopIteration)) {
+            if (PyObject_TypeCheck(ev, (PyTypeObject *) et)) {
                 value = ((PyStopIterationObject *)ev)->value;
                 Py_INCREF(value);
                 Py_DECREF(ev);
@@ -409,7 +469,7 @@ _PyGen_FetchStopIterationValue(PyObject **pvalue) {
             } else {
                 /* normalisation required */
                 PyErr_NormalizeException(&et, &ev, &tb);
-                if (!PyObject_IsInstance(ev, PyExc_StopIteration)) {
+                if (!PyObject_TypeCheck(ev, (PyTypeObject *)PyExc_StopIteration)) {
                     PyErr_Restore(et, ev, tb);
                     return -1;
                 }
@@ -434,8 +494,14 @@ _PyGen_FetchStopIterationValue(PyObject **pvalue) {
 static PyObject *
 gen_repr(PyGenObject *gen)
 {
-    return PyUnicode_FromFormat("<generator object %S at %p>",
-                                gen->gi_qualname, gen);
+    if (PyGen_CheckCoroutineExact(gen)) {
+        return PyUnicode_FromFormat("<coroutine object %S at %p>",
+                                    gen->gi_qualname, gen);
+    }
+    else {
+        return PyUnicode_FromFormat("<generator object %S at %p>",
+                                    gen->gi_qualname, gen);
+    }
 }
 
 static PyObject *
@@ -469,6 +535,19 @@ gen_get_qualname(PyGenObject *op)
 {
     Py_INCREF(op->gi_qualname);
     return op->gi_qualname;
+}
+
+static PyObject *
+gen_get_iter(PyGenObject *gen)
+{
+    if (((PyCodeObject*)gen->gi_code)->co_flags & CO_COROUTINE) {
+        PyErr_SetString(PyExc_TypeError,
+                        "coroutine-objects do not support iteration");
+        return NULL;
+    }
+
+    Py_INCREF(gen);
+    return (PyObject *)gen;
 }
 
 static int
@@ -522,7 +601,7 @@ PyTypeObject PyGen_Type = {
     0,                                          /* tp_print */
     0,                                          /* tp_getattr */
     0,                                          /* tp_setattr */
-    0,                                          /* tp_reserved */
+    0,                                          /* tp_as_async */
     (reprfunc)gen_repr,                         /* tp_repr */
     0,                                          /* tp_as_number */
     0,                                          /* tp_as_sequence */
@@ -540,7 +619,7 @@ PyTypeObject PyGen_Type = {
     0,                                          /* tp_clear */
     0,                                          /* tp_richcompare */
     offsetof(PyGenObject, gi_weakreflist),      /* tp_weaklistoffset */
-    PyObject_SelfIter,                          /* tp_iter */
+    (getiterfunc)gen_get_iter,                  /* tp_iter */
     (iternextfunc)gen_iternext,                 /* tp_iternext */
     gen_methods,                                /* tp_methods */
     gen_memberlist,                             /* tp_members */
@@ -616,4 +695,58 @@ PyGen_NeedsFinalizing(PyGenObject *gen)
 
     /* No blocks except loops, it's safe to skip finalization. */
     return 0;
+}
+
+/*
+ *   This helper function returns an awaitable for `o`:
+ *     - `o` if `o` is a coroutine-object;
+ *     - `type(o)->tp_as_async->am_await(o)`
+ *
+ *   Raises a TypeError if it's not possible to return
+ *   an awaitable and returns NULL.
+ */
+PyObject *
+_PyGen_GetAwaitableIter(PyObject *o)
+{
+    unaryfunc getter = NULL;
+    PyTypeObject *ot;
+
+    if (PyGen_CheckCoroutineExact(o)) {
+        /* Fast path. It's a central function for 'await'. */
+        Py_INCREF(o);
+        return o;
+    }
+
+    ot = Py_TYPE(o);
+    if (ot->tp_as_async != NULL) {
+        getter = ot->tp_as_async->am_await;
+    }
+    if (getter != NULL) {
+        PyObject *res = (*getter)(o);
+        if (res != NULL) {
+            if (!PyIter_Check(res)) {
+                PyErr_Format(PyExc_TypeError,
+                             "__await__() returned non-iterator "
+                             "of type '%.100s'",
+                             Py_TYPE(res)->tp_name);
+                Py_CLEAR(res);
+            }
+            else {
+                if (PyGen_CheckCoroutineExact(res)) {
+                    /* __await__ must return an *iterator*, not
+                       a coroutine or another awaitable (see PEP 492) */
+                    PyErr_SetString(PyExc_TypeError,
+                                    "__await__() returned a coroutine");
+                    Py_CLEAR(res);
+                }
+            }
+        }
+        return res;
+    }
+
+    PyErr_Format(PyExc_TypeError,
+                 "object %.100s can't be used in 'await' expression",
+                 ot->tp_name);
+
+    return NULL;
 }
