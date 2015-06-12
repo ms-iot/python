@@ -307,7 +307,7 @@ set_add_entry(PySetObject *so, setentry *entry)
     assert(so->fill <= so->mask);  /* at least one empty slot */
     n_used = so->used;
     Py_INCREF(key);
-    if (set_insert_key(so, key, hash) == -1) {
+    if (set_insert_key(so, key, hash)) {
         Py_DECREF(key);
         return -1;
     }
@@ -548,16 +548,16 @@ set_merge(PySetObject *so, PyObject *otherset)
 {
     PySetObject *other;
     PyObject *key;
-    Py_hash_t hash;
     Py_ssize_t i;
-    setentry *entry;
+    setentry *so_entry;
+    setentry *other_entry;
 
     assert (PyAnySet_Check(so));
     assert (PyAnySet_Check(otherset));
 
     other = (PySetObject*)otherset;
     if (other == so || other->used == 0)
-        /* a.update(a) or a.update({}); nothing to do */
+        /* a.update(a) or a.update(set()); nothing to do */
         return 0;
     /* Do one big resize at the start, rather than
      * incrementally resizing as we insert new keys.  Expect
@@ -567,14 +567,44 @@ set_merge(PySetObject *so, PyObject *otherset)
        if (set_table_resize(so, (so->used + other->used)*2) != 0)
            return -1;
     }
-    for (i = 0; i <= other->mask; i++) {
-        entry = &other->table[i];
-        key = entry->key;
-        hash = entry->hash;
-        if (key != NULL &&
-            key != dummy) {
+    so_entry = so->table;
+    other_entry = other->table;
+
+    /* If our table is empty, and both tables have the same size, and
+       there are no dummies to eliminate, then just copy the pointers. */
+    if (so->fill == 0 && so->mask == other->mask && other->fill == other->used) {
+        for (i = 0; i <= other->mask; i++, so_entry++, other_entry++) {
+            key = other_entry->key;
+            if (key != NULL) {
+                assert(so_entry->key == NULL);
+                Py_INCREF(key);
+                so_entry->key = key;
+                so_entry->hash = other_entry->hash;
+            }
+        }
+        so->fill = other->fill;
+        so->used = other->used;
+        return 0;
+    }
+
+    /* If our table is empty, we can use set_insert_clean() */
+    if (so->fill == 0) {
+        for (i = 0; i <= other->mask; i++, other_entry++) {
+            key = other_entry->key;
+            if (key != NULL && key != dummy) {
+                Py_INCREF(key);
+                set_insert_clean(so, key, other_entry->hash);
+            }
+        }
+        return 0;
+    }
+
+    /* We can't assure there are no duplicates, so do normal insertions */
+    for (i = 0; i <= other->mask; i++, other_entry++) {
+        key = other_entry->key;
+        if (key != NULL && key != dummy) {
             Py_INCREF(key);
-            if (set_insert_key(so, key, hash) == -1) {
+            if (set_insert_key(so, key, other_entry->hash)) {
                 Py_DECREF(key);
                 return -1;
             }
@@ -893,7 +923,7 @@ set_update_internal(PySetObject *so, PyObject *other)
 
             an_entry.hash = hash;
             an_entry.key = key;
-            if (set_add_entry(so, &an_entry) == -1)
+            if (set_add_entry(so, &an_entry))
                 return -1;
         }
         return 0;
@@ -904,7 +934,7 @@ set_update_internal(PySetObject *so, PyObject *other)
         return -1;
 
     while ((key = PyIter_Next(it)) != NULL) {
-        if (set_add_key(so, key) == -1) {
+        if (set_add_key(so, key)) {
             Py_DECREF(it);
             Py_DECREF(key);
             return -1;
@@ -924,7 +954,7 @@ set_update(PySetObject *so, PyObject *args)
 
     for (i=0 ; i<PyTuple_GET_SIZE(args) ; i++) {
         PyObject *other = PyTuple_GET_ITEM(args, i);
-        if (set_update_internal(so, other) == -1)
+        if (set_update_internal(so, other))
             return NULL;
     }
     Py_RETURN_NONE;
@@ -958,7 +988,7 @@ make_new_set(PyTypeObject *type, PyObject *iterable)
     so->weakreflist = NULL;
 
     if (iterable != NULL) {
-        if (set_update_internal(so, iterable) == -1) {
+        if (set_update_internal(so, iterable)) {
             Py_DECREF(so);
             return NULL;
         }
@@ -1123,7 +1153,7 @@ set_union(PySetObject *so, PyObject *args)
         other = PyTuple_GET_ITEM(args, i);
         if ((PyObject *)so == other)
             continue;
-        if (set_update_internal(result, other) == -1) {
+        if (set_update_internal(result, other)) {
             Py_DECREF(result);
             return NULL;
         }
@@ -1149,7 +1179,7 @@ set_or(PySetObject *so, PyObject *other)
         return NULL;
     if ((PyObject *)so == other)
         return (PyObject *)result;
-    if (set_update_internal(result, other) == -1) {
+    if (set_update_internal(result, other)) {
         Py_DECREF(result);
         return NULL;
     }
@@ -1162,7 +1192,7 @@ set_ior(PySetObject *so, PyObject *other)
     if (!PyAnySet_Check(other))
         Py_RETURN_NOTIMPLEMENTED;
 
-    if (set_update_internal(so, other) == -1)
+    if (set_update_internal(so, other))
         return NULL;
     Py_INCREF(so);
     return (PyObject *)so;
@@ -1198,7 +1228,7 @@ set_intersection(PySetObject *so, PyObject *other)
                 return NULL;
             }
             if (rv) {
-                if (set_add_entry(result, entry) == -1) {
+                if (set_add_entry(result, entry)) {
                     Py_DECREF(result);
                     return NULL;
                 }
@@ -1234,7 +1264,7 @@ set_intersection(PySetObject *so, PyObject *other)
             return NULL;
         }
         if (rv) {
-            if (set_add_entry(result, &entry) == -1) {
+            if (set_add_entry(result, &entry)) {
                 Py_DECREF(it);
                 Py_DECREF(result);
                 Py_DECREF(key);
@@ -1442,7 +1472,7 @@ set_difference_update(PySetObject *so, PyObject *args)
 
     for (i=0 ; i<PyTuple_GET_SIZE(args) ; i++) {
         PyObject *other = PyTuple_GET_ITEM(args, i);
-        if (set_difference_update_internal(so, other) == -1)
+        if (set_difference_update_internal(so, other))
             return NULL;
     }
     Py_RETURN_NONE;
@@ -1489,10 +1519,16 @@ set_difference(PySetObject *so, PyObject *other)
     if (PyDict_CheckExact(other)) {
         while (set_next(so, &pos, &entry)) {
             setentry entrycopy;
+            int rv;
             entrycopy.hash = entry->hash;
             entrycopy.key = entry->key;
-            if (!_PyDict_Contains(other, entry->key, entry->hash)) {
-                if (set_add_entry((PySetObject *)result, &entrycopy) == -1) {
+            rv = _PyDict_Contains(other, entry->key, entry->hash);
+            if (rv < 0) {
+                Py_DECREF(result);
+                return NULL;
+            }
+            if (!rv) {
+                if (set_add_entry((PySetObject *)result, &entrycopy)) {
                     Py_DECREF(result);
                     return NULL;
                 }
@@ -1509,7 +1545,7 @@ set_difference(PySetObject *so, PyObject *other)
             return NULL;
         }
         if (!rv) {
-            if (set_add_entry((PySetObject *)result, entry) == -1) {
+            if (set_add_entry((PySetObject *)result, entry)) {
                 Py_DECREF(result);
                 return NULL;
             }
@@ -1534,7 +1570,7 @@ set_difference_multi(PySetObject *so, PyObject *args)
 
     for (i=1 ; i<PyTuple_GET_SIZE(args) ; i++) {
         other = PyTuple_GET_ITEM(args, i);
-        if (set_difference_update_internal((PySetObject *)result, other) == -1) {
+        if (set_difference_update_internal((PySetObject *)result, other)) {
             Py_DECREF(result);
             return NULL;
         }
@@ -1559,7 +1595,7 @@ set_isub(PySetObject *so, PyObject *other)
 {
     if (!PyAnySet_Check(other))
         Py_RETURN_NOTIMPLEMENTED;
-    if (set_difference_update_internal(so, other) == -1)
+    if (set_difference_update_internal(so, other))
         return NULL;
     Py_INCREF(so);
     return (PyObject *)so;
@@ -1593,7 +1629,7 @@ set_symmetric_difference_update(PySetObject *so, PyObject *other)
                 return NULL;
             }
             if (rv == DISCARD_NOTFOUND) {
-                if (set_add_entry(so, &an_entry) == -1) {
+                if (set_add_entry(so, &an_entry)) {
                     Py_DECREF(key);
                     return NULL;
                 }
@@ -1619,7 +1655,7 @@ set_symmetric_difference_update(PySetObject *so, PyObject *other)
             return NULL;
         }
         if (rv == DISCARD_NOTFOUND) {
-            if (set_add_entry(so, entry) == -1) {
+            if (set_add_entry(so, entry)) {
                 Py_DECREF(otherset);
                 return NULL;
             }
@@ -1727,7 +1763,8 @@ PyDoc_STRVAR(issuperset_doc, "Report whether this set contains another set.");
 static PyObject *
 set_richcompare(PySetObject *v, PyObject *w, int op)
 {
-    PyObject *r1, *r2;
+    PyObject *r1;
+    int r2;
 
     if(!PyAnySet_Check(w))
         Py_RETURN_NOTIMPLEMENTED;
@@ -1745,9 +1782,11 @@ set_richcompare(PySetObject *v, PyObject *w, int op)
         r1 = set_richcompare(v, w, Py_EQ);
         if (r1 == NULL)
             return NULL;
-        r2 = PyBool_FromLong(PyObject_Not(r1));
+        r2 = PyObject_IsTrue(r1);
         Py_DECREF(r1);
-        return r2;
+        if (r2 < 0)
+            return NULL;
+        return PyBool_FromLong(!r2);
     case Py_LE:
         return set_issubset(v, w);
     case Py_GE:
@@ -1767,7 +1806,7 @@ set_richcompare(PySetObject *v, PyObject *w, int op)
 static PyObject *
 set_add(PySetObject *so, PyObject *key)
 {
-    if (set_add_key(so, key) == -1)
+    if (set_add_key(so, key))
         return NULL;
     Py_RETURN_NONE;
 }
@@ -2311,7 +2350,7 @@ test_c_api(PySetObject *so)
     if (str == NULL)
         return NULL;
     set_clear_internal(so);
-    if (set_update_internal(so, str) == -1) {
+    if (set_update_internal(so, str)) {
         Py_DECREF(str);
         return NULL;
     }

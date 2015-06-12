@@ -22,15 +22,18 @@ class PolicyAPITests(unittest.TestCase):
         'linesep':                  '\n',
         'cte_type':                 '8bit',
         'raise_on_defect':          False,
+        'mangle_from_':             True,
         }
     # These default values are the ones set on email.policy.default.
     # If any of these defaults change, the docs must be updated.
     policy_defaults = compat32_defaults.copy()
     policy_defaults.update({
+        'utf8':                     False,
         'raise_on_defect':          False,
         'header_factory':           email.policy.EmailPolicy.header_factory,
         'refold_source':            'long',
         'content_manager':          email.policy.EmailPolicy.content_manager,
+        'mangle_from_':             False,
         })
 
     # For each policy under test, we give here what we expect the defaults to
@@ -42,6 +45,9 @@ class PolicyAPITests(unittest.TestCase):
         email.policy.default: make_defaults(policy_defaults, {}),
         email.policy.SMTP: make_defaults(policy_defaults,
                                          {'linesep': '\r\n'}),
+        email.policy.SMTPUTF8: make_defaults(policy_defaults,
+                                             {'linesep': '\r\n',
+                                              'utf8': True}),
         email.policy.HTTP: make_defaults(policy_defaults,
                                          {'linesep': '\r\n',
                                           'max_line_length': None}),

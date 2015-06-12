@@ -1419,25 +1419,36 @@ bytes_richcompare(PyBytesObject *a, PyBytesObject *b, int op)
     Py_ssize_t len_a, len_b;
     Py_ssize_t min_len;
     PyObject *result;
+    int rc;
 
     /* Make sure both arguments are strings. */
     if (!(PyBytes_Check(a) && PyBytes_Check(b))) {
         if (Py_BytesWarningFlag && (op == Py_EQ || op == Py_NE)) {
-            if (PyObject_IsInstance((PyObject*)a,
-                                    (PyObject*)&PyUnicode_Type) ||
-                PyObject_IsInstance((PyObject*)b,
-                                    (PyObject*)&PyUnicode_Type)) {
+            rc = PyObject_IsInstance((PyObject*)a,
+                                     (PyObject*)&PyUnicode_Type);
+            if (!rc)
+                rc = PyObject_IsInstance((PyObject*)b,
+                                         (PyObject*)&PyUnicode_Type);
+            if (rc < 0)
+                return NULL;
+            if (rc) {
                 if (PyErr_WarnEx(PyExc_BytesWarning,
-                            "Comparison between bytes and string", 1))
+                                 "Comparison between bytes and string", 1))
                     return NULL;
             }
-            else if (PyObject_IsInstance((PyObject*)a,
-                                    (PyObject*)&PyLong_Type) ||
-                PyObject_IsInstance((PyObject*)b,
-                                    (PyObject*)&PyLong_Type)) {
-                if (PyErr_WarnEx(PyExc_BytesWarning,
-                            "Comparison between bytes and int", 1))
+            else {
+                rc = PyObject_IsInstance((PyObject*)a,
+                                         (PyObject*)&PyLong_Type);
+                if (!rc)
+                    rc = PyObject_IsInstance((PyObject*)b,
+                                             (PyObject*)&PyLong_Type);
+                if (rc < 0)
                     return NULL;
+                if (rc) {
+                    if (PyErr_WarnEx(PyExc_BytesWarning,
+                                     "Comparison between bytes and int", 1))
+                        return NULL;
+                }
             }
         }
         result = Py_NotImplemented;
@@ -2942,7 +2953,7 @@ bytes_decode_impl(PyBytesObject*self, const char *encoding,
 /*[clinic input]
 bytes.splitlines
 
-    keepends: int(py_default="False") = 0
+    keepends: int(c_default="0") = False
 
 Return a list of the lines in the bytes, breaking at line boundaries.
 
@@ -2952,7 +2963,7 @@ true.
 
 static PyObject *
 bytes_splitlines_impl(PyBytesObject*self, int keepends)
-/*[clinic end generated code: output=995c3598f7833cad input=ddb93e3351080c8c]*/
+/*[clinic end generated code: output=995c3598f7833cad input=7f4aac67144f9944]*/
 {
     return stringlib_splitlines(
         (PyObject*) self, PyBytes_AS_STRING(self),

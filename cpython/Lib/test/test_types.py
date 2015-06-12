@@ -1,7 +1,8 @@
 # Python test set -- part 6, built-in types
 
 from test.support import run_with_locale
-import collections
+import collections.abc
+import inspect
 import pickle
 import locale
 import sys
@@ -1170,6 +1171,105 @@ class SimpleNamespaceTests(unittest.TestCase):
             ns_roundtrip = pickle.loads(ns_pickled)
 
             self.assertEqual(ns, ns_roundtrip, pname)
+
+    def test_fake_namespace_compare(self):
+        # Issue #24257: Incorrect use of PyObject_IsInstance() caused
+        # SystemError.
+        class FakeSimpleNamespace(str):
+            __class__ = types.SimpleNamespace
+        self.assertFalse(types.SimpleNamespace() == FakeSimpleNamespace())
+        self.assertTrue(types.SimpleNamespace() != FakeSimpleNamespace())
+        with self.assertRaises(TypeError):
+            types.SimpleNamespace() < FakeSimpleNamespace()
+        with self.assertRaises(TypeError):
+            types.SimpleNamespace() <= FakeSimpleNamespace()
+        with self.assertRaises(TypeError):
+            types.SimpleNamespace() > FakeSimpleNamespace()
+        with self.assertRaises(TypeError):
+            types.SimpleNamespace() >= FakeSimpleNamespace()
+
+
+class CoroutineTests(unittest.TestCase):
+    def test_wrong_args(self):
+        class Foo:
+            def __call__(self):
+                pass
+        def bar(): pass
+
+        samples = [None, 1, object()]
+        for sample in samples:
+            with self.assertRaisesRegex(TypeError,
+                                        'types.coroutine.*expects a callable'):
+                types.coroutine(sample)
+
+    def test_wrong_func(self):
+        @types.coroutine
+        def foo():
+            pass
+        with self.assertRaisesRegex(TypeError,
+                                    'callable wrapped .* non-coroutine'):
+            foo()
+
+    def test_duck_coro(self):
+        class CoroLike:
+            def send(self): pass
+            def throw(self): pass
+            def close(self): pass
+            def __await__(self): return self
+
+        coro = CoroLike()
+        @types.coroutine
+        def foo():
+            return coro
+        self.assertIs(foo().__await__(), coro)
+
+    def test_duck_gen(self):
+        class GenLike:
+            def send(self): pass
+            def throw(self): pass
+            def close(self): pass
+            def __iter__(self): return self
+            def __next__(self): pass
+
+        gen = GenLike()
+        @types.coroutine
+        def foo():
+            return gen
+        self.assertIs(foo().__await__(), gen)
+
+        with self.assertRaises(AttributeError):
+            foo().gi_code
+
+    def test_gen(self):
+        def gen(): yield
+        gen = gen()
+        @types.coroutine
+        def foo(): return gen
+        self.assertIs(foo().__await__(), gen)
+
+        for name in ('__name__', '__qualname__', 'gi_code',
+                     'gi_running', 'gi_frame'):
+            self.assertIs(getattr(foo(), name),
+                          getattr(gen, name))
+
+    def test_genfunc(self):
+        def gen():
+            yield
+
+        self.assertFalse(isinstance(gen(), collections.abc.Coroutine))
+        self.assertFalse(isinstance(gen(), collections.abc.Awaitable))
+
+        self.assertIs(types.coroutine(gen), gen)
+
+        self.assertTrue(gen.__code__.co_flags & inspect.CO_ITERABLE_COROUTINE)
+        self.assertFalse(gen.__code__.co_flags & inspect.CO_COROUTINE)
+
+        g = gen()
+        self.assertTrue(g.gi_code.co_flags & inspect.CO_ITERABLE_COROUTINE)
+        self.assertFalse(g.gi_code.co_flags & inspect.CO_COROUTINE)
+        self.assertTrue(isinstance(g, collections.abc.Coroutine))
+        self.assertTrue(isinstance(g, collections.abc.Awaitable))
+        g.close() # silence warning
 
 
 if __name__ == '__main__':

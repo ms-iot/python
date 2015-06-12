@@ -1673,7 +1673,7 @@ array_array_tostring_impl(arrayobject *self)
 /*[clinic input]
 array.array.fromunicode
 
-    ustr: Py_UNICODE(length=True)
+    ustr: Py_UNICODE(zeroes=True)
     /
 
 Extends this array with data from the unicode string ustr.
@@ -1686,7 +1686,7 @@ some other type.
 static PyObject *
 array_array_fromunicode_impl(arrayobject *self, Py_UNICODE *ustr,
                              Py_ssize_clean_t ustr_length)
-/*[clinic end generated code: output=ebb72fc16975e06d input=56bcedb5ef70139f]*/
+/*[clinic end generated code: output=ebb72fc16975e06d input=150f00566ffbca6e]*/
 {
     char typecode;
 
@@ -2981,34 +2981,17 @@ static PyMethodDef a_methods[] = {
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
-static struct PyModuleDef arraymodule = {
-    PyModuleDef_HEAD_INIT,
-    "array",
-    module_doc,
-    -1,
-    a_methods,
-    NULL,
-    NULL,
-    NULL,
-    NULL
-};
-
-
-PyMODINIT_FUNC
-PyInit_array(void)
+static int
+array_modexec(PyObject *m)
 {
-    PyObject *m;
     char buffer[Py_ARRAY_LENGTH(descriptors)], *p;
     PyObject *typecodes;
     Py_ssize_t size = 0;
     struct arraydescr *descr;
 
     if (PyType_Ready(&Arraytype) < 0)
-        return NULL;
+        return -1;
     Py_TYPE(&PyArrayIter_Type) = &PyType_Type;
-    m = PyModule_Create(&arraymodule);
-    if (m == NULL)
-        return NULL;
 
     Py_INCREF((PyObject *)&Arraytype);
     PyModule_AddObject(m, "ArrayType", (PyObject *)&Arraytype);
@@ -3031,5 +3014,30 @@ PyInit_array(void)
         Py_DECREF(m);
         m = NULL;
     }
-    return m;
+    return 0;
+}
+
+static PyModuleDef_Slot arrayslots[] = {
+    {Py_mod_exec, array_modexec},
+    {0, NULL}
+};
+
+
+static struct PyModuleDef arraymodule = {
+    PyModuleDef_HEAD_INIT,
+    "array",
+    module_doc,
+    0,
+    a_methods,
+    arrayslots,
+    NULL,
+    NULL,
+    NULL
+};
+
+
+PyMODINIT_FUNC
+PyInit_array(void)
+{
+    return PyModuleDef_Init(&arraymodule);
 }
