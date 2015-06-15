@@ -33,7 +33,7 @@
     <AppContainerApplication>true</AppContainerApplication>
     <ApplicationType>Windows Store</ApplicationType>
     <PlatformToolset Condition="'$(VCTargetsPath14)' != ''">v140</PlatformToolset>
-    <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
+    <ApplicationTypeRevision>8.2</ApplicationTypeRevision>
     <GenerateManifest>false</GenerateManifest>
     <DefaultLanguage>en-US</DefaultLanguage>
   </PropertyGroup>
@@ -63,10 +63,8 @@
       <CompileAsWinRT>false</CompileAsWinRT>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
-    <Link Condition="'$(ApplicationTypeRevision)'=='10.0'">
-      <IgnoreSpecificDefaultLibraries>LIBC;ole32.lib;kernel32.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
-    </Link>
     <Link>
+      <IgnoreSpecificDefaultLibraries>LIBC;ole32.lib;kernel32.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ImageHasSafeExceptionHandlers />
       <BaseAddress>0x1D1A0000</BaseAddress>
       <AdditionalDependencies>mincore.lib;%(AdditionalDependencies)</AdditionalDependencies>

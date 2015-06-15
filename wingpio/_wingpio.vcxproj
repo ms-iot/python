@@ -35,7 +35,7 @@
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <AppContainerApplication>true</AppContainerApplication>
     <ApplicationType>Windows Store</ApplicationType>
-    <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
+    <ApplicationTypeRevision>8.2</ApplicationTypeRevision>
     <PythonDir>..\cpython</PythonDir>
   </PropertyGroup>
   <Import Project="$(PythonDir)\PCBuild\python.props" />

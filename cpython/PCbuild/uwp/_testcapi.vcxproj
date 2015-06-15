@@ -34,7 +34,7 @@
     <AppContainerApplication>true</AppContainerApplication>
     <ApplicationType>Windows Store</ApplicationType>
     <PlatformToolset Condition="'$(VCTargetsPath14)' != ''">v140</PlatformToolset>
-    <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
+    <ApplicationTypeRevision>8.2</ApplicationTypeRevision>
     <DefaultLanguage>en-US</DefaultLanguage>
     <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>

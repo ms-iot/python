@@ -23,8 +23,8 @@ call ms\setVSVars.bat universal10.0%PLATFORM%
 set
 
 if not exist vsout\NT-Universal-10.0-Static-Unicode\%CONFIGURATION%\%PLATFORM%\bin\libeay32.lib (
-    call nmake -f vsout\NT-Universal-10.0-Static-Unicode\nt-%CONFIGURATION%-%PLATFORM%.mak init
-    call nmake -f vsout\NT-Universal-10.0-Static-Unicode\nt-%CONFIGURATION%-%PLATFORM%.mak
+    call nmake -f vsout\NT-Universal-10.0-Static-Unicode\nt-%CONFIGURATION%-%PLATFORM%.mak init > vsout\NT-Universal-10.0-Static-Unicode\nt-%CONFIGURATION%-%PLATFORM%.build.log
+    call nmake -f vsout\NT-Universal-10.0-Static-Unicode\nt-%CONFIGURATION%-%PLATFORM%.mak >> vsout\NT-Universal-10.0-Static-Unicode\nt-%CONFIGURATION%-%PLATFORM%.build.log
 )
 popd
 endlocal

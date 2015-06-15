@@ -32,7 +32,7 @@
     <ApplicationType>Windows Store</ApplicationType>
     <PlatformToolset Condition="'$(VCTargetsPath14)' != ''">v140</PlatformToolset>
     <AppxOSMinVersionReplaceManifestVersion>false</AppxOSMinVersionReplaceManifestVersion>
-    <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
+    <ApplicationTypeRevision>8.2</ApplicationTypeRevision>
     <DefaultLanguage>en-US</DefaultLanguage>
     <GenerateManifest>false</GenerateManifest>
     <ProjectGuid>{A1863EDB-6843-4B69-896B-E9183E94751C}</ProjectGuid>
