@@ -196,3 +196,9 @@ wingpio/uwp/
 winspi/uwp/
 
 uwp/8.2/
+
+# hg.python.org
+cpython/.hg
+
+uwp/10.0/
+cpython/PCbuild/uwp/10.0/

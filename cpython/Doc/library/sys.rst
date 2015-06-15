@@ -576,6 +576,18 @@ always available.
       *service_pack_major*, *suite_mask*, and *product_type*.
 
 
+.. function:: get_coroutine_wrapper()
+
+   Returns ``None``, or a wrapper set by :func:`set_coroutine_wrapper`.
+
+   .. versionadded:: 3.5
+      See :pep:`492` for more details.
+
+   .. note::
+      This function has been added on a provisional basis (see :pep:`411`
+      for details.)  Use it only for debugging purposes.
+
+
 .. data:: hash_info
 
    A :term:`struct sequence` giving parameters of the numeric hash
@@ -1059,6 +1071,42 @@ always available.
    .. impl-detail::
       This function is intimately bound to CPython implementation details and
       thus not likely to be implemented elsewhere.
+
+
+.. function:: set_coroutine_wrapper(wrapper)
+
+   Allows to intercept creation of :term:`coroutine` objects.
+
+   *wrapper* must be either:
+
+   * a callable that accepts one argument (a coroutine object);
+   * ``None``, to reset the wrapper.
+
+   If called twice, the new wrapper replaces the previous one.  The function
+   is thread-specific.
+
+   The *wrapper* callable cannot define new coroutines directly or indirectly::
+
+        def wrapper(coro):
+            async def wrap(coro):
+                return await coro
+            return wrap(coro)
+        sys.set_coroutine_wrapper(wrapper)
+
+        async def foo(): pass
+
+        # The following line will fail with a RuntimeError, because
+        # `wrapper` creates a `wrap(coro)` coroutine:
+        foo()
+
+   See also :func:`get_coroutine_wrapper`.
+
+   .. versionadded:: 3.5
+      See :pep:`492` for more details.
+
+   .. note::
+      This function has been added on a provisional basis (see :pep:`411`
+      for details.)  Use it only for debugging purposes.
 
 
 .. data:: stdin
