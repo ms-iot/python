@@ -16,9 +16,6 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
 
   <ItemGroup>
-    <SDKReference Include="Microsoft.VCLibs.AppLocal, Version=14.0">
-      <Name>Microsoft Visual C++ 2015 Runtime Package for Windows UAP</Name>
-    </SDKReference>
     <PythonHost Include="$(CPythonSDKPath)\Redist\$(RedistConfiguration)\$(RedistPlatform)\*"/>
     <PythonHost Include="$(CPythonSDKPath)\References\CommonConfiguration\Neutral\**\*" />
   </ItemGroup>
