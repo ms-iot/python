@@ -11,8 +11,6 @@
   
   <Import Project="$(MSBuildThisFileDirectory)CPython.props" />
 
-  <Import Condition="'$(_ApplicationTypeDefaultPropsPath)' != '' and Exists('$(_ApplicationTypeDefaultPropsPath)')" Project="$(_ApplicationTypeDefaultPropsPath)" />
-  <Import Condition="'$(_ApplicationTypeRevisionDefaultPropsPath)' != '' and Exists('$(_ApplicationTypeRevisionDefaultPropsPath)')" Project="$(_ApplicationTypeRevisionDefaultPropsPath)" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
 
   <ItemGroup>
