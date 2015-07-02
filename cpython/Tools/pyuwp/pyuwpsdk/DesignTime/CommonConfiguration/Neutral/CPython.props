@@ -6,8 +6,6 @@
     <AppxPackage>true</AppxPackage>
     <WindowsAppContainer>true</WindowsAppContainer>
     <IncludeCustomOutputGroupForPackaging>true</IncludeCustomOutputGroupForPackaging>
-    <_ApplicationTypeDefaultPropsPath>$(VCTargetsPath)\Application Type\Windows Store\Default.props</_ApplicationTypeDefaultPropsPath>
-    <_ApplicationTypeRevisionDefaultPropsPath Condition="'$(ApplicationTypeRevision)' != ''">$(VCTargetsPath)\Application Type\Windows Store\$(ApplicationTypeRevision)\Default.props</_ApplicationTypeRevisionDefaultPropsPath>
   </PropertyGroup>
     
   <PropertyGroup>
