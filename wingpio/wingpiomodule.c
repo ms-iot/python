@@ -117,94 +117,94 @@ PyDoc_STRVAR(setup_doc,
 static PyObject *
 wingpio_setup(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-	int channel = -1;
-	int direction;
-	int i, chancount;
-	PyObject *chanlist = NULL;
-	PyObject *chantuple = NULL;
-	PyObject *tempobj;
-	int pud = PUD_OFF;
-	int initial = -1;
-	static char *kwlist[] = { "channel", "direction", "pull_up_down", "initial", NULL };
+    int channel = -1;
+    int direction;
+    int i, chancount;
+    PyObject *chanlist = NULL;
+    PyObject *chantuple = NULL;
+    PyObject *tempobj;
+    int pud = PUD_OFF;
+    int initial = -1;
+    static char *kwlist[] = { "channel", "direction", "pull_up_down", "initial", NULL };
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi|ii:setup", kwlist, &chanlist, &direction, &pud, &initial))
-		return NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi|ii:setup", kwlist, &chanlist, &direction, &pud, &initial))
+        return NULL;
 
-	if (PyLong_Check(chanlist)) {
-		channel = (int)PyLong_AsLong(chanlist);
+    if (PyLong_Check(chanlist)) {
+        channel = (int)PyLong_AsLong(chanlist);
 
-		if (PyErr_Occurred())
-			return NULL;
-		chanlist = NULL;
-	}
-	else if PyList_Check(chanlist) {
-		// do nothing
-	}
-	else if PyTuple_Check(chanlist) {
-		chantuple = chanlist;
-		chanlist = NULL;
-	}
-	else {
-		// raise exception
-		PyErr_SetString(PyExc_ValueError, "Channel must be an integer or list/tuple of integers");
-		return NULL;
-	}
+        if (PyErr_Occurred())
+            return NULL;
+        chanlist = NULL;
+    }
+    else if PyList_Check(chanlist) {
+        // do nothing
+    }
+    else if PyTuple_Check(chanlist) {
+        chantuple = chanlist;
+        chanlist = NULL;
+    }
+    else {
+        // raise exception
+        PyErr_SetString(PyExc_ValueError, "Channel must be an integer or list/tuple of integers");
+        return NULL;
+    }
 
-	if (direction != DRIVEMODE_IN && direction != DRIVEMODE_OUT) {
-		PyErr_SetString(PyExc_ValueError, "An invalid direction was passed to setup()");
-		return 0;
-	}
+    if (direction != DRIVEMODE_IN && direction != DRIVEMODE_OUT) {
+        PyErr_SetString(PyExc_ValueError, "An invalid direction was passed to setup()");
+        return 0;
+    }
 
-	if (direction == DRIVEMODE_OUT)
-		pud = PUD_OFF;
+    if (direction == DRIVEMODE_OUT)
+        pud = PUD_OFF;
 
-	if (pud != PUD_OFF && pud != PUD_DOWN && pud != PUD_UP) {
-		PyErr_SetString(PyExc_ValueError, "Invalid value for pull_up_down - should be either PUD_OFF, PUD_UP or PUD_DOWN");
-		return NULL;
-	}
+    if (pud != PUD_OFF && pud != PUD_DOWN && pud != PUD_UP) {
+        PyErr_SetString(PyExc_ValueError, "Invalid value for pull_up_down - should be either PUD_OFF, PUD_UP or PUD_DOWN");
+        return NULL;
+    }
 
-	if (chanlist) {
-		chancount = PyList_Size(chanlist);
-	}
-	else if (chantuple) {
-		chancount = PyTuple_Size(chantuple);
-	}
-	else {
+    if (chanlist) {
+        chancount = PyList_Size(chanlist);
+    }
+    else if (chantuple) {
+        chancount = PyTuple_Size(chantuple);
+    }
+    else {
         if (FAILURE == setup_gpio_channel(channel, direction, pud, initial)) {
             return NULL;
         }
-		Py_RETURN_NONE;
-	}
+        Py_RETURN_NONE;
+    }
 
-	for (i = 0; i < chancount; i++) {
-		if (chanlist) {
-			if ((tempobj = PyList_GetItem(chanlist, i)) == NULL) {
-				return NULL;
-			}
-		}
-		else { // assume chantuple
-			if ((tempobj = PyTuple_GetItem(chantuple, i)) == NULL) {
-				return NULL;
-			}
-		}
+    for (i = 0; i < chancount; i++) {
+        if (chanlist) {
+            if ((tempobj = PyList_GetItem(chanlist, i)) == NULL) {
+                return NULL;
+            }
+        }
+        else { // assume chantuple
+            if ((tempobj = PyTuple_GetItem(chantuple, i)) == NULL) {
+                return NULL;
+            }
+        }
 
-		if (PyLong_Check(tempobj)) {
-			channel = (int)PyLong_AsLong(tempobj);
+        if (PyLong_Check(tempobj)) {
+            channel = (int)PyLong_AsLong(tempobj);
 
-			if (PyErr_Occurred())
-				return NULL;
-		}
-		else {
-			PyErr_SetString(PyExc_ValueError, "Channel must be an integer");
-			return NULL;
-		}
+            if (PyErr_Occurred())
+                return NULL;
+        }
+        else {
+            PyErr_SetString(PyExc_ValueError, "Channel must be an integer");
+            return NULL;
+        }
 
         if (FAILURE == setup_gpio_channel(channel, direction, pud, initial)) {
             return NULL;
         }
-	}
+    }
 
-	Py_RETURN_NONE;
+    Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(output_doc,
@@ -287,8 +287,9 @@ wingpio_output(PyObject *self, PyObject *args)
     }
 
     if (chancount == -1) {
-        output_gpio_channel(channel, value);
-        Py_RETURN_NONE;
+        if (FAILURE == output_gpio_channel(channel, value)) {
+            return NULL;
+        }
     }
 
     for (i = 0; i < chancount; i++) {
@@ -341,7 +342,6 @@ wingpio_output(PyObject *self, PyObject *args)
         }
 
         if (FAILURE == output_gpio_channel(channel, value)) {
-            PyErr_Format(PyExc_RuntimeError, "Output to channel %d failed", channel);
             return NULL;
         }
     }
@@ -728,10 +728,10 @@ wingpio_add_event_callback(PyObject *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyMethodDef wingpio_methods[] = {
-	{ "setup", (PyCFunctionWithKeywords)wingpio_setup, METH_VARARGS | METH_KEYWORDS, setup_doc },
-	{ "cleanup", (PyCFunctionWithKeywords)wingpio_cleanup, METH_VARARGS | METH_KEYWORDS, cleanup_doc },
-	{ "output", wingpio_output, METH_VARARGS, output_doc },
-	{ "input", wingpio_input, METH_VARARGS, input_doc },
+    { "setup", (PyCFunctionWithKeywords)wingpio_setup, METH_VARARGS | METH_KEYWORDS, setup_doc },
+    { "cleanup", (PyCFunctionWithKeywords)wingpio_cleanup, METH_VARARGS | METH_KEYWORDS, cleanup_doc },
+    { "output", wingpio_output, METH_VARARGS, output_doc },
+    { "input", wingpio_input, METH_VARARGS, input_doc },
     { "add_event_detect", (PyCFunctionWithKeywords)wingpio_add_event_detect, METH_VARARGS | METH_KEYWORDS, add_event_detect_doc },
     { "remove_event_detect", wingpio_remove_event_detect, METH_VARARGS, remove_event_detect_doc },
     { "event_detected", wingpio_event_detected, METH_VARARGS, event_detected_doc },
@@ -740,19 +740,19 @@ PyMethodDef wingpio_methods[] = {
 };
 
 static struct PyModuleDef wingpio_module = {
-	PyModuleDef_HEAD_INIT,
-	"_wingpio",       // name of module
+    PyModuleDef_HEAD_INIT,
+    "_wingpio",       // name of module
     "GPIO functionality of a Windows 10 IoT Core device",  // module documentation, may be NULL
-	-1,               // size of per-interpreter state of the module, or -1 if the module keeps state in global variables.
+    -1,               // size of per-interpreter state of the module, or -1 if the module keeps state in global variables.
     wingpio_methods
 };
 
 PyMODINIT_FUNC PyInit__wingpio(void)
 {
-	PyObject *module = NULL;
+    PyObject *module = NULL;
 
-	if ((module = PyModule_Create(&wingpio_module)) == NULL)
-		return NULL;
+    if ((module = PyModule_Create(&wingpio_module)) == NULL)
+        return NULL;
 
     define_gpio_constants(module);
 
@@ -761,5 +761,5 @@ PyMODINIT_FUNC PyInit__wingpio(void)
         return NULL;
     }
 
-	return module;
+    return module;
 }
