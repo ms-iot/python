@@ -65,10 +65,10 @@ extern "C" {
             else {
                 switch (pull_up_down) {
                 case PUD_UP:
-                    driveMode = GpioPinDriveMode::OutputStrongLowPullUp;
+                    driveMode = GpioPinDriveMode::OutputOpenDrainPullUp;
                     break;
                 case PUD_DOWN:
-                    driveMode = GpioPinDriveMode::OutputStrongHighPullDown;
+                    driveMode = GpioPinDriveMode::OutputOpenSourcePullDown;
                     break;
                 default:
                     driveMode = GpioPinDriveMode::Output;
@@ -105,10 +105,10 @@ extern "C" {
             if (pin != nullptr) {
                 switch (pin->GetDriveMode()) {
                 case GpioPinDriveMode::Output:
-                case GpioPinDriveMode::OutputStrongHigh:
-                case GpioPinDriveMode::OutputStrongHighPullDown:
-                case GpioPinDriveMode::OutputStrongLow:
-                case GpioPinDriveMode::OutputStrongLowPullUp:
+                case GpioPinDriveMode::OutputOpenSource:
+                case GpioPinDriveMode::OutputOpenSourcePullDown:
+                case GpioPinDriveMode::OutputOpenDrain:
+                case GpioPinDriveMode::OutputOpenDrainPullUp:
                     if (value == PINVALUE_HIGH) {
                         pin->Write(GpioPinValue::High);
                     } else if (value == PINVALUE_LOW) {

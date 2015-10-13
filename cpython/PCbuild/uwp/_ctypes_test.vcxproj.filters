@@ -9,12 +9,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Modules\_ctypes\_ctypes_test.h">
+    <ClInclude Include="..\..\Modules\_ctypes\_ctypes_test.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Modules\_ctypes\_ctypes_test.c">
+    <ClCompile Include="..\..\Modules\_ctypes\_ctypes_test.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
