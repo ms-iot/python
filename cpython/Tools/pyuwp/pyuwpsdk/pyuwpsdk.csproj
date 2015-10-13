@@ -70,39 +70,39 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\_bz2.pyd">
-      <Link>Redist\Retail\x86\_bz2.pyd</Link>
+      <Link>Redist\Retail\x86\PythonHome\DLLs\_bz2.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\_ctypes.pyd">
-      <Link>Redist\Retail\x86\_ctypes.pyd</Link>
+      <Link>Redist\Retail\x86\PythonHome\DLLs\_ctypes.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\_elementtree.pyd">
-      <Link>Redist\Retail\x86\_elementtree.pyd</Link>
+      <Link>Redist\Retail\x86\PythonHome\DLLs\_elementtree.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\_ptvsdhelper.pyd">
-      <Link>Redist\Retail\x86\_ptvsdhelper.pyd</Link>
+      <Link>Redist\Retail\x86\PythonHome\DLLs\_ptvsdhelper.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\_socket.pyd">
-      <Link>Redist\Retail\x86\_socket.pyd</Link>
+      <Link>Redist\Retail\x86\PythonHome\DLLs\_socket.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\_ssl.pyd">
-      <Link>Redist\Retail\x86\_ssl.pyd</Link>
+      <Link>Redist\Retail\x86\PythonHome\DLLs\_ssl.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\pyexpat.pyd">
-      <Link>Redist\Retail\x86\pyexpat.pyd</Link>
+      <Link>Redist\Retail\x86\PythonHome\DLLs\pyexpat.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\select.pyd">
-      <Link>Redist\Retail\x86\select.pyd</Link>
+      <Link>Redist\Retail\x86\PythonHome\DLLs\select.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\unicodedata.pyd">
-      <Link>Redist\Retail\x86\unicodedata.pyd</Link>
+      <Link>Redist\Retail\x86\PythonHome\DLLs\unicodedata.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\pyuwpbackgroundservice\Release\pyuwpbackgroundservice.dll">
@@ -114,39 +114,39 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\_bz2_d.pyd">
-      <Link>Redist\Debug\x86\_bz2.pyd</Link>
+      <Link>Redist\Debug\x86\PythonHome\DLLs\_bz2.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\_ctypes_d.pyd">
-      <Link>Redist\Debug\x86\_ctypes.pyd</Link>
+      <Link>Redist\Debug\x86\PythonHome\DLLs\_ctypes.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\_elementtree_d.pyd">
-      <Link>Redist\Debug\x86\_elementtree.pyd</Link>
+      <Link>Redist\Debug\x86\PythonHome\DLLs\_elementtree.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\_ptvsdhelper_d.pyd">
-      <Link>Redist\Debug\x86\_ptvsdhelper.pyd</Link>
+      <Link>Redist\Debug\x86\PythonHome\DLLs\_ptvsdhelper.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\_socket_d.pyd">
-      <Link>Redist\Debug\x86\_socket.pyd</Link>
+      <Link>Redist\Debug\x86\PythonHome\DLLs\_socket.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\_ssl_d.pyd">
-      <Link>Redist\Debug\x86\_ssl.pyd</Link>
+      <Link>Redist\Debug\x86\PythonHome\DLLs\_ssl.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\pyexpat_d.pyd">
-      <Link>Redist\Debug\x86\pyexpat.pyd</Link>
+      <Link>Redist\Debug\x86\PythonHome\DLLs\pyexpat.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\select_d.pyd">
-      <Link>Redist\Debug\x86\select.pyd</Link>
+      <Link>Redist\Debug\x86\PythonHome\DLLs\select.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\unicodedata_d.pyd">
-      <Link>Redist\Debug\x86\unicodedata.pyd</Link>
+      <Link>Redist\Debug\x86\PythonHome\DLLs\unicodedata.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\pyuwpbackgroundservice\Debug\pyuwpbackgroundservice.dll">
@@ -161,39 +161,39 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\_bz2.pyd">
-      <Link>Redist\Retail\x64\_bz2.pyd</Link>
+      <Link>Redist\Retail\x64\PythonHome\DLLs\_bz2.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\_ctypes.pyd">
-      <Link>Redist\Retail\x64\_ctypes.pyd</Link>
+      <Link>Redist\Retail\x64\PythonHome\DLLs\_ctypes.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\_elementtree.pyd">
-      <Link>Redist\Retail\x64\_elementtree.pyd</Link>
+      <Link>Redist\Retail\x64\PythonHome\DLLs\_elementtree.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\_ptvsdhelper.pyd">
-      <Link>Redist\Retail\x64\_ptvsdhelper.pyd</Link>
+      <Link>Redist\Retail\x64\PythonHome\DLLs\_ptvsdhelper.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\_socket.pyd">
-      <Link>Redist\Retail\x64\_socket.pyd</Link>
+      <Link>Redist\Retail\x64\PythonHome\DLLs\_socket.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\_ssl.pyd">
-      <Link>Redist\Retail\x64\_ssl.pyd</Link>
+      <Link>Redist\Retail\x64\PythonHome\DLLs\_ssl.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\pyexpat.pyd">
-      <Link>Redist\Retail\x64\pyexpat.pyd</Link>
+      <Link>Redist\Retail\x64\PythonHome\DLLs\pyexpat.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\select.pyd">
-      <Link>Redist\Retail\x64\select.pyd</Link>
+      <Link>Redist\Retail\x64\PythonHome\DLLs\select.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\unicodedata.pyd">
-      <Link>Redist\Retail\x64\unicodedata.pyd</Link>
+      <Link>Redist\Retail\x64\PythonHome\DLLs\unicodedata.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\Python35_d.dll">
@@ -201,39 +201,39 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\_bz2_d.pyd">
-      <Link>Redist\Debug\x64\_bz2.pyd</Link>
+      <Link>Redist\Debug\x64\PythonHome\DLLs\_bz2.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\_ctypes_d.pyd">
-      <Link>Redist\Debug\x64\_ctypes.pyd</Link>
+      <Link>Redist\Debug\x64\PythonHome\DLLs\_ctypes.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\_elementtree_d.pyd">
-      <Link>Redist\Debug\x64\_elementtree.pyd</Link>
+      <Link>Redist\Debug\x64\PythonHome\DLLs\_elementtree.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\_ptvsdhelper_d.pyd">
-      <Link>Redist\Debug\x64\_ptvsdhelper.pyd</Link>
+      <Link>Redist\Debug\x64\PythonHome\DLLs\_ptvsdhelper.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\_socket_d.pyd">
-      <Link>Redist\Debug\x64\_socket.pyd</Link>
+      <Link>Redist\Debug\x64\PythonHome\DLLs\_socket.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\_ssl_d.pyd">
-      <Link>Redist\Debug\x64\_ssl.pyd</Link>
+      <Link>Redist\Debug\x64\PythonHome\DLLs\_ssl.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\pyexpat_d.pyd">
-      <Link>Redist\Debug\x64\pyexpat.pyd</Link>
+      <Link>Redist\Debug\x64\PythonHome\DLLs\pyexpat.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\select_d.pyd">
-      <Link>Redist\Debug\x64\select.pyd</Link>
+      <Link>Redist\Debug\x64\PythonHome\DLLs\select.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\unicodedata_d.pyd">
-      <Link>Redist\Debug\x64\unicodedata.pyd</Link>
+      <Link>Redist\Debug\x64\PythonHome\DLLs\unicodedata.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\pyuwpbackgroundservice\Release\pyuwpbackgroundservice.dll">
@@ -252,39 +252,39 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\_bz2.pyd">
-      <Link>Redist\Retail\arm\_bz2.pyd</Link>
+      <Link>Redist\Retail\arm\PythonHome\DLLs\_bz2.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\_ctypes.pyd">
-      <Link>Redist\Retail\arm\_ctypes.pyd</Link>
+      <Link>Redist\Retail\arm\PythonHome\DLLs\_ctypes.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\_elementtree.pyd">
-      <Link>Redist\Retail\arm\_elementtree.pyd</Link>
+      <Link>Redist\Retail\arm\PythonHome\DLLs\_elementtree.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\_ptvsdhelper.pyd">
-      <Link>Redist\Retail\arm\_ptvsdhelper.pyd</Link>
+      <Link>Redist\Retail\arm\PythonHome\DLLs\_ptvsdhelper.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\_socket.pyd">
-      <Link>Redist\Retail\arm\_socket.pyd</Link>
+      <Link>Redist\Retail\arm\PythonHome\DLLs\_socket.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\_ssl.pyd">
-      <Link>Redist\Retail\arm\_ssl.pyd</Link>
+      <Link>Redist\Retail\arm\PythonHome\DLLs\_ssl.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\pyexpat.pyd">
-      <Link>Redist\Retail\arm\pyexpat.pyd</Link>
+      <Link>Redist\Retail\arm\PythonHome\DLLs\pyexpat.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\select.pyd">
-      <Link>Redist\Retail\arm\select.pyd</Link>
+      <Link>Redist\Retail\arm\PythonHome\DLLs\select.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\unicodedata.pyd">
-      <Link>Redist\Retail\arm\unicodedata.pyd</Link>
+      <Link>Redist\Retail\arm\PythonHome\DLLs\unicodedata.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\Python35_d.dll">
@@ -292,39 +292,39 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\_bz2_d.pyd">
-      <Link>Redist\Debug\arm\_bz2.pyd</Link>
+      <Link>Redist\Debug\arm\PythonHome\DLLs\_bz2.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\_ctypes_d.pyd">
-      <Link>Redist\Debug\arm\_ctypes.pyd</Link>
+      <Link>Redist\Debug\arm\PythonHome\DLLs\_ctypes.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\_elementtree_d.pyd">
-      <Link>Redist\Debug\arm\_elementtree.pyd</Link>
+      <Link>Redist\Debug\arm\PythonHome\DLLs\_elementtree.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\_ptvsdhelper_d.pyd">
-      <Link>Redist\Debug\arm\_ptvsdhelper.pyd</Link>
+      <Link>Redist\Debug\arm\PythonHome\DLLs\_ptvsdhelper.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\_socket_d.pyd">
-      <Link>Redist\Debug\arm\_socket.pyd</Link>
+      <Link>Redist\Debug\arm\PythonHome\DLLs\_socket.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\_ssl_d.pyd">
-      <Link>Redist\Debug\arm\_ssl.pyd</Link>
+      <Link>Redist\Debug\arm\PythonHome\DLLs\_ssl.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\pyexpat_d.pyd">
-      <Link>Redist\Debug\arm\pyexpat.pyd</Link>
+      <Link>Redist\Debug\arm\PythonHome\DLLs\pyexpat.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\select_d.pyd">
-      <Link>Redist\Debug\arm\select.pyd</Link>
+      <Link>Redist\Debug\arm\PythonHome\DLLs\select.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\unicodedata_d.pyd">
-      <Link>Redist\Debug\arm\unicodedata.pyd</Link>
+      <Link>Redist\Debug\arm\PythonHome\DLLs\unicodedata.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\pyuwpbackgroundservice\Release\pyuwpbackgroundservice.dll">
@@ -337,27 +337,27 @@
     </Content>
     <!-- Neutral -->
     <Content Include="..\pyuwpbackgroundservice\lib.zip">
-      <Link>References\CommonConfiguration\Neutral\lib.zip</Link>
+      <Link>References\CommonConfiguration\Neutral\PythonHome\lib.zip</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="..\pyuwpbackgroundservice\Assets\Logo.scale-100.png">
-      <Link>References\CommonConfiguration\Neutral\Assets\Logo.scale-100.png</Link>
+      <Link>References\CommonConfiguration\Neutral\Logo.scale-100.png</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="..\pyuwpbackgroundservice\Assets\SmallLogo.scale-100.png">
-      <Link>References\CommonConfiguration\Neutral\Assets\SmallLogo.scale-100.png</Link>
+      <Link>References\CommonConfiguration\Neutral\SmallLogo.scale-100.png</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="..\pyuwpbackgroundservice\Assets\SplashScreen.scale-100.png">
-      <Link>References\CommonConfiguration\Neutral\Assets\SplashScreen.scale-100.png</Link>
+      <Link>References\CommonConfiguration\Neutral\SplashScreen.scale-100.png</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="..\pyuwpbackgroundservice\Assets\StoreLogo.scale-100.png">
-      <Link>References\CommonConfiguration\Neutral\Assets\StoreLogo.scale-100.png</Link>
+      <Link>References\CommonConfiguration\Neutral\StoreLogo.scale-100.png</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="..\pyuwpbackgroundservice\Assets\WideLogo.scale-100.png">
-      <Link>References\CommonConfiguration\Neutral\Assets\WideLogo.scale-100.png</Link>
+      <Link>References\CommonConfiguration\Neutral\WideLogo.scale-100.png</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
   </ItemGroup>

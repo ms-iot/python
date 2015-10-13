@@ -14,9 +14,13 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
 
   <ItemGroup>
-	<SDKReference Include="Microsoft.VCLibs, Version=14.0" />
-    <PythonHost Include="$(CPythonSDKPath)\Redist\$(RedistConfiguration)\$(RedistPlatform)\*"/>
-    <PythonHost Include="$(CPythonSDKPath)\References\CommonConfiguration\Neutral\**\*" />
+    <SDKReference Include="Microsoft.VCLibs, Version=14.0" />
+    <PythonHost Include="$(CPythonSDKPath)\Redist\$(RedistConfiguration)\$(RedistPlatform)\**\*">
+      <RootFolder>$(CPythonSDKPath)\Redist\$(RedistConfiguration)\$(RedistPlatform)\</RootFolder>
+    </PythonHost>
+    <PythonHost Include="$(CPythonSDKPath)\References\CommonConfiguration\Neutral\**\*">
+      <RootFolder>$(CPythonSDKPath)\References\CommonConfiguration\Neutral\</RootFolder>
+    </PythonHost>
   </ItemGroup>
   
   <PropertyGroup>
