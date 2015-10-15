@@ -9,107 +9,107 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Modules\_decimal\libmpdec\basearith.h">
+    <ClInclude Include="..\..\Modules\_decimal\libmpdec\basearith.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\_decimal\libmpdec\bits.h">
+    <ClInclude Include="..\..\Modules\_decimal\libmpdec\bits.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\_decimal\libmpdec\constants.h">
+    <ClInclude Include="..\..\Modules\_decimal\libmpdec\constants.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\_decimal\libmpdec\convolute.h">
+    <ClInclude Include="..\..\Modules\_decimal\libmpdec\convolute.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\_decimal\libmpdec\crt.h">
+    <ClInclude Include="..\..\Modules\_decimal\libmpdec\crt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\_decimal\libmpdec\difradix2.h">
+    <ClInclude Include="..\..\Modules\_decimal\libmpdec\difradix2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\_decimal\docstrings.h">
+    <ClInclude Include="..\..\Modules\_decimal\docstrings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\_decimal\libmpdec\fnt.h">
+    <ClInclude Include="..\..\Modules\_decimal\libmpdec\fnt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\_decimal\libmpdec\fourstep.h">
+    <ClInclude Include="..\..\Modules\_decimal\libmpdec\fourstep.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\_decimal\libmpdec\mpdecimal.h">
+    <ClInclude Include="..\..\Modules\_decimal\libmpdec\mpdecimal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\_decimal\libmpdec\numbertheory.h">
+    <ClInclude Include="..\..\Modules\_decimal\libmpdec\numbertheory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\_decimal\libmpdec\sixstep.h">
+    <ClInclude Include="..\..\Modules\_decimal\libmpdec\sixstep.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\_decimal\libmpdec\transpose.h">
+    <ClInclude Include="..\..\Modules\_decimal\libmpdec\transpose.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\_decimal\libmpdec\typearith.h">
+    <ClInclude Include="..\..\Modules\_decimal\libmpdec\typearith.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\_decimal\libmpdec\umodarith.h">
+    <ClInclude Include="..\..\Modules\_decimal\libmpdec\umodarith.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\_decimal\libmpdec\vccompat.h">
+    <ClInclude Include="..\..\Modules\_decimal\libmpdec\vccompat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\_decimal\libmpdec\vcstdint.h">
+    <ClInclude Include="..\..\Modules\_decimal\libmpdec\vcstdint.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Modules\_decimal\_decimal.c">
+    <ClCompile Include="..\..\Modules\_decimal\_decimal.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\_decimal\libmpdec\basearith.c">
+    <ClCompile Include="..\..\Modules\_decimal\libmpdec\basearith.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\_decimal\libmpdec\constants.c">
+    <ClCompile Include="..\..\Modules\_decimal\libmpdec\constants.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\_decimal\libmpdec\context.c">
+    <ClCompile Include="..\..\Modules\_decimal\libmpdec\context.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\_decimal\libmpdec\convolute.c">
+    <ClCompile Include="..\..\Modules\_decimal\libmpdec\convolute.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\_decimal\libmpdec\crt.c">
+    <ClCompile Include="..\..\Modules\_decimal\libmpdec\crt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\_decimal\libmpdec\difradix2.c">
+    <ClCompile Include="..\..\Modules\_decimal\libmpdec\difradix2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\_decimal\libmpdec\fnt.c">
+    <ClCompile Include="..\..\Modules\_decimal\libmpdec\fnt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\_decimal\libmpdec\fourstep.c">
+    <ClCompile Include="..\..\Modules\_decimal\libmpdec\fourstep.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\_decimal\libmpdec\io.c">
+    <ClCompile Include="..\..\Modules\_decimal\libmpdec\io.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\_decimal\libmpdec\memory.c">
+    <ClCompile Include="..\..\Modules\_decimal\libmpdec\memory.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\_decimal\libmpdec\mpdecimal.c">
+    <ClCompile Include="..\..\Modules\_decimal\libmpdec\mpdecimal.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\_decimal\libmpdec\numbertheory.c">
+    <ClCompile Include="..\..\Modules\_decimal\libmpdec\numbertheory.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\_decimal\libmpdec\sixstep.c">
+    <ClCompile Include="..\..\Modules\_decimal\libmpdec\sixstep.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\_decimal\libmpdec\transpose.c">
+    <ClCompile Include="..\..\Modules\_decimal\libmpdec\transpose.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\Modules\_decimal\libmpdec\vcdiv64.asm">
+    <CustomBuild Include="..\..\Modules\_decimal\libmpdec\vcdiv64.asm">
       <Filter>Source Files</Filter>
     </CustomBuild>
   </ItemGroup>

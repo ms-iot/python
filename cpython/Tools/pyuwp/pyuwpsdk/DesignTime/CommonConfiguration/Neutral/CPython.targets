@@ -5,7 +5,7 @@
     <RedistPlatform Condition="'$(Platform)'=='x64'">x64</RedistPlatform>
     <RedistPlatform Condition="'$(Platform)'=='ARM'">arm</RedistPlatform>
     <RedistPlatform Condition="'$(RedistPlatform)'==''">x86</RedistPlatform>
-    <RedistConfiguration Condition="'$(Configuration)'=='Debug'">Debug</RedistConfiguration>
+    <!-- Use the retail python redist by default unless specified otherwise. -->
     <RedistConfiguration Condition="'$(RedistConfiguration)'==''">Retail</RedistConfiguration>
   </PropertyGroup>
   
@@ -14,9 +14,13 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
 
   <ItemGroup>
-	<SDKReference Include="Microsoft.VCLibs, Version=14.0" />
-    <PythonHost Include="$(CPythonSDKPath)\Redist\$(RedistConfiguration)\$(RedistPlatform)\*"/>
-    <PythonHost Include="$(CPythonSDKPath)\References\CommonConfiguration\Neutral\**\*" />
+    <SDKReference Include="Microsoft.VCLibs, Version=14.0" />
+    <PythonHost Include="$(CPythonSDKPath)\Redist\$(RedistConfiguration)\$(RedistPlatform)\**\*">
+      <RootFolder>$(CPythonSDKPath)\Redist\$(RedistConfiguration)\$(RedistPlatform)\</RootFolder>
+    </PythonHost>
+    <PythonHost Include="$(CPythonSDKPath)\References\CommonConfiguration\Neutral\**\*">
+      <RootFolder>$(CPythonSDKPath)\References\CommonConfiguration\Neutral\</RootFolder>
+    </PythonHost>
   </ItemGroup>
   
   <PropertyGroup>

@@ -1319,32 +1319,25 @@ posix_fildes_fd(int fd, int (*func)(int))
     Py_RETURN_NONE;
 }
 
+#if defined(MS_WINDOWS)
+
 #ifdef MS_UWP
 
 /* Changing the current directory is not supported for UWP apps,
-    so these are implemented to provide warnings only. */
- 
- static BOOL __stdcall
-  win32_chdir(LPCSTR path)
-  {
-    PyErr_WarnEx(PyExc_DeprecationWarning,
-        "os.chdir has been deprecated for UWP apps, "
-         "use absolute paths instead.",
-        0);
-    return TRUE;
-    }
+so these are implemented to provide warnings only. */
 
 static BOOL __stdcall
- win32_wchdir(LPCWSTR path)
- {
-    PyErr_WarnEx(PyExc_DeprecationWarning,
-        "os.chdir has been deprecated for UWP apps, "
-         "use absolute paths instead.",
-        0);
-    return TRUE;
-    }
+win32_chdir(LPCSTR path)
+{
+	PyErr_WarnEx(PyExc_DeprecationWarning,
+		"os.chdir has been deprecated for UWP apps, "
+		"use absolute paths instead.",
+		0);
+	return TRUE;
+}
 
-#elif defined(MS_WINDOWS)
+#else
+
 /* This is a reimplementation of the C library's chdir function,
    but one that produces Win32 errors instead of DOS error codes.
    chdir is essentially a wrapper around SetCurrentDirectory; however,
@@ -1373,6 +1366,8 @@ win32_chdir(LPCSTR path)
     return SetEnvironmentVariableA(env, new_path);
 }
 
+#endif
+
 /* The Unicode version differs from the ANSI version
    since the current directory might exceed MAX_PATH characters */
 static BOOL __stdcall
@@ -1399,6 +1394,7 @@ win32_wchdir(LPCWSTR path)
             return FALSE;
         }
     }
+#ifndef MS_UWP
     if (wcsncmp(new_path, L"\\\\", 2) == 0 ||
         wcsncmp(new_path, L"//", 2) == 0)
         /* UNC path, nothing to do. */
@@ -1407,6 +1403,7 @@ win32_wchdir(LPCWSTR path)
     result = SetEnvironmentVariableW(env, new_path);
     if (new_path != _new_path)
         PyMem_RawFree(new_path);
+#endif
     return result;
 }
 #endif
@@ -3496,22 +3493,14 @@ posix_getcwd(int use_bytes)
         PyObject *resobj;
         DWORD len;
         Py_BEGIN_ALLOW_THREADS
-#ifdef MS_UWP
-            len = uwp_getinstallpath(wbuf, Py_ARRAY_LENGTH(wbuf));
-#else
-            len = GetCurrentDirectoryW(Py_ARRAY_LENGTH(wbuf), wbuf);
-#endif
+        len = GetCurrentDirectoryW(Py_ARRAY_LENGTH(wbuf), wbuf);
         /* If the buffer is large enough, len does not include the
            terminating \0. If the buffer is too small, len includes
            the space needed for the terminator. */
         if (len >= Py_ARRAY_LENGTH(wbuf)) {
             wbuf2 = PyMem_RawMalloc(len * sizeof(wchar_t));
             if (wbuf2)
-#ifdef MS_UWP
-                len = uwp_getinstallpath(wbuf2, len);
-#else
                 len = GetCurrentDirectoryW(len, wbuf2);
-#endif
         }
         Py_END_ALLOW_THREADS
         if (!wbuf2) {

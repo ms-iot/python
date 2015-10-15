@@ -9,63 +9,63 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Modules\expat\ascii.h">
+    <ClInclude Include="..\..\Modules\expat\ascii.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\expat\asciitab.h">
+    <ClInclude Include="..\..\Modules\expat\asciitab.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\expat\expat.h">
+    <ClInclude Include="..\..\Modules\expat\expat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\expat\expat_config.h">
+    <ClInclude Include="..\..\Modules\expat\expat_config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\expat\expat_external.h">
+    <ClInclude Include="..\..\Modules\expat\expat_external.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\expat\iasciitab.h">
+    <ClInclude Include="..\..\Modules\expat\iasciitab.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\expat\internal.h">
+    <ClInclude Include="..\..\Modules\expat\internal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\expat\latin1tab.h">
+    <ClInclude Include="..\..\Modules\expat\latin1tab.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\expat\macconfig.h">
+    <ClInclude Include="..\..\Modules\expat\macconfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\expat\nametab.h">
+    <ClInclude Include="..\..\Modules\expat\nametab.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\expat\pyexpatns.h">
+    <ClInclude Include="..\..\Modules\expat\pyexpatns.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\expat\utf8tab.h">
+    <ClInclude Include="..\..\Modules\expat\utf8tab.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\expat\winconfig.h">
+    <ClInclude Include="..\..\Modules\expat\winconfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\expat\xmlrole.h">
+    <ClInclude Include="..\..\Modules\expat\xmlrole.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Modules\expat\xmltok.h">
+    <ClInclude Include="..\..\Modules\expat\xmltok.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Modules\_elementtree.c">
+    <ClCompile Include="..\..\Modules\_elementtree.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\expat\xmlparse.c">
+    <ClCompile Include="..\..\Modules\expat\xmlparse.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\expat\xmlrole.c">
+    <ClCompile Include="..\..\Modules\expat\xmlrole.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Modules\expat\xmltok.c">
+    <ClCompile Include="..\..\Modules\expat\xmltok.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -29,10 +29,14 @@ void StartupTask::Run(IBackgroundTaskInstance^ taskInstance)
 {
 	auto deferral = taskInstance->GetDeferral();
 
+	auto installationLocation = Windows::ApplicationModel::Package::Current->InstalledLocation;
+	auto pythonHome = installationLocation->Path + L"\\PythonHome";
+
+	// It's safe to use const cast here.  According to https://docs.python.org/3.5/c-api/init.html, 
+	// no code in the Python interpreter will change the contents of this storage.
+	Py_SetPythonHome(const_cast<wchar_t*>(pythonHome->Data()));
     InitializePython();
     
-    auto installationLocation = Windows::ApplicationModel::Package::Current->InstalledLocation;
-
     task<StorageFile^> storageFileTask(installationLocation->GetFileAsync(STARTUP_FILE));
 
     auto storageFile = storageFileTask.get();
@@ -79,6 +83,7 @@ void StartupTask::Run(IBackgroundTaskInstance^ taskInstance)
 		OutputDebugString(L"Failure\r\n");
 
     FinalizePython();
+	Py_SetPythonHome(nullptr);
 
 	deferral->Complete();
 }

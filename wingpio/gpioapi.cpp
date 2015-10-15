@@ -24,7 +24,7 @@ extern "C" {
         int pinCount = InitializeGpioStatics(event_callback);
 
         if (pinCount != FAILURE) {
-			PyModule_AddIntConstant(module, "pincount", pinCount);
+            PyModule_AddIntConstant(module, "pincount", pinCount);
         } else {
             PyErr_SetString(PyExc_TypeError, "Failed to get GPIO controller");
             return FAILURE;
@@ -61,25 +61,28 @@ extern "C" {
                     driveMode = GpioPinDriveMode::Input;
                     break;
                 }
-            }
-            else {
+            } else if (direction == DRIVEMODE_OUT) {
                 switch (pull_up_down) {
                 case PUD_UP:
-                    driveMode = GpioPinDriveMode::OutputStrongLowPullUp;
+                    driveMode = GpioPinDriveMode::OutputOpenDrainPullUp;
                     break;
                 case PUD_DOWN:
-                    driveMode = GpioPinDriveMode::OutputStrongHighPullDown;
+                    driveMode = GpioPinDriveMode::OutputOpenSourcePullDown;
                     break;
                 default:
                     driveMode = GpioPinDriveMode::Output;
                     break;
                 }
+            } else {
+                PyErr_Format(PyExc_TypeError, "Invalid direction specified for pin %d", pin->PinNumber);
+                return FAILURE;
             }
+
 
             if (pin->IsDriveModeSupported(driveMode)) {
                 ret = SUCCESS;
 
-				pin->SetDriveMode(driveMode);
+                pin->SetDriveMode(driveMode);
 
                 if (pin->GetDriveMode() == GpioPinDriveMode::Output) {
                     ret = output_gpio_channel(channel, initial);
@@ -87,6 +90,8 @@ extern "C" {
             } else {
                 PyErr_Format(PyExc_RuntimeError, "Invalid mode specified for pin %d", pin->PinNumber);
             }
+        } else {
+            PyErr_SetString(PyExc_TypeError, "Invalid pin number specified");
         }
 
         return ret;
@@ -105,16 +110,20 @@ extern "C" {
             if (pin != nullptr) {
                 switch (pin->GetDriveMode()) {
                 case GpioPinDriveMode::Output:
-                case GpioPinDriveMode::OutputStrongHigh:
-                case GpioPinDriveMode::OutputStrongHighPullDown:
-                case GpioPinDriveMode::OutputStrongLow:
-                case GpioPinDriveMode::OutputStrongLowPullUp:
+                case GpioPinDriveMode::OutputOpenSource:
+                case GpioPinDriveMode::OutputOpenSourcePullDown:
+                case GpioPinDriveMode::OutputOpenDrain:
+                case GpioPinDriveMode::OutputOpenDrainPullUp:
                     if (value == PINVALUE_HIGH) {
                         pin->Write(GpioPinValue::High);
+                        ret = SUCCESS;
                     } else if (value == PINVALUE_LOW) {
                         pin->Write(GpioPinValue::Low);
+                        ret = SUCCESS;
+                    } else {
+                        PyErr_Format(PyExc_TypeError, "Invalid pin value specified for pin %d", pin->PinNumber);
                     }
-                    ret = SUCCESS;
+
                     break;
                 default:
                     PyErr_SetString(PyExc_TypeError, "Pin not setup for output");
@@ -123,6 +132,8 @@ extern "C" {
             } else {
                 PyErr_SetString(PyExc_TypeError, "Pin not setup");
             }
+        } else {
+            PyErr_SetString(PyExc_TypeError, "Invalid pin number specified");
         }
 
         return ret;
