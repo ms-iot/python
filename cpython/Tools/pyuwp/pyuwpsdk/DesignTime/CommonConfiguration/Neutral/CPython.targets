@@ -5,7 +5,7 @@
     <RedistPlatform Condition="'$(Platform)'=='x64'">x64</RedistPlatform>
     <RedistPlatform Condition="'$(Platform)'=='ARM'">arm</RedistPlatform>
     <RedistPlatform Condition="'$(RedistPlatform)'==''">x86</RedistPlatform>
-    <RedistConfiguration Condition="'$(Configuration)'=='Debug'">Debug</RedistConfiguration>
+    <!-- Use the retail python redist by default unless specified otherwise. -->
     <RedistConfiguration Condition="'$(RedistConfiguration)'==''">Retail</RedistConfiguration>
   </PropertyGroup>
   
