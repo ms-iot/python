@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PythonRoot>$(MSBuildThisFileDirectory)..</PythonRoot>
+    <DropDirectory Condition="'$(DropDirectory)' == '' and '$(TF_BUILD_BINARIESDIRECTORY)' != ''">$(TF_BUILD_BINARIESDIRECTORY)\Binaries\</DropDirectory>
+    <DropDirectory Condition="'$(DropDirectory)' == '' and '$(TF_BUILD_BINARIESDIRECTORY)' == ''">$(MSBuildThisFileDirectory)Binaries\</DropDirectory>
+    <IntDirRoot Condition="'$(IntDirRoot)' == ''">$(MSBuildThisFileDirectory)IntDir\</IntDirRoot>
+  </PropertyGroup>
+</Project>

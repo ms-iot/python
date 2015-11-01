@@ -4,10 +4,10 @@
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
 
-    <OutDirRoot Condition="'$(ApplicationTypeRevision)'!=''">$(SolutionDir)uwp\$(ApplicationTypeRevision)\$(ArchName)\</OutDirRoot>
+    <OutDirRoot Condition="'$(ApplicationTypeRevision)' != ''">$(SolutionDir)uwp\$(ApplicationTypeRevision)\$(ArchName)\</OutDirRoot>
     <OutDirRoot Condition="'$(OutDirRoot)'==''">$(BuildPath)</OutDirRoot>
-    <IntDirRoot Condition="'$(ApplicationTypeRevision)'!=''">$(SolutionDir)uwp\$(ApplicationTypeRevision)\$(ArchName)\</IntDirRoot>
-    <IntDirRoot Condition="'$(IntDirRoot)'==''">$(SolutionDir)</IntDirRoot>
+    <IntDirRoot Condition="'$(ApplicationTypeRevision)' != '' and '$(IntDirRoot)' == ''">$(SolutionDir)uwp\$(ApplicationTypeRevision)\$(ArchName)\</IntDirRoot>
+    <IntDirRoot Condition="'$(IntDirRoot)' == ''">$(SolutionDir)</IntDirRoot>
     <OutDir>$(OutDirRoot)</OutDir>
     <IntDir>$(IntDirRoot)obj\$(ArchName)_$(Configuration)\$(ProjectName)\</IntDir>
     <IntDir Condition="$(Configuration) == 'PGInstrument' or $(Configuration) == 'PGUpdate'">$(SolutionDir)obj\$(ArchName)\$(ProjectName)\</IntDir>

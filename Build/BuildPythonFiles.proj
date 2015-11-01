@@ -1,0 +1,35 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="Common.Build.settings" />
+
+  <ItemGroup>
+    <PythonProj Include="$(PythonRoot)\cpython\Tools\pyuwp\pyuwpbackgroundservice\pyuwpbackgroundservice.vcxproj"/>
+    <PythonProj Include="$(PythonRoot)\pywindevices.sln"/>
+  </ItemGroup>
+
+  <Target Name="_PreparePythonProjectFiles" BeforeTargets="_PrepareProjectFiles">
+    <ItemGroup>
+      <ProjectFile Include="@(PythonProj)">
+        <Properties>%(PythonProj.Properties);Platform=x86;Configuration=Debug</Properties>
+      </ProjectFile>
+      <ProjectFile Include="@(PythonProj)">
+        <Properties>%(PythonProj.Properties);Platform=x64;Configuration=Debug</Properties>
+      </ProjectFile>
+      <ProjectFile Include="@(PythonProj)">
+        <Properties>%(PythonProj.Properties);Platform=ARM;Configuration=Debug</Properties>
+      </ProjectFile>
+      <ProjectFile Include="@(PythonProj)">
+        <Properties>%(PythonProj.Properties);Platform=x86;Configuration=Release</Properties>
+      </ProjectFile>
+      <ProjectFile Include="@(PythonProj)">
+        <Properties>%(PythonProj.Properties);Platform=x64;Configuration=Release</Properties>
+      </ProjectFile>
+      <ProjectFile Include="@(PythonProj)">
+        <Properties>%(PythonProj.Properties);Platform=ARM;Configuration=Release</Properties>
+      </ProjectFile>
+    </ItemGroup>
+  </Target>
+
+  <Import Project="Common.Build.Traversal.targets" />
+</Project>
+  
+  

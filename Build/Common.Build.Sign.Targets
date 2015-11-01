@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <OutputPath>$(IntDirRoot)</OutputPath>
+    <SignType Condition="'$(SignType)' == ''">test</SignType>
+    <OutDir>$(DropDirectory)</OutDir>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
+
+  <!-- Override the default target as a NOP as we don't want to compile anything in this project. -->
+  <Target Name="CoreCompile"/>
+  <Target Name="CopyFilesToOutputDirectory"/>
+</Project>

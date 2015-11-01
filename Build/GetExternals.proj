@@ -1,0 +1,13 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="Common.Build.settings" />
+
+  <Target Name="Build">
+    <Exec Command="$(PythonRoot)\cpython\pcbuild\get_externals.bat"/>
+  </Target>
+
+  <Target Name="Clean">
+    <Exec Command="$(PythonRoot)\cpython\pcbuild\get_externals.bat --clean-only"/>
+  </Target>
+
+</Project>
+

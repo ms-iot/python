@@ -1,0 +1,36 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="Common.Build.settings" />
+
+  <ItemGroup>
+    <FilesToSign Include="$(DropDirectory)**\win32\*.dll">
+      <Authenticode>Microsoft</Authenticode>
+    </FilesToSign>
+    <FilesToSign Include="$(DropDirectory)**\win32\*.pyd">
+      <Authenticode>Microsoft</Authenticode>
+    </FilesToSign>
+    <FilesToSign Include="$(DropDirectory)**\win32\*.winmd">
+      <Authenticode>Microsoft</Authenticode>
+    </FilesToSign>
+    <FilesToSign Include="$(DropDirectory)**\amd64\*.dll">
+      <Authenticode>Microsoft</Authenticode>
+    </FilesToSign>
+    <FilesToSign Include="$(DropDirectory)**\amd64\*.pyd">
+      <Authenticode>Microsoft</Authenticode>
+    </FilesToSign>
+    <FilesToSign Include="$(DropDirectory)**\amd64\*.winmd">
+      <Authenticode>Microsoft</Authenticode>
+    </FilesToSign>
+    <FilesToSign Include="$(DropDirectory)**\arm\*.dll">
+      <Authenticode>MicrosoftWin8WinBlue</Authenticode>
+    </FilesToSign>
+    <FilesToSign Include="$(DropDirectory)**\arm\*.pyd">
+      <Authenticode>MicrosoftWin8WinBlue</Authenticode>
+    </FilesToSign>
+    <FilesToSign Include="$(DropDirectory)**\arm\*.winmd">
+      <Authenticode>MicrosoftWin8WinBlue</Authenticode>
+    </FilesToSign>
+  </ItemGroup>
+
+  <Import Project="Common.Build.Sign.targets"/>
+</Project>
+

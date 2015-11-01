@@ -1,0 +1,11 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="Common.Build.settings" />
+
+  <ItemGroup>
+    <FilesToSign Include="$(DropDirectory)**\*.vsix">
+      <Authenticode>VsixSHA2</Authenticode>
+    </FilesToSign>
+  </ItemGroup>
+
+  <Import Project="Common.Build.Sign.targets"/>
+</Project>
