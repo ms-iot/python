@@ -152,7 +152,6 @@
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
-      <ShowProgress>LinkVerbose</ShowProgress>
       <IgnoreSpecificDefaultLibraries>LIBC;ole32.lib;kernel32.lib;msvcrt.lib;msvcrtd.lib%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <AdditionalDependencies>%(AdditionalDependencies);vccorlibd.lib;msvcrtd.lib</AdditionalDependencies>
     </Link>
@@ -171,7 +170,6 @@
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
-      <ShowProgress>LinkVerbose</ShowProgress>
       <IgnoreSpecificDefaultLibraries>LIBC;ole32.lib;kernel32.lib;msvcrt.lib;msvcrtd.lib%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <AdditionalDependencies>%(AdditionalDependencies);vccorlib.lib;msvcrt.lib</AdditionalDependencies>
     </Link>
@@ -190,7 +188,6 @@
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
-      <ShowProgress>LinkVerbose</ShowProgress>
       <IgnoreSpecificDefaultLibraries>LIBC;ole32.lib;kernel32.lib;msvcrt.lib;msvcrtd.lib%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <AdditionalDependencies>%(AdditionalDependencies);vccorlibd.lib;msvcrtd.lib</AdditionalDependencies>
     </Link>
@@ -209,7 +206,6 @@
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
-      <ShowProgress>LinkVerbose</ShowProgress>
       <IgnoreSpecificDefaultLibraries>LIBC;ole32.lib;kernel32.lib;msvcrt.lib;msvcrtd.lib%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <AdditionalDependencies>%(AdditionalDependencies);vccorlib.lib;msvcrt.lib</AdditionalDependencies>
     </Link>
@@ -228,7 +224,6 @@
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
-      <ShowProgress>LinkVerbose</ShowProgress>
       <IgnoreSpecificDefaultLibraries>LIBC;ole32.lib;kernel32.lib;msvcrt.lib;msvcrtd.lib%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <AdditionalDependencies>%(AdditionalDependencies);vccorlibd.lib;msvcrtd.lib</AdditionalDependencies>
     </Link>
@@ -247,7 +242,6 @@
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
-      <ShowProgress>LinkVerbose</ShowProgress>
       <IgnoreSpecificDefaultLibraries>LIBC;ole32.lib;kernel32.lib;msvcrt.lib;msvcrtd.lib%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <AdditionalDependencies>%(AdditionalDependencies);vccorlib.lib;msvcrt.lib</AdditionalDependencies>
     </Link>
