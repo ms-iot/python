@@ -1,0 +1,19 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="Common.Build.settings" />
+
+  <PropertyGroup>
+    <!-- Don't deploy the VSIX if we are running under team foundation build -->
+    <DeployExtension Condition="'$(TFBuild)' == 'True'">false</DeployExtension>
+    <DeployExtension Condition="'$(TFBuild)' != 'True'">true</DeployExtension>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectFile Include="$(PythonRoot)\cpython\Tools\pyuwp\pyuwpsdk\pyuwpsdk.csproj">
+      <Properties>%(ProjectFile.Properties);Platform=AnyCpu;Configuration=Release;BuildProjectReferences=false;TargetVsixContainer=$(DropDirectory)%(ProjectFile.FileName).vsix;DeployExtension=$(DeployExtension)</Properties>
+    </ProjectFile>
+  </ItemGroup>
+
+  <Import Project="Common.Build.Traversal.targets" />
+</Project>
+  
+  
