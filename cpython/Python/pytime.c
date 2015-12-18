@@ -549,10 +549,6 @@ pymonotonic_new(_PyTime_t *tp, _Py_clock_info_t *info, int raise)
     static _PyTime_t last = 0;
 #endif
 #if defined(MS_WINDOWS)
-#ifndef MS_UWP
-    static ULONGLONG (*GetTickCount64) (void) = NULL;
-    static ULONGLONG (CALLBACK *Py_GetTickCount64)(void);
-#endif
     static int has_gettickcount64 = -1;
     ULONGLONG result;
 
