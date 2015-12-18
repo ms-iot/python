@@ -2211,7 +2211,12 @@ sock_accept_impl(PySocketSockObject *s, void *data)
 #else
     ctx->result = accept(s->sock_fd, SAS2SA(ctx->addrbuf), ctx->addrlen);
 #endif
+
+#ifdef MS_WINDOWS
+    return (ctx->result != INVALID_SOCKET);
+#else
     return (ctx->result >= 0);
+#endif
 }
 
 /* s._accept() -> (fd, address) */
@@ -5343,8 +5348,8 @@ socket_inet_pton(PyObject *self, PyObject *args)
     struct sockaddr_in6 addr;
     INT ret, size;
 #ifdef MS_UWP
-	wchar_t* wchip[INET6_ADDRSTRLEN];
-	int usize;
+    wchar_t* wchip[INET6_ADDRSTRLEN];
+    int usize;
 #endif
 
     if (!PyArg_ParseTuple(args, "is:inet_pton", &af, &ip)) {
@@ -5354,8 +5359,8 @@ socket_inet_pton(PyObject *self, PyObject *args)
     size = sizeof(addr);
 
 #ifdef MS_UWP
-	usize = MultiByteToWideChar(CP_ACP, 0, ip, -1, (LPWSTR)wchip, sizeof(wchip));
-	ret = WSAStringToAddressW((LPWSTR)wchip, af, NULL, (LPSOCKADDR)&addr, &size);
+    usize = MultiByteToWideChar(CP_ACP, 0, ip, -1, (LPWSTR)wchip, sizeof(wchip));
+    ret = WSAStringToAddressW((LPWSTR)wchip, af, NULL, (LPSOCKADDR)&addr, &size);
 #else
     ret = WSAStringToAddressA(ip, af, NULL, (LPSOCKADDR)&addr, &size);
 #endif
@@ -5455,7 +5460,7 @@ socket_inet_ntop(PyObject *self, PyObject *args)
     struct sockaddr_in6 addr;
     DWORD addrlen, ret, retlen;
 #ifdef MS_UWP
-	wchar_t ip[Py_MAX(INET_ADDRSTRLEN, INET6_ADDRSTRLEN) + 1];
+    wchar_t ip[Py_MAX(INET_ADDRSTRLEN, INET6_ADDRSTRLEN) + 1];
 #elif defined(ENABLE_IPV6)
     char ip[Py_MAX(INET_ADDRSTRLEN, INET6_ADDRSTRLEN) + 1];
 #else
@@ -5504,7 +5509,7 @@ socket_inet_ntop(PyObject *self, PyObject *args)
 
     retlen = sizeof(ip)/sizeof(*ip);
 #ifdef MS_UWP
-	ret = WSAAddressToStringW((struct sockaddr*)&addr, addrlen, NULL, ip, &retlen);
+    ret = WSAAddressToStringW((struct sockaddr*)&addr, addrlen, NULL, ip, &retlen);
 #else
     ret = WSAAddressToStringA((struct sockaddr*)&addr, addrlen, NULL,
                               ip, &retlen);
@@ -5515,7 +5520,8 @@ socket_inet_ntop(PyObject *self, PyObject *args)
         return NULL;
     } else {
 #ifdef MS_UWP
-		return PyUnicode_FromWideChar(ip, retlen);
+        /* retlen -1 because WSAAddressToStringW includes the NULL terminator. */
+        return PyUnicode_FromWideChar(ip, retlen - 1);
 #else
         return PyUnicode_FromString(ip);
 #endif

@@ -2465,7 +2465,7 @@ PyObject *PyExc_RecursionErrorInst = NULL;
 #if defined(WSAEWOULDBLOCK) && !defined(EWOULDBLOCK)
 #define EWOULDBLOCK WSAEWOULDBLOCK
 #endif
-#endif /* MS_WINDOWS && !MS_UWP */
+#endif /* MS_WINDOWS */
 
 void
 _PyExc_Init(PyObject *bltinmod)
@@ -2613,9 +2613,7 @@ _PyExc_Init(PyObject *bltinmod)
     ADD_ERRNO(BlockingIOError, EWOULDBLOCK);
     POST_INIT(BrokenPipeError);
     ADD_ERRNO(BrokenPipeError, EPIPE);
-#ifndef MS_UWP
     ADD_ERRNO(BrokenPipeError, ESHUTDOWN);
-#endif
     POST_INIT(ChildProcessError);
     ADD_ERRNO(ChildProcessError, ECHILD);
     POST_INIT(ConnectionAbortedError);
