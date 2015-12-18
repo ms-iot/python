@@ -2545,7 +2545,12 @@ class OSErrorTests(unittest.TestCase):
         self.bytes_filenames.append(encoded)
         self.bytes_filenames.append(memoryview(encoded))
 
-        self.filenames = self.bytes_filenames + self.unicode_filenames
+        if sys.platform == "uwp":
+            # UWP only supports unicode filenames
+            self.filenames = self.unicode_filenames
+        else:
+            self.filenames = self.bytes_filenames + self.unicode_filenames
+
 
     def test_oserror_filename(self):
         funcs = [

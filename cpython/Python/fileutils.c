@@ -579,6 +579,7 @@ _Py_attribute_data_to_stat(FILE_BASIC_INFO *basicInfo, FILE_STANDARD_INFO *stand
         /* now set the bits that make this a symlink */
         result->st_mode |= S_IFLNK;
     }
+    result->st_file_attributes = basicInfo->FileAttributes;
 }
 #else
 void
@@ -849,7 +850,14 @@ set_inheritable(int fd, int inheritable, int raise, int *atomic_flag_works)
 
 #ifdef MS_WINDOWS
 #ifdef MS_UWP
-    return 0;
+    if (!inheritable) {
+        return 0;
+    }
+
+    if (raise) {
+        PyErr_SetString(PyExc_NotImplementedError, "Inheritable handles are not supported in UWP.");
+    }
+    return -1;
 #else
     if (!_PyVerify_fd(fd)) {
         if (raise)

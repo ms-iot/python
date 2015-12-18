@@ -386,7 +386,12 @@ class CommonTest(GenericTest):
         # Abspath returns bytes when the arg is bytes
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", DeprecationWarning)
-            for path in (b'', b'foo', b'f\xf2\xf2', b'/foo', b'C:\\'):
+            paths = (b'', b'foo', b'/foo', b'C:\\')
+            # b'f\xf2\xf2' is not a valid utf8 string. UWP only accepts valid 
+            # utf8 strings as paths.
+            if sys.platform != "uwp":
+                paths.extend(b'f\xf2\xf2')
+            for path in paths:
                 self.assertIsInstance(self.pathmodule.abspath(path), bytes)
 
     def test_realpath(self):

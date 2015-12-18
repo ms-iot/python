@@ -3296,7 +3296,11 @@ PyObject *
 PyUnicode_EncodeFSDefault(PyObject *unicode)
 {
 #ifdef HAVE_MBCS
+#ifndef MS_UWP
     return PyUnicode_EncodeCodePage(CP_ACP, unicode, NULL);
+#else
+    return PyUnicode_EncodeCodePage(CP_UTF8, unicode, NULL);
+#endif
 #elif defined(__APPLE__)
     return _PyUnicode_AsUTF8String(unicode, "surrogateescape");
 #else
@@ -3580,7 +3584,11 @@ PyObject*
 PyUnicode_DecodeFSDefaultAndSize(const char *s, Py_ssize_t size)
 {
 #ifdef HAVE_MBCS
+#ifndef MS_UWP
     return PyUnicode_DecodeMBCS(s, size, NULL);
+#else
+    return PyUnicode_DecodeUTF8Stateful(s, size, "strict", NULL);
+#endif 
 #elif defined(__APPLE__)
     return PyUnicode_DecodeUTF8Stateful(s, size, "surrogateescape", NULL);
 #else

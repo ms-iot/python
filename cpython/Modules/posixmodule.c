@@ -909,11 +909,7 @@ path_converter(PyObject *o, void *p) {
         return 0;
     }
 
-#if defined(MS_UWP)
-    /* UWP apps cannot support narrow paths */
-    Py_DECREF(bytes);
-    return 0;
-#elif defined(MS_WINDOWS)
+#if defined(MS_WINDOWS)
     if (win32_warn_bytes_api()) {
         Py_DECREF(bytes);
         return 0;
@@ -935,13 +931,45 @@ path_converter(PyObject *o, void *p) {
         Py_DECREF(bytes);
         return 0;
     }
+#if defined(MS_UWP)
+    {
+        PyObject* cleanup;
+        wchar_t* wide = NULL;
+        unicode = PyUnicode_DecodeFSDefaultAndSize(narrow, length);
+        if (!unicode) {
+            Py_DECREF(bytes);
+            return 0;
+        }
 
+        wide = PyUnicode_AsUnicodeAndSize(unicode, &length);
+        if (!wide) {
+            Py_DECREF(bytes);
+            Py_DECREF(unicode);
+            return 0;
+        }
+        cleanup = PyTuple_Pack(2, unicode, bytes);
+        Py_DECREF(bytes);
+        Py_DECREF(unicode);
+
+        if (!cleanup) {
+            return 0;
+        }
+
+        path->wide = wide;
+        path->narrow = NULL;
+        path->length = length;
+        path->object = o;
+        path->fd = -1;
+        path->cleanup = cleanup;
+    }
+#else
     path->wide = NULL;
     path->narrow = narrow;
     path->length = length;
     path->object = o;
     path->fd = -1;
     path->cleanup = bytes;
+#endif
     return Py_CLEANUP_SUPPORTED;
 }
 
@@ -2760,16 +2788,16 @@ os_access_impl(PyModuleDef *module, path_t *path, int mode, int dir_fd,
 
 #ifdef MS_WINDOWS
     Py_BEGIN_ALLOW_THREADS
-        if (path->wide != NULL)
+    if (path->wide != NULL)
 #ifdef MS_UWP
-        {
-            WIN32_FILE_ATTRIBUTE_DATA fad;
+    {
+        WIN32_FILE_ATTRIBUTE_DATA fad;
 
-            if (!GetFileAttributesExW(path->wide, GetFileExInfoStandard, &fad))
-                attr = INVALID_FILE_ATTRIBUTES;
-            else
-                attr = fad.dwFileAttributes;
-        }
+        if (!GetFileAttributesExW(path->wide, GetFileExInfoStandard, &fad))
+            attr = INVALID_FILE_ATTRIBUTES;
+        else
+            attr = fad.dwFileAttributes;
+    }
 #else
         attr = GetFileAttributesW(path->wide);
     else
@@ -3574,7 +3602,17 @@ static PyObject *
 os_getcwdb_impl(PyModuleDef *module)
 /*[clinic end generated code: output=7fce42ee4b2a296a input=f6f6a378dad3d9cb]*/
 {
+#ifndef MS_UWP
     return posix_getcwd(1);
+#else
+    PyObject *wide, *narrow = NULL;
+    wide = posix_getcwd(0);
+    if (wide != NULL) {
+        narrow = PyUnicode_EncodeFSDefault(wide);
+        Py_DECREF(wide);
+    }
+    return narrow;
+#endif
 }
 
 
@@ -3727,8 +3765,17 @@ _listdir_windows_no_opendir(path_t *path, PyObject *list)
             /* Skip over . and .. */
             if (wcscmp(wFileData.cFileName, L".") != 0 &&
                 wcscmp(wFileData.cFileName, L"..") != 0) {
+
                 v = PyUnicode_FromWideChar(wFileData.cFileName,
                                            wcslen(wFileData.cFileName));
+#ifdef MS_UWP
+                if (v && path->object && PyBytes_Check(path->object)) {
+                    /* The original request was from a byte string.  Return results as byte string. */
+                    PyObject *tmp = v;
+                    v = PyUnicode_EncodeFSDefault(v);
+                    Py_DECREF(tmp);
+                }
+#endif
                 if (v == NULL) {
                     Py_DECREF(list);
                     list = NULL;
@@ -3969,7 +4016,6 @@ os_listdir_impl(PyModuleDef *module, path_t *path)
 }
 
 #ifdef MS_WINDOWS
-#ifndef MS_UWP
 /* A helper function for abspath on win32 */
 /*[clinic input]
 os._getfullpathname
@@ -4000,7 +4046,20 @@ os__getfullpathname_impl(PyModuleDef *module, path_t *path)
             result = GetFullPathNameW(path->wide, result, woutbufp, &wtemp);
         }
         if (result)
+#ifndef MS_UWP
             v = PyUnicode_FromWideChar(woutbufp, wcslen(woutbufp));
+#else
+            if (path->object && PyBytes_Check(path->object)) {
+                /* The original request was from a byte string.  Return results as byte string. */
+                PyObject *wide;
+                wide = PyUnicode_FromWideChar(woutbufp, wcslen(woutbufp));
+                v = PyUnicode_EncodeFSDefault(wide);
+                Py_DECREF(wide);
+            }
+            else {
+                v = PyUnicode_FromWideChar(woutbufp, wcslen(woutbufp));
+            }
+#endif /* MS_UWP */
         else
             v = win32_error_object("GetFullPathNameW", path->object);
         if (woutbufp != woutbuf)
@@ -4008,18 +4067,23 @@ os__getfullpathname_impl(PyModuleDef *module, path_t *path)
         return v;
     }
     else {
+#ifndef MS_UWP
         char outbuf[MAX_PATH];
         char *temp;
 
-        if (!GetFullPathName(path->narrow, Py_ARRAY_LENGTH(outbuf),
+        if (!GetFullPathNameA(path->narrow, Py_ARRAY_LENGTH(outbuf),
                              outbuf, &temp)) {
             win32_error_object("GetFullPathName", path->object);
             return NULL;
         }
-        return PyBytes_FromString(outbuf);    }
+        return PyBytes_FromString(outbuf);
+#else
+        return NULL;
+#endif /* MS_UWP */
+    }
 }
 
-
+#ifndef MS_UWP
 /*[clinic input]
 os._getfinalpathname
 
@@ -4166,9 +4230,9 @@ exit:
 
 #else
 static PyObject *
-os__getfullpathname_impl(PyModuleDef *module, path_t *path)
+os__getfinalpathname_impl(PyModuleDef *module, PyObject *path)
 {
-    PyErr_SetString(PyExc_NotImplementedError, "getfullpathname is not implemented for UWP Apps");
+    PyErr_SetString(PyExc_NotImplementedError, "getfinalpathname is not implemented for UWP Apps");
     return NULL;
 }
 
@@ -4185,14 +4249,6 @@ os__getvolumepathname_impl(PyModuleDef *module, PyObject *path)
     PyErr_SetString(PyExc_NotImplementedError, "getvolumepathname is not implemented for UWP Apps");
     return NULL;
 }
-
-static PyObject *
-os__getfinalpathname_impl(PyModuleDef *module, PyObject *path)
-{
-    PyErr_SetString(PyExc_NotImplementedError, "getfinalpathname is not implemented for UWP Apps");
-    return NULL;
-}
-
 #endif /* !MS_UWP */
 #endif /* MS_WINDOWS */
 
@@ -12090,10 +12146,7 @@ static PyObject *
 DirEntry_from_find_data(path_t *path, WIN32_FIND_DATAW *dataW)
 {
     DirEntry *entry;
-#ifdef MS_UWP
-    FILE_BASIC_INFO file_basic_info;
-    FILE_STANDARD_INFO file_standard_info;
-#else
+#ifndef MS_UWP
     BY_HANDLE_FILE_INFORMATION file_info;
 #endif
     ULONG reparse_tag;
@@ -12122,13 +12175,13 @@ DirEntry_from_find_data(path_t *path, WIN32_FIND_DATAW *dataW)
         goto error;
 
 #ifdef MS_UWP
-    joined_path = join_path_filenameW(path->wide, dataW->cFileName);
-    if (!joined_path)
-        goto error;
+    {
+        wchar_t* joined_path2 = PyUnicode_AsUnicode(entry->path);
+        if (!joined_path2)
+            goto error;
 
-    win32_lstat_w(joined_path, &entry->win32_lstat);
-    PyMem_Free(joined_path);
-    _Py_attribute_data_to_stat(&file_basic_info, &file_standard_info, 0, &entry->win32_lstat);
+        win32_lstat_w(joined_path2, &entry->win32_lstat);
+    }
 #else
     find_data_to_file_info_w(dataW, &file_info, &reparse_tag);
     _Py_attribute_data_to_stat(&file_info, reparse_tag, &entry->win32_lstat);
@@ -12648,8 +12701,8 @@ static PyMethodDef posix_methods[] = {
     OS_FPATHCONF_METHODDEF
     OS_PATHCONF_METHODDEF
     OS_ABORT_METHODDEF
-#ifndef MS_UWP
     OS__GETFULLPATHNAME_METHODDEF
+#ifndef MS_UWP
     OS__ISDIR_METHODDEF
 #endif
     OS__GETFINALPATHNAME_METHODDEF
