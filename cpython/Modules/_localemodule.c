@@ -321,7 +321,7 @@ PyLocale_getdefaultlocale(PyObject* self)
 static PyObject*
 PyLocale_getdefaultlocale(PyObject* self)
 {
-    const wchar_t *encoding = L"utf16";
+    const wchar_t *encoding = L"utf8";
     wchar_t locale[100];
 
     if (GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT,
