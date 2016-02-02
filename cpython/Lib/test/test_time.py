@@ -420,6 +420,8 @@ class TimeTestCase(unittest.TestCase):
     def test_perf_counter(self):
         time.perf_counter()
 
+    @unittest.skipUnless(hasattr(time, 'process_time'),
+                         'need time.process_time')
     def test_process_time(self):
         # process_time() should not include time spend during a sleep
         start = time.process_time()
@@ -468,7 +470,9 @@ class TimeTestCase(unittest.TestCase):
         self.assertRaises(OSError, time.ctime, invalid_time_t)
 
     def test_get_clock_info(self):
-        clocks = ['clock', 'perf_counter', 'process_time', 'time']
+        clocks = ['clock', 'perf_counter', 'time']
+        if hasattr(time, 'process_time'):
+            clocks.append('process_time')
         if hasattr(time, 'monotonic'):
             clocks.append('monotonic')
 

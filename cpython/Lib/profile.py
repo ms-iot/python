@@ -153,7 +153,10 @@ class Profile:
         self.bias = bias     # Materialize in local dict for lookup speed.
 
         if not timer:
-            self.timer = self.get_time = time.process_time
+            if hasattr(time, 'process_time'):
+                self.timer = self.get_time = time.process_time
+            else:
+                self.timer = self.get_time = time.perf_counter
             self.dispatcher = self.trace_dispatch_i
         else:
             self.timer = timer
