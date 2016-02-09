@@ -325,6 +325,9 @@
     <ProjectReference Include="..\..\..\PCBuild\uwp\_ctypes.vcxproj">
       <Project>{6bccda23-80f4-4c46-a82e-133d64b13fdb}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\PCbuild\uwp\_ctypes_test.vcxproj">
+      <Project>{e557e75d-d541-4141-be50-428c5589a5c4}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\PCbuild\uwp\_elementtree.vcxproj">
       <Project>{83fa65c4-177f-46d3-afc2-9232a127cc68}</Project>
     </ProjectReference>

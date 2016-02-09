@@ -242,7 +242,7 @@ static WCHAR *FormatError(DWORD code)
 			NULL,
 			code,
 			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), /* Default language */
-			(LPWSTR)&lpMsgBuf,
+			lpMsgBuf,
 			FORMATMSGSIZE,
 			NULL);
 	}

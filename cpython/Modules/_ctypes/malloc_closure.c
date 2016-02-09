@@ -62,7 +62,11 @@ static void more_core(void)
     /* allocate a memory block */
 #ifdef MS_WINDOWS
 #ifdef MS_UWP
-	item = (ITEM *)malloc(count * sizeof(ITEM));
+    // replace with VirtualAllocFromApp()
+    item = (ITEM *)VirtualAllocFromApp(NULL,
+                                            count * sizeof(ITEM),
+                                            MEM_COMMIT,
+                                            PAGE_EXECUTE_READWRITE);
 #else
     item = (ITEM *)VirtualAlloc(NULL,
                                            count * sizeof(ITEM),

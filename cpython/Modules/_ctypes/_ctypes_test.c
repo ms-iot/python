@@ -1,10 +1,10 @@
 #include <Python.h>
 
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
 #include <windows.h>
 #endif
 
-#if defined(MS_WIN32) || defined(__CYGWIN__)
+#if defined(MS_WIN32) || defined(__CYGWIN__) || defined(MS_ARM)
 #define EXPORT(x) __declspec(dllexport) x
 #else
 #define EXPORT(x) x
@@ -331,7 +331,7 @@ EXPORT(xxx_library) *library_get(void)
     return &_xxx_lib;
 }
 
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
 /* See Don Box (german), pp 79ff. */
 EXPORT(void) GetString(BSTR *pbstr)
 {
@@ -447,7 +447,7 @@ EXPORT(float) tf_f(float c) { S; return c/3; }
 EXPORT(double) tf_d(double c) { S; return c/3; }
 EXPORT(long double) tf_D(long double c) { S; return c/3; }
 
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
 EXPORT(signed char) __stdcall s_tf_b(signed char c) { S; return c/3; }
 EXPORT(unsigned char) __stdcall s_tf_B(unsigned char c) { U; return c/3; }
 EXPORT(short) __stdcall s_tf_h(short c) { S; return c/3; }
@@ -479,7 +479,7 @@ EXPORT(double) tf_bd(signed char x, double c) { S; return c/3; }
 EXPORT(long double) tf_bD(signed char x, long double c) { S; return c/3; }
 EXPORT(void) tv_i(int c) { S; return; }
 
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
 EXPORT(signed char) __stdcall s_tf_bb(signed char x, signed char c) { S; return c/3; }
 EXPORT(unsigned char) __stdcall s_tf_bB(signed char x, unsigned char c) { U; return c/3; }
 EXPORT(short) __stdcall s_tf_bh(signed char x, short c) { S; return c/3; }
@@ -498,7 +498,7 @@ EXPORT(void) __stdcall s_tv_i(int c) { S; return; }
 
 /********/
 
-#ifndef MS_WIN32
+#if !defined(MS_WIN32) && !defined(MS_ARM)
 
 typedef struct {
     long x;
@@ -616,12 +616,12 @@ EXPORT(void) TwoOutArgs(int a, int *pi, int b, int *pj)
     *pj += b;
 }
 
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
 EXPORT(S2H) __stdcall s_ret_2h_func(S2H inp) { return ret_2h_func(inp); }
 EXPORT(S8I) __stdcall s_ret_8i_func(S8I inp) { return ret_8i_func(inp); }
 #endif
 
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
 /* Should port this */
 #include <stdlib.h>
 #include <search.h>
