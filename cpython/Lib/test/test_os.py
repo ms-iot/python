@@ -1313,10 +1313,12 @@ def _execvpe_mockup(defpath=None):
 class ExecTests(unittest.TestCase):
     @unittest.skipIf(USING_LINUXTHREADS,
                      "avoid triggering a linuxthreads bug: see issue #4970")
+    @unittest.skipUnless(hasattr(os, "execvpe"), "requires os.execvpe()")
     def test_execvpe_with_bad_program(self):
         self.assertRaises(OSError, os.execvpe, 'no such app-',
                           ['no such app-'], None)
 
+    @unittest.skipUnless(hasattr(os, "execvpe"), "requires os.execvpe()")
     def test_execvpe_with_bad_arglist(self):
         self.assertRaises(ValueError, os.execvpe, 'notepad', [], None)
 
