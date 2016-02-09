@@ -219,6 +219,8 @@ class SysModuleTest(unittest.TestCase):
         finally:
             sys.setrecursionlimit(oldlimit)
 
+    @unittest.skipUnless(hasattr(subprocess, 'Popen'), 
+                         'test needs subprocess.Popen()') 
     def test_recursionlimit_fatalerror(self):
         # A fatal error occurs if a second recursion limit is hit when recovering
         # from a first one.
@@ -546,6 +548,8 @@ class SysModuleTest(unittest.TestCase):
     def test_clear_type_cache(self):
         sys._clear_type_cache()
 
+    @unittest.skipUnless(hasattr(subprocess, 'Popen'), 
+                         'test needs subprocess.Popen()') 
     def test_ioencoding(self):
         env = dict(os.environ)
 
@@ -589,6 +593,8 @@ class SysModuleTest(unittest.TestCase):
         out = p.communicate()[0].strip()
         self.assertEqual(out, b'\xbd')
 
+    @unittest.skipUnless(hasattr(subprocess, 'Popen'), 
+                         'test needs subprocess.Popen()') 
     @unittest.skipUnless(test.support.FS_NONASCII,
                          'requires OS support of non-ASCII encodings')
     def test_ioencoding_nonascii(self):
@@ -601,6 +607,8 @@ class SysModuleTest(unittest.TestCase):
         out = p.communicate()[0].strip()
         self.assertEqual(out, os.fsencode(test.support.FS_NONASCII))
 
+    @unittest.skipUnless(hasattr(subprocess, 'Popen'), 
+                         'test needs subprocess.Popen()') 
     @unittest.skipIf(sys.base_prefix != sys.prefix,
                      'Test is not venv-compatible')
     def test_executable(self):
@@ -639,6 +647,8 @@ class SysModuleTest(unittest.TestCase):
             expected = None
         self.check_fsencoding(fs_encoding, expected)
 
+    @unittest.skipUnless(hasattr(subprocess, 'Popen'), 
+                         'test needs subprocess.Popen()') 
     def c_locale_get_error_handler(self, isolated=False, encoding=None):
         # Force the POSIX locale
         env = os.environ.copy()

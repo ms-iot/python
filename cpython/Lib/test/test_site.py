@@ -162,6 +162,8 @@ class HelperFunctionsTests(unittest.TestCase):
         finally:
             pth_file.cleanup()
 
+    @unittest.skipUnless(hasattr(subprocess, 'Popen'), 
+                         'test needs subprocess.Popen()')
     @unittest.skipUnless(site.ENABLE_USER_SITE, "requires access to PEP 370 "
                           "user-site (site.ENABLE_USER_SITE)")
     def test_s_option(self):
@@ -320,6 +322,8 @@ class ImportSideEffectTests(unittest.TestCase):
         """Restore sys.path"""
         sys.path[:] = self.sys_path
 
+    @unittest.skipUnless(hasattr(subprocess, 'Popen'), 
+                         'test needs subprocess.Popen()')
     def test_abs_paths(self):
         # Make sure all imported modules have their __file__ and __cached__
         # attributes as absolute paths.  Arranging to put the Lib directory on
@@ -435,6 +439,8 @@ class ImportSideEffectTests(unittest.TestCase):
 
 class StartupImportTests(unittest.TestCase):
 
+    @unittest.skipUnless(hasattr(subprocess, 'Popen'), 
+                         'test needs subprocess.Popen()')
     def test_startup_imports(self):
         # This tests checks which modules are loaded by Python when it
         # initially starts upon startup.

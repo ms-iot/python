@@ -15,7 +15,7 @@ import zipfile
 
 from importlib.util import source_from_cache
 from test.support import make_legacy_pyc, strip_python_stderr
-
+import unittest.case
 
 # Cached result of the expensive test performed in the function below.
 __cached_interp_requires_environment = None
@@ -37,6 +37,8 @@ def interpreter_requires_environment():
     situation.  PYTHONPATH or PYTHONUSERSITE are other common environment
     variables that might impact whether or not the interpreter can start.
     """
+    if not hasattr(subprocess, 'Popen'):
+        raise unittest.SkipTest('test needs subprocess.Popen()')
     global __cached_interp_requires_environment
     if __cached_interp_requires_environment is None:
         # Try running an interpreter with -E to see if it works or not.
@@ -57,6 +59,8 @@ _PythonRunResult = collections.namedtuple("_PythonRunResult",
 
 # Executing the interpreter in a subprocess
 def run_python_until_end(*args, **env_vars):
+    if not hasattr(subprocess, 'Popen'):
+        raise unittest.SkipTest('test needs subprocess.Popen()')
     env_required = interpreter_requires_environment()
     if '__isolated' in env_vars:
         isolated = env_vars.pop('__isolated')
@@ -150,6 +154,8 @@ def spawn_python(*args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, **kw):
     kw is extra keyword args to pass to subprocess.Popen. Returns a Popen
     object.
     """
+    if not hasattr(subprocess, 'Popen'):
+        raise unittest.SkipTest('test needs subprocess.Popen()')
     cmd_line = [sys.executable, '-E']
     cmd_line.extend(args)
     # Under Fedora (?), GNU readline can output junk on stderr when initialized,
