@@ -25,6 +25,11 @@
 #define MAX_MARSHAL_STACK_DEPTH 2000
 #endif
 
+#if defined(MS_UWP)
+#undef MAX_MARSHAL_STACK_DEPTH
+#define MAX_MARSHAL_STACK_DEPTH 500
+#endif
+
 #define TYPE_NULL               '0'
 #define TYPE_NONE               'N'
 #define TYPE_FALSE              'F'

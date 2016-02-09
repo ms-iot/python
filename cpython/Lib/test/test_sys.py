@@ -207,8 +207,11 @@ class SysModuleTest(unittest.TestCase):
         oldlimit = sys.getrecursionlimit()
         def f():
             f()
+        max = 1000;
+        if sys.platform == 'uwp':
+            max = 500
         try:
-            for i in (50, 1000):
+            for i in (50, max):
                 # Issue #5392: stack overflow after hitting recursion limit twice
                 sys.setrecursionlimit(i)
                 self.assertRaises(RuntimeError, f)
