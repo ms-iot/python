@@ -346,6 +346,12 @@
     <ProjectReference Include="..\..\..\PCbuild\uwp\_testcapi.vcxproj">
       <Project>{dd7be91e-723a-4ef7-9abd-add15ceb19f6}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\PCbuild\uwp\_testimportmultiple.vcxproj">
+      <Project>{6264398b-b2a3-4a30-86f3-82460780e715}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\PCbuild\uwp\_testmultiphase.vcxproj">
+      <Project>{24da5a1f-cac2-409b-bca7-aaad7a398b59}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\ptvsdhelper\_ptvsdhelper.vcxproj">
       <Project>{18a52e7c-6207-43fc-879b-0dd7952967a2}</Project>
     </ProjectReference>
