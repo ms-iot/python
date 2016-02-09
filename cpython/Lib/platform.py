@@ -384,13 +384,14 @@ def dist(distname='', version='', id='',
                                supported_dists=supported_dists,
                                full_distribution_name=0)
 
-def popen(cmd, mode='r', bufsize=-1):
+if hasattr(os, 'popen'):
+    def popen(cmd, mode='r', bufsize=-1):
 
-    """ Portable popen() interface.
-    """
-    import warnings
-    warnings.warn('use os.popen instead', DeprecationWarning, stacklevel=2)
-    return os.popen(cmd, mode, bufsize)
+        """ Portable popen() interface.
+        """
+        import warnings
+        warnings.warn('use os.popen instead', DeprecationWarning, stacklevel=2)
+        return os.popen(cmd, mode, bufsize)
 
 def _norm_version(version, build=''):
 
