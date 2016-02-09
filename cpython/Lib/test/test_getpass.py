@@ -44,7 +44,10 @@ class GetpassGetuserTest(unittest.TestCase):
                                  getpass.getuser())
                 getpw.assert_called_once_with(42)
         else:
-            self.assertRaises(ImportError, getpass.getuser)
+            if os.name != 'uwp_os':
+                self.assertRaises(ImportError, getpass.getuser)
+            else:
+                self.assertEqual("", getpass.getuser())
 
 
 class GetpassRawinputTest(unittest.TestCase):

@@ -159,12 +159,12 @@ def getuser():
     database.  This works on Windows as long as USERNAME is set.
 
     """
-    if os.name == "uwp_os":
-        return ""
     for name in ('LOGNAME', 'USER', 'LNAME', 'USERNAME'):
         user = os.environ.get(name)
         if user:
             return user
+    if os.name == "uwp_os":
+        return ""
 
     # If this fails, the exception will "explain" why
     import pwd
