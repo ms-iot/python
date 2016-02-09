@@ -3350,6 +3350,7 @@ class MiscIOTest(unittest.TestCase):
         self._check_warn_on_dealloc(support.TESTFN, "wb")
         self._check_warn_on_dealloc(support.TESTFN, "w")
 
+    @unittest.skipUnless(hasattr(os, "pipe"), "requires os.pipe()")
     def _check_warn_on_dealloc_fd(self, *args, **kwargs):
         fds = []
         def cleanup_fds():
