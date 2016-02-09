@@ -5,7 +5,11 @@ Josip Dzolonga, and Michael Otteneder for the 2007/08 GHOP contest.
 """
 
 from http.server import BaseHTTPRequestHandler, HTTPServer, \
-     SimpleHTTPRequestHandler, CGIHTTPRequestHandler
+     SimpleHTTPRequestHandler
+try:
+    from http.server import CGIHTTPRequestHandler
+except ImportError:
+    CGIHTTPRequestHandler = None
 from http import server, HTTPStatus
 
 import os
@@ -404,11 +408,14 @@ print("%%s, %%s, %%s" %% (form.getfirst("spam"), form.getfirst("eggs"),
 """
 
 
+@unittest.skipUnless(CGIHTTPRequestHandler != None,
+                    'test needs http.server.CGIHTTPRequestHandler')
 @unittest.skipIf(hasattr(os, 'geteuid') and os.geteuid() == 0,
         "This test can't be run reliably as root (issue #13308).")
 class CGIHTTPServerTestCase(BaseTestCase):
-    class request_handler(NoLogRequestHandler, CGIHTTPRequestHandler):
-        pass
+    if CGIHTTPRequestHandler:
+        class request_handler(NoLogRequestHandler, CGIHTTPRequestHandler):
+            pass
 
     linesep = os.linesep.encode('ascii')
 
