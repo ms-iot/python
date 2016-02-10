@@ -1804,7 +1804,10 @@ if sys.platform == 'win32' or sys.platform == 'uwp':
                                  test_utils.TestCase):
 
         def create_event_loop(self):
-            return asyncio.ProactorEventLoop()
+            if sys.platform != 'uwp':
+                return asyncio.ProactorEventLoop()
+            else:
+                raise unittest.SkipTest("CompletionPort not support in UWP")
 
         if not sslproto._is_sslproto_available():
             def test_create_ssl_connection(self):

@@ -11,7 +11,10 @@ if sys.platform != 'win32' and sys.platform != 'uwp':
 
 import _winapi
 
-from asyncio import _overlapped
+try:
+    from asyncio import _overlapped
+except ImportError:
+    _overlapped = None
 from asyncio import windows_utils
 try:
     from test import support
@@ -69,6 +72,7 @@ class WinsocketpairTests(unittest.TestCase):
         self.assertTrue(sock.close.called)
 
 
+@unittest.skipUnless(_overlapped != None, "requires asyncio._overlapped")
 class PipeTests(unittest.TestCase):
 
     def test_pipe_overlapped(self):
@@ -128,6 +132,7 @@ class PipeTests(unittest.TestCase):
             raise RuntimeError('expected ERROR_INVALID_HANDLE')
 
 
+@unittest.skipUnless(hasattr(windows_utils, "Popen"), "requires asyncio.windows_utils.Popen()")
 class PopenTests(unittest.TestCase):
 
     def test_popen(self):

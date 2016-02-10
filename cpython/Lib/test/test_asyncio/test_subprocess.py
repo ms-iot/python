@@ -440,6 +440,9 @@ if sys.platform != 'win32' and sys.platform != 'uwp':
 
         Watcher = unix_events.FastChildWatcher
 
+elif sys.platform == 'uwp':
+    # UWP doesn't have ProactorEventLoop
+    pass
 else:
     # Windows
     class SubprocessProactorTests(SubprocessMixin, test_utils.TestCase):
