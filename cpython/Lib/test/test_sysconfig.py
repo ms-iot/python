@@ -234,8 +234,11 @@ class TestSysConfig(unittest.TestCase):
         self.assertTrue(os.path.isfile(config_h), config_h)
 
     def test_get_scheme_names(self):
-        wanted = ('nt', 'nt_user', 'osx_framework_user',
-                  'posix_home', 'posix_prefix', 'posix_user')
+        wanted = ['nt', 'nt_user', 'osx_framework_user',
+                  'posix_home', 'posix_prefix', 'posix_user']
+        if sys.platform == 'uwp':
+            wanted.extend(['uwp_os', 'uwp_os_user'])
+        wanted = tuple(wanted)
         self.assertEqual(get_scheme_names(), wanted)
 
     @skip_unless_symlink
