@@ -14,5 +14,11 @@ from concurrent.futures._base import (FIRST_COMPLETED,
                                       Executor,
                                       wait,
                                       as_completed)
-from concurrent.futures.process import ProcessPoolExecutor
+try:
+    from concurrent.futures.process import ProcessPoolExecutor
+except ImportError:
+    import sys
+    if sys.platform != 'uwp':
+        raise
+
 from concurrent.futures.thread import ThreadPoolExecutor
