@@ -4818,6 +4818,7 @@ class InheritanceTest(unittest.TestCase):
             with newsock:
                 self.assertEqual(newsock.get_inheritable(), False)
 
+    @unittest.skipIf(os.name == 'uwp_os', "Inheritable handles are not supported in UWP.")
     def test_set_inheritable(self):
         sock = socket.socket()
         with sock:

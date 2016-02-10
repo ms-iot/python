@@ -21,10 +21,7 @@ import shutil
 import socket
 import stat
 import struct
-if os.name != 'uwp_os':
 import subprocess
-else:
-    subprocess = None
 import sys
 import sysconfig
 import tempfile

@@ -206,6 +206,7 @@ class GenericTest:
     def test_samefile_on_symlink(self):
         self._test_samefile_on_link_func(os.symlink)
 
+    @unittest.skipUnless(hasattr(os, "link"), "requires os.link()")
     def test_samefile_on_link(self):
         self._test_samefile_on_link_func(os.link)
 
@@ -239,6 +240,7 @@ class GenericTest:
     def test_samestat_on_symlink(self):
         self._test_samestat_on_link_func(os.symlink)
 
+    @unittest.skipUnless(hasattr(os, "link"), "requires os.link()")
     def test_samestat_on_link(self):
         self._test_samestat_on_link_func(os.link)
 

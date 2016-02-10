@@ -170,6 +170,7 @@ class PosixPathTest(unittest.TestCase):
             if not f.close():
                 f.close()
 
+    @unittest.skipIf(sys.platform == 'uwp', "UWP doesn't have access to root ('/')")
     def test_ismount(self):
         self.assertIs(posixpath.ismount("/"), True)
         with warnings.catch_warnings():
