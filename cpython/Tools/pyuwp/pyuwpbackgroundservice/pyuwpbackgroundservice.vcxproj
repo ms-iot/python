@@ -306,6 +306,9 @@
     </ClCompile>
     <ClCompile Include="StartupTask.cpp" />
   </ItemGroup>
+  <PropertyGroup>
+    <PythonLibRootFolder>..\..\..\Lib</PythonLibRootFolder>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\PCbuild\uwp\pyexpat.vcxproj">
       <Project>{43ab54bd-cb0d-48d2-81c8-066ee4ded4b9}</Project>
@@ -412,7 +415,25 @@
       ]]></Code>
     </Task>
   </UsingTask>
-  <Target Name="BuildLibs" BeforeTargets="ClCompile">
-    <Zip InputDirectory="..\..\..\Lib" OutputFileName="$(ProjectDir)lib.zip" OverwriteExistingFile="true" />
+  <Target Name="CopyLibs">
+    <ItemGroup>
+      <PythonLibFiles Include="$(PythonLibRootFolder)\**" />
+      <PythonLibFiles Remove="@(ExcludeLibFilters)" />
+    </ItemGroup>
+    <MakeDir Directories="$(ProjectDir)\PythonHome" />
+    <Copy SourceFiles="@(PythonLibFiles)" DestinationFolder="$(ProjectDir)\PythonHome\Lib\%(RecursiveDir)" />
+
+    <MakeDir Directories="$(ProjectDir)\PythonHome\Include" />
+    <Copy SourceFiles="..\..\..\PC\pyconfig.h" DestinationFolder="$(ProjectDir)\PythonHome\Include" />
+
+    <ItemGroup>
+        <None Include="PythonHome\**">
+          <DeploymentContent>true</DeploymentContent>
+          <Visible>false</Visible>
+        </None>
+    </ItemGroup>
+  </Target>
+  <Target Name="BuildLibs" DependsOnTargets="CopyLibs" BeforeTargets="ClCompile">
+    <Zip InputDirectory="$(ProjectDir)\PythonHome\Lib" OutputFileName="$(ProjectDir)\lib.zip" OverwriteExistingFile="true" />
   </Target>
 </Project>
