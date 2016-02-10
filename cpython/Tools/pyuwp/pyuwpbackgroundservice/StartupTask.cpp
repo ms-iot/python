@@ -124,11 +124,11 @@ int StartupTask::RunPy(Vector<String^>^ argumentsVector)
 {
 	auto writeStdOut = [this](Platform::String^ data) {
 		OutputDebugString(data->Data());
-		fwprintf(stdout, data->Data());
+		fwprintf(stdout, L"%s", data->Data());
 	};
 	auto writeStdErr = [this](Platform::String^ data) {
 		OutputDebugString(data->Data());
-		fwprintf(stderr, data->Data());
+		fwprintf(stderr, L"%s", data->Data());
 	};
 
 	return RunPython(writeStdOut, writeStdErr, argumentsVector);
