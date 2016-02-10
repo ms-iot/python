@@ -162,6 +162,10 @@ def libc_ver(executable=sys.executable, lib='', version='',
         The file is read and scanned in chunks of chunksize bytes.
 
     """
+    if (sys.executable == executable and sys.platform == 'uwp'):
+        # This function only works with executables compiled with gcc.
+        # return the default values.
+        return lib, version
     if hasattr(os.path, 'realpath'):
         # Python 2.2 introduced os.path.realpath(); it is used
         # here to work around problems with Cygwin not being
@@ -524,6 +528,7 @@ def win32_ver(release='', version='', csd='', ptype=''):
              RegCloseKey, GetVersionEx
         from win32con import HKEY_LOCAL_MACHINE, VER_PLATFORM_WIN32_NT, \
              VER_PLATFORM_WIN32_WINDOWS, VER_NT_WORKSTATION
+        has_registry = True
     except ImportError:
         # Emulate the win32api module using Python APIs
         try:
@@ -534,17 +539,22 @@ def win32_ver(release='', version='', csd='', ptype=''):
         else:
             # Emulation using winreg (added in Python 2.0) and
             # sys.getwindowsversion() (added in Python 2.3)
-            import winreg
             GetVersionEx = sys.getwindowsversion
-            RegQueryValueEx = winreg.QueryValueEx
-            RegOpenKeyEx = winreg.OpenKeyEx
-            RegCloseKey = winreg.CloseKey
-            HKEY_LOCAL_MACHINE = winreg.HKEY_LOCAL_MACHINE
-            VER_PLATFORM_WIN32_WINDOWS = 1
-            VER_PLATFORM_WIN32_NT = 2
-            VER_NT_WORKSTATION = 1
-            VER_NT_SERVER = 3
-            REG_SZ = 1
+            try:
+                import winreg
+            except ImportError:
+                has_registry = False
+            else:
+                has_registry = True
+                RegQueryValueEx = winreg.QueryValueEx
+                RegOpenKeyEx = winreg.OpenKeyEx
+                RegCloseKey = winreg.CloseKey
+                HKEY_LOCAL_MACHINE = winreg.HKEY_LOCAL_MACHINE
+                VER_PLATFORM_WIN32_WINDOWS = 1
+                VER_PLATFORM_WIN32_NT = 2
+                VER_NT_WORKSTATION = 1
+                VER_NT_SERVER = 3
+                REG_SZ = 1
 
     # Find out the registry key and some general version infos
     winver = GetVersionEx()
@@ -557,6 +567,8 @@ def win32_ver(release='', version='', csd='', ptype=''):
         if csd[:13] == 'Service Pack ':
             csd = 'SP' + csd[13:]
 
+    if not has_registry:
+        return release, version, csd, ptype
     if plat == VER_PLATFORM_WIN32_WINDOWS:
         regkey = 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion'
         # Try to guess the release name

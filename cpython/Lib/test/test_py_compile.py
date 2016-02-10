@@ -38,6 +38,7 @@ class PyCompileTests(unittest.TestCase):
         self.assertTrue(os.path.exists(self.pyc_path))
         self.assertFalse(os.path.exists(self.cache_path))
 
+    @support.skip_unless_symlink
     def test_do_not_overwrite_symlinks(self):
         # In the face of a cfile argument being a symlink, bail out.
         # Issue #17222

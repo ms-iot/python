@@ -1273,6 +1273,11 @@ class _BasePathTest(object):
         self.assertTrue(p.is_absolute())
 
     def test_home(self):
+        if os.name == 'uwp_os':
+            # UWP doesn't have home directory
+            self.assertRaises(RuntimeError, self.cls.home)
+            return
+
         p = self.cls.home()
         self._test_home(p)
 
@@ -1301,6 +1306,7 @@ class _BasePathTest(object):
         p = self.cls('')
         self.assertEqual(p.stat(), os.stat('.'))
 
+    @unittest.skipIf(os.name == 'uwp_os', "UWP doesn't have home directory")
     def test_expanduser_common(self):
         P = self.cls
         p = P('~')
@@ -1595,6 +1601,8 @@ class _BasePathTest(object):
         self.assertFileNotFound(q.stat)
 
     def test_touch_common(self):
+        import sys
+        import time
         P = self.cls(BASE)
         p = P / 'newfileA'
         self.assertFalse(p.exists())
@@ -1606,6 +1614,9 @@ class _BasePathTest(object):
         # Rewind the mtime sufficiently far in the past to work around
         # filesystem-specific timestamp granularity.
         os.utime(str(p), (old_mtime - 10, old_mtime - 10))
+        if sys.platform == 'uwp':
+            # work around timestamp granularity mentioned above for UWP
+            time.sleep(1)
         # The file mtime should be refreshed by calling touch() again
         p.touch()
         st = p.stat()

@@ -88,7 +88,8 @@ extern "C" {
             set_item(d, L"APPDATA", [] { return ApplicationData::Current->RoamingFolder->Path; }) &&
             set_item(d, L"LOCALAPPDATA", [] { return ApplicationData::Current->LocalFolder->Path; }) &&
             set_item(d, L"TEMP", [] { return ApplicationData::Current->TemporaryFolder->Path; }) &&
-            set_item(d, L"TMP", [] { return ApplicationData::Current->TemporaryFolder->Path; })
+            set_item(d, L"TMP", [] { return ApplicationData::Current->TemporaryFolder->Path; }) &&
+            set_item(d, L"PATH", [] { return ref new String(); })
             )
             return d;
 

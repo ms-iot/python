@@ -1056,7 +1056,7 @@ def get_terminal_size(fallback=(80, 24)):
     if columns <= 0 or lines <= 0:
         try:
             size = os.get_terminal_size(sys.__stdout__.fileno())
-        except (NameError, OSError):
+        except (NameError, OSError, AttributeError):
             size = os.terminal_size(fallback)
         if columns <= 0:
             columns = size.columns

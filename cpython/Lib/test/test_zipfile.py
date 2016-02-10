@@ -684,6 +684,8 @@ class PyZipFileTests(unittest.TestCase):
         if not os.access(path, os.W_OK,
                          effective_ids=os.access in os.supports_effective_ids):
             self.skipTest('requires write access to the installed location')
+        if sys.platform == 'uwp':
+            self.skipTest('requires write access to the installed location')
 
     def test_write_pyfile(self):
         self.requiresWriteAccess(os.path.dirname(__file__))
@@ -1860,8 +1862,9 @@ class TestsWithMultipleOpens(unittest.TestCase):
                 zipf.read('ones')
                 with zipf.open('ones') as zopen1:
                     pass
-        with open(os.devnull) as f:
-            self.assertLess(f.fileno(), 100)
+        if sys.platform != 'uwp':
+            with open(os.devnull) as f:
+                self.assertLess(f.fileno(), 100)
 
     def tearDown(self):
         unlink(TESTFN2)

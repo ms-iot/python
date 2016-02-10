@@ -743,6 +743,9 @@ class EnvironTests(mapping_tests.BasicTestMappingProtocol):
             # an environment variable is limited to 32,767 characters
             key = 'x' * 50000
             self.assertRaises(ValueError, os.environ.__delitem__, key)
+        elif sys.platform == "uwp":
+            key = 'missingkey'
+            self.assertRaises(KeyError, os.environ.__delitem__, key)
         else:
             # "=" is not allowed in a variable name
             key = 'key='
@@ -1162,6 +1165,7 @@ class RemoveDirsTests(unittest.TestCase):
         self.assertTrue(os.path.exists(support.TESTFN))
 
 
+@unittest.skipIf(sys.platform == 'uwp', "uwp doesn't support os.devnull")
 class DevNullTests(unittest.TestCase):
     def test_devnull(self):
         with open(os.devnull, 'wb') as f:
@@ -1516,6 +1520,7 @@ class LinkTests(unittest.TestCase):
             if os.path.exists(file):
                 os.unlink(file)
 
+    @unittest.skipUnless(hasattr(os, 'link'), 'test needs os.link()')
     def _test_link(self, file1, file2):
         with open(file1, "w") as f1:
             f1.write("test")
