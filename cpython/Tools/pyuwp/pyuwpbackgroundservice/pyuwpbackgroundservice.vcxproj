@@ -347,9 +347,6 @@
     <ProjectReference Include="..\..\..\PCbuild\uwp\_elementtree.vcxproj">
       <Project>{83fa65c4-177f-46d3-afc2-9232a127cc68}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\PCbuild\uwp\_multiprocessing.vcxproj">
-      <Project>{f1c444ca-0f92-4305-aa21-f11a3550e041}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\PCBuild\uwp\_socket.vcxproj">
       <Project>{b2fbbf74-3e5a-4225-be87-54e54a4f88bc}</Project>
     </ProjectReference>
