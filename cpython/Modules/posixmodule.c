@@ -12639,7 +12639,7 @@ static PyMethodDef posix_methods[] = {
     OS_KILL_METHODDEF
     OS_KILLPG_METHODDEF
     OS_PLOCK_METHODDEF
-#ifdef MS_WINDOWS
+#if defined(MS_WINDOWS) && !defined(MS_UWP)
     {"startfile",       win32_startfile, METH_VARARGS, win32_startfile__doc__},
 #endif
     OS_SETUID_METHODDEF
