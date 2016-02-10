@@ -178,11 +178,10 @@ def _candidate_tempdir_list():
         dirlist.extend([ '/tmp', '/var/tmp', '/usr/tmp' ])
 
     # As a last resort, the current directory.
-    if _os.name != 'uwp_os':
-        try:
-            dirlist.append(_os.getcwd())
-        except (AttributeError, OSError):
-            dirlist.append(_os.curdir)
+    try:
+        dirlist.append(_os.getcwd())
+    except (AttributeError, OSError):
+        dirlist.append(_os.curdir)
 
     return dirlist
 
