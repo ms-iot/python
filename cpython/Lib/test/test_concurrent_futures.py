@@ -1,9 +1,14 @@
+import sys
 import test.support
 
-# Skip tests if _multiprocessing wasn't built.
-test.support.import_module('_multiprocessing')
-# Skip tests if sem_open implementation is broken.
-test.support.import_module('multiprocessing.synchronize')
+if sys.platform != 'uwp':
+    # Skip tests if _multiprocessing wasn't built.
+    test.support.import_module('_multiprocessing')
+    # Skip tests if sem_open implementation is broken.
+    test.support.import_module('multiprocessing.synchronize')
+    _have_multiprocessing = True
+else:
+    _have_multiprocessing = False
 # import threading after _multiprocessing to raise a more revelant error
 # message: "No module named _multiprocessing". _multiprocessing is not compiled
 # without thread support.
@@ -12,7 +17,6 @@ test.support.import_module('threading')
 from test.support.script_helper import assert_python_ok
 
 import os
-import sys
 import threading
 import time
 import unittest
@@ -21,7 +25,8 @@ import weakref
 from concurrent import futures
 from concurrent.futures._base import (
     PENDING, RUNNING, CANCELLED, CANCELLED_AND_NOTIFIED, FINISHED, Future)
-from concurrent.futures.process import BrokenProcessPool
+if _have_multiprocessing:
+    from concurrent.futures.process import BrokenProcessPool
 
 
 def create_future(state=PENDING, exception=None, result=None):
@@ -91,8 +96,12 @@ class ThreadPoolMixin(ExecutorMixin):
     executor_type = futures.ThreadPoolExecutor
 
 
+@unittest.skipUnless(_have_multiprocessing, 'test needs multiprocessing')
 class ProcessPoolMixin(ExecutorMixin):
-    executor_type = futures.ProcessPoolExecutor
+    if _have_multiprocessing:
+        executor_type = futures.ProcessPoolExecutor
+    else:
+        executor_type = None
 
 
 class ExecutorShutdownTest:

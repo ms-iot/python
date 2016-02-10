@@ -1,9 +1,10 @@
-import webbrowser
 import unittest
 import subprocess
 from unittest import mock
 from test import support
 
+# Skip test if webbrowser doesn't exist
+webbrowser = support.import_module('webbrowser')
 
 URL = 'http://www.example.com'
 CMD_NAME = 'test'

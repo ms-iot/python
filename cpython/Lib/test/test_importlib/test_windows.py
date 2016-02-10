@@ -6,7 +6,11 @@ import re
 import sys
 import unittest
 from test import support
-from distutils.util import get_platform
+try:
+    from distutils.util import get_platform
+except ImportError:
+    def get_platform():
+        return sys.platform
 from contextlib import contextmanager
 from .util import temp_module
 

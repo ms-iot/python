@@ -14,7 +14,10 @@ import time
 import shutil
 from test import support
 import contextlib
-import mmap
+try:
+    import mmap
+except ImportError:
+    mmap = None
 import platform
 import re
 import uuid

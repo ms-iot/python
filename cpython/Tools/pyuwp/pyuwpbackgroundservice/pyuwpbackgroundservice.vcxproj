@@ -310,6 +310,19 @@
     <PythonLibRootFolder>..\..\..\Lib</PythonLibRootFolder>
   </PropertyGroup>
   <ItemGroup>
+    <ExcludeLibFilters Include="$(PythonLibRootFolder)\**\__pycache__\**" />
+    <ExcludeLibFilters Include="$(PythonLibRootFolder)\distutils\**" />
+    <ExcludeLibFilters Include="$(PythonLibRootFolder)\idlelib\**" />
+    <ExcludeLibFilters Include="$(PythonLibRootFolder)\lzma\**" />
+    <ExcludeLibFilters Include="$(PythonLibRootFolder)\mmap\**" />
+    <ExcludeLibFilters Include="$(PythonLibRootFolder)\msilib\**" />
+    <ExcludeLibFilters Include="$(PythonLibRootFolder)\multiprocessing\**" />
+    <ExcludeLibFilters Include="$(PythonLibRootFolder)\sqlite\**" />
+    <ExcludeLibFilters Include="$(PythonLibRootFolder)\tkinter\**" />
+    <ExcludeLibFilters Include="$(PythonLibRootFolder)\venv\**" />
+    <ExcludeLibFilters Include="$(PythonLibRootFolder)\webbrowser.py" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\..\PCbuild\uwp\pyexpat.vcxproj">
       <Project>{43ab54bd-cb0d-48d2-81c8-066ee4ded4b9}</Project>
     </ProjectReference>

@@ -5,8 +5,9 @@ the test_suite() function there returns a test suite that's ready to
 be run.
 """
 
-import distutils.tests
 import test.support
+test.support.import_module('distutils')
+import distutils.tests
 
 
 def test_main():
