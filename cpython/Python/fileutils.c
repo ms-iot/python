@@ -763,9 +763,6 @@ static int
 get_inheritable(int fd, int raise)
 {
 #ifdef MS_WINDOWS
-#ifdef MS_UWP
-    return 0;
-#else
     HANDLE handle;
     DWORD flags;
 
@@ -784,6 +781,10 @@ get_inheritable(int fd, int raise)
         return -1;
     }
 
+#ifdef MS_UWP
+    (flags);
+    return 0;
+#else
     if (!GetHandleInformation(handle, &flags)) {
         if (raise)
             PyErr_SetFromWindowsErr(0);

@@ -12725,9 +12725,13 @@ static PyMethodDef posix_methods[] = {
 #endif
     OS_CPU_COUNT_METHODDEF
     OS_GET_INHERITABLE_METHODDEF
+#ifndef MS_UWP
     OS_SET_INHERITABLE_METHODDEF
+#endif
     OS_GET_HANDLE_INHERITABLE_METHODDEF
+#ifndef MS_UWP
     OS_SET_HANDLE_INHERITABLE_METHODDEF
+#endif
 #ifndef MS_WINDOWS
     {"get_blocking", posix_get_blocking, METH_VARARGS, get_blocking__doc__},
     {"set_blocking", posix_set_blocking, METH_VARARGS, set_blocking__doc__},

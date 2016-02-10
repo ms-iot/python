@@ -1491,6 +1491,7 @@ class TestInvalidFD(unittest.TestCase):
     def test_writev(self):
         self.check(os.writev, [b'abc'])
 
+    @unittest.skipUnless(hasattr(os, 'set_inheritable'), 'test needs os.set_inheritable()')
     def test_inheritable(self):
         self.check(os.get_inheritable)
         self.check(os.set_inheritable, True)
@@ -2640,6 +2641,7 @@ class CPUCountTests(unittest.TestCase):
 
 
 class FDInheritanceTests(unittest.TestCase):
+    @unittest.skipUnless(hasattr(os, 'set_inheritable'), "need os.set_inheritable")
     def test_get_set_inheritable(self):
         fd = os.open(__file__, os.O_RDONLY)
         self.addCleanup(os.close, fd)
@@ -2699,12 +2701,16 @@ class FDInheritanceTests(unittest.TestCase):
         self.addCleanup(os.close, fd)
 
         # inheritable by default
-        fd2 = os.open(__file__, os.O_RDONLY)
-        try:
-            os.dup2(fd, fd2)
-            self.assertEqual(os.get_inheritable(fd2), True)
-        finally:
-            os.close(fd2)
+        if os.name == 'uwp_os':
+            # uwp doesn't support inheritable
+            pass
+        else:
+            fd2 = os.open(__file__, os.O_RDONLY)
+            try:
+                os.dup2(fd, fd2)
+                self.assertEqual(os.get_inheritable(fd2), True)
+            finally:
+                os.close(fd2)
 
         # force non-inheritable
         fd3 = os.open(__file__, os.O_RDONLY)
