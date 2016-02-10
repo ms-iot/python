@@ -396,7 +396,7 @@ static int win32_can_symlink = 0;
 /* defined in fileutils.c */
 PyAPI_FUNC(void) _Py_time_t_to_FILE_TIME(time_t, int, FILETIME *);
 #ifdef MS_UWP
-PyAPI_FUNC(void) _Py_attribute_data_to_stat(FILE_BASIC_INFO *, FILE_STANDARD_INFO *,
+PyAPI_FUNC(void) _Py_attribute_data_to_stat(FILE_BASIC_INFO *, FILE_STANDARD_INFO *, FILE_ID_INFO *,
     int, struct _Py_stat_struct *);
 #else
 PyAPI_FUNC(void) _Py_attribute_data_to_stat(BY_HANDLE_FILE_INFORMATION *,
@@ -1508,6 +1508,7 @@ win32_xstat_impl_w(const wchar_t *path, struct _Py_stat_struct *result,
     HANDLE hFile, hFile2;
     FILE_BASIC_INFO fbi;
     FILE_STANDARD_INFO fsi;
+    FILE_ID_INFO fii;
     CREATEFILE2_EXTENDED_PARAMETERS cep;
     ULONG reparse_tag = 0;
     wchar_t *target_path;
@@ -1559,6 +1560,11 @@ win32_xstat_impl_w(const wchar_t *path, struct _Py_stat_struct *result,
             CloseHandle(hFile);
             return -1;
         }
+        if (!GetFileInformationByHandleEx(hFile, FileIdInfo, &fii, sizeof(fii))) {
+            CloseHandle(hFile);
+            return -1;
+        }
+
         if (fbi.FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
             /* Close the outer open file handle now that we're about to
                reopen it with different flags. */
@@ -1589,7 +1595,7 @@ win32_xstat_impl_w(const wchar_t *path, struct _Py_stat_struct *result,
         } else
             CloseHandle(hFile);
     }
-    _Py_attribute_data_to_stat(&fbi, &fsi, reparse_tag, result);
+    _Py_attribute_data_to_stat(&fbi, &fsi, &fii, reparse_tag, result);
 
     /* Set S_IEXEC if it is an .exe, .bat, ... */
     dot = wcsrchr(path, '.');
@@ -3508,7 +3514,10 @@ extern Py_ssize_t uwp_getinstallpath(wchar_t *buffer, Py_ssize_t cch);
 static PyObject *
 posix_getcwd(int use_bytes)
 {
-    char *buf, *tmpbuf;
+    char *buf;
+#ifndef MS_UWP
+    char *tmpbuf;
+#endif
     char *cwd;
     const size_t chunk = 1024;
     size_t buflen = 0;
@@ -12148,8 +12157,8 @@ DirEntry_from_find_data(path_t *path, WIN32_FIND_DATAW *dataW)
     DirEntry *entry;
 #ifndef MS_UWP
     BY_HANDLE_FILE_INFORMATION file_info;
-#endif
     ULONG reparse_tag;
+#endif
     wchar_t *joined_path;
 
     entry = PyObject_New(DirEntry, &DirEntryType);
@@ -12484,6 +12493,13 @@ posix_scandir(PyObject *self, PyObject *args, PyObject *kwargs)
     Py_XINCREF(iterator->path.object);
 
 #ifdef MS_WINDOWS
+#ifdef MS_UWP
+    if (iterator->path.object && PyBytes_Check(iterator->path.object)) {
+        PyErr_SetString(PyExc_TypeError,
+                        "os.scandir() doesn't support bytes path on Windows, use Unicode instead");
+        goto error;
+    }
+#endif
     if (iterator->path.narrow) {
         PyErr_SetString(PyExc_TypeError,
                         "os.scandir() doesn't support bytes path on Windows, use Unicode instead");

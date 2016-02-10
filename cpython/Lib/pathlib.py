@@ -22,6 +22,13 @@ if os.name == 'nt':
     else:
         supports_symlinks = False
         _getfinalpathname = None
+elif os.name == 'uwp_os':
+    import uwp_os as nt
+    if sys.getwindowsversion()[:2] >= (6, 0):
+        from uwp_os import _getfinalpathname
+    else:
+        _getfinalpathname = None
+    supports_symlinks = False
 else:
     nt = None
 
