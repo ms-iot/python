@@ -22,7 +22,7 @@ work. One should use importlib as the public-facing version of this module.
 
 # Bootstrap-related code ######################################################
 
-_CASE_INSENSITIVE_PLATFORMS = 'win', 'cygwin', 'darwin'
+_CASE_INSENSITIVE_PLATFORMS = 'win', 'cygwin', 'darwin', 'uwp'
 
 
 def _make_relax_case():
@@ -1264,7 +1264,7 @@ class FileFinder:
             contents = []
         # We store two cached versions, to handle runtime changes of the
         # PYTHONCASEOK environment variable.
-        if not sys.platform.startswith('win'):
+        if not sys.platform.startswith('win') or sys.platform != 'uwp':
             self._path_cache = set(contents)
         else:
             # Windows users can import modules with case-insensitive file

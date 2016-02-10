@@ -356,9 +356,8 @@ Popen(["/bin/mycmd", "myarg"], env={"PATH": "/usr/bin"})
 """
 
 import sys
-if sys.platform == "uwp":
-    raise ImportError("Cannot use subprocess in UWP apps")
-_mswindows = (sys.platform == "win32")
+_mswindows = (sys.platform == "win32") or (sys.platform == "uwp")
+_ms_uwp= (sys.platform == "uwp")
 
 import io
 import os
@@ -828,6 +827,7 @@ def getoutput(cmd):
     """
     return getstatusoutput(cmd)[1]
 
+#if not _ms_uwp:
 
 _PLATFORM_DEFAULT_CLOSE_FDS = object()
 
@@ -1245,7 +1245,7 @@ class Popen(object):
         def _internal_poll(self, _deadstate=None,
                 _WaitForSingleObject=_winapi.WaitForSingleObject,
                 _WAIT_OBJECT_0=_winapi.WAIT_OBJECT_0,
-                _GetExitCodeProcess=_winapi.GetExitCodeProcess):
+                _GetExitCodeProcess=None):
             """Check if child process has terminated.  Returns returncode
             attribute.
 
@@ -1253,6 +1253,9 @@ class Popen(object):
             in its local scope.
 
             """
+            if _GetExitCodeProcess is None:
+                _GetExitCodeProcess = _winapi.GetExitCodeProcess
+
             if self.returncode is None:
                 if _WaitForSingleObject(self._handle, 0) == _WAIT_OBJECT_0:
                     self.returncode = _GetExitCodeProcess(self._handle)

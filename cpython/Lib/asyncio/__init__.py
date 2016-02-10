@@ -42,7 +42,7 @@ __all__ = (base_events.__all__ +
            tasks.__all__ +
            transports.__all__)
 
-if sys.platform == 'win32':  # pragma: no cover
+if sys.platform == 'win32' or sys.platform == 'uwp':  # pragma: no cover
     from .windows_events import *
     __all__ += windows_events.__all__
 else:

@@ -513,7 +513,10 @@ def normpath(path):
 
 # Return an absolute path.
 try:
-    from nt import _getfullpathname
+    if os.name == 'nt':
+        from nt import _getfullpathname
+    else:
+        from uwp_os import _getfullpathname
 
 except ImportError: # not running on Windows - mock up something sensible
     def abspath(path):

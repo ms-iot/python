@@ -300,7 +300,7 @@ class SelectSelector(_BaseSelectorImpl):
         self._writers.discard(key.fd)
         return key
 
-    if sys.platform == 'win32':
+    if sys.platform == 'win32' or sys.platform == 'uwp':
         def _select(self, r, w, _, timeout=None):
             r, w, x = select.select(r, w, w, timeout)
             return r, w + x, []

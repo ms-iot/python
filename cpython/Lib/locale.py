@@ -604,7 +604,7 @@ def resetlocale(category=LC_ALL):
     """
     _setlocale(category, _build_localename(getdefaultlocale()))
 
-if sys.platform.startswith("win"):
+if sys.platform.startswith("win") or sys.platform == 'uwp':
     # On Win32, this will return the ANSI code page
     def getpreferredencoding(do_setlocale = True):
         """Return the charset that the user is likely using."""

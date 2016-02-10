@@ -1136,7 +1136,7 @@ class PurePathTest(_BasePurePathTest, unittest.TestCase):
     def test_concrete_class(self):
         p = self.cls('a')
         self.assertIs(type(p),
-            pathlib.PureWindowsPath if os.name == 'nt' else pathlib.PurePosixPath)
+            pathlib.PureWindowsPath if os.name == 'nt' or os.name == 'uwp_os' else pathlib.PurePosixPath)
 
     def test_different_flavours_unequal(self):
         p = pathlib.PurePosixPath('a')
@@ -1178,9 +1178,9 @@ def symlink_skip_reason():
 
 symlink_skip_reason = symlink_skip_reason()
 
-only_nt = unittest.skipIf(os.name != 'nt',
+only_nt = unittest.skipIf(os.name != 'nt' and os.name != 'uwp_os',
                           'test requires a Windows-compatible system')
-only_posix = unittest.skipIf(os.name == 'nt',
+only_posix = unittest.skipIf(os.name == 'nt' or os.name == 'uwp_os',
                              'test requires a POSIX-compatible system')
 with_symlinks = unittest.skipIf(symlink_skip_reason, symlink_skip_reason)
 
@@ -1236,7 +1236,7 @@ class _BasePathTest(object):
             # This one goes upwards but doesn't create a loop
             self.dirlink(os.path.join('..', 'dirB'), join('dirB', 'linkD'))
 
-    if os.name == 'nt':
+    if os.name == 'nt' or os.name == 'uwp_os':
         # Workaround for http://bugs.python.org/issue13772
         def dirlink(self, src, dest):
             os.symlink(src, dest, target_is_directory=True)
@@ -1655,7 +1655,7 @@ class _BasePathTest(object):
         p.mkdir(0o555, parents=True)
         self.assertTrue(p.exists())
         self.assertTrue(p.is_dir())
-        if os.name != 'nt':
+        if os.name != 'nt' and os.name != 'uwp_os':
             # the directory's permissions follow the mode argument
             self.assertEqual(stat.S_IMODE(p.stat().st_mode), 0o7555 & mode)
         # the parent's permissions follow the default process settings
@@ -1906,10 +1906,10 @@ class PathTest(_BasePathTest, unittest.TestCase):
     def test_concrete_class(self):
         p = self.cls('a')
         self.assertIs(type(p),
-            pathlib.WindowsPath if os.name == 'nt' else pathlib.PosixPath)
+            pathlib.WindowsPath if os.name == 'nt' or os.name == 'uwp_os' else pathlib.PosixPath)
 
     def test_unsupported_flavour(self):
-        if os.name == 'nt':
+        if os.name == 'nt'or os.name == 'uwp_os' :
             self.assertRaises(NotImplementedError, pathlib.PosixPath)
         else:
             self.assertRaises(NotImplementedError, pathlib.WindowsPath)

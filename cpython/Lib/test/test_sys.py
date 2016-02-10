@@ -474,7 +474,7 @@ class SysModuleTest(unittest.TestCase):
         self.assertTrue(vi > (1,0,0))
         self.assertIsInstance(sys.float_repr_style, str)
         self.assertIn(sys.float_repr_style, ('short', 'legacy'))
-        if not sys.platform.startswith('win'):
+        if not sys.platform.startswith('win') and sys.platform != 'uwp':
             self.assertIsInstance(sys.abiflags, str)
 
     @unittest.skipUnless(hasattr(sys, 'thread_info'),
@@ -482,7 +482,7 @@ class SysModuleTest(unittest.TestCase):
     def test_thread_info(self):
         info = sys.thread_info
         self.assertEqual(len(info), 3)
-        self.assertIn(info.name, ('nt', 'pthread', 'solaris', None))
+        self.assertIn(info.name, ('nt', 'uwp', 'pthread', 'solaris', None))
         self.assertIn(info.lock, ('semaphore', 'mutex+cond', None))
 
     def test_43581(self):

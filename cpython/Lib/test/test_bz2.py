@@ -73,7 +73,7 @@ class BaseTest(unittest.TestCase):
         if os.path.isfile(self.filename):
             os.unlink(self.filename)
 
-    if sys.platform == "win32":
+    if sys.platform == "win32" or sys.platform == "uwp":
         # bunzip2 isn't available to run on Windows.
         def decompress(self, data):
             return bz2.decompress(data)

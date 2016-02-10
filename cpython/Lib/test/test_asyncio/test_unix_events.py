@@ -13,7 +13,7 @@ import threading
 import unittest
 from unittest import mock
 
-if sys.platform == 'win32':
+if sys.platform == 'win32' or sys.platform == 'uwp':
     raise unittest.SkipTest('UNIX only')
 
 

@@ -1278,7 +1278,7 @@ class Pathname_Tests(unittest.TestCase):
                          "url2pathname() failed; %s != %s" %
                          (expect, result))
 
-    @unittest.skipUnless(sys.platform == 'win32',
+    @unittest.skipUnless(sys.platform == 'win32' or sys.platform == 'uwp',
                          'test specific to the urllib.url2path function.')
     def test_ntpath(self):
         given = ('/C:/', '///C:/', '/C|//')

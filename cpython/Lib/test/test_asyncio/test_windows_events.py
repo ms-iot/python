@@ -3,7 +3,7 @@ import sys
 import unittest
 from unittest import mock
 
-if sys.platform != 'win32':
+if sys.platform != 'win32' and sys.platform != 'uwp':
     raise unittest.SkipTest('Windows only')
 
 import _winapi

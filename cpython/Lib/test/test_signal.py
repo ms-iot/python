@@ -59,10 +59,10 @@ class GenericTests(unittest.TestCase):
                 self.assertIsInstance(sig, signal.Signals)
             elif name.startswith('CTRL_'):
                 self.assertIsInstance(sig, signal.Signals)
-                self.assertEqual(sys.platform, "win32")
+                self.assertIn(sys.platform, ("win32", "uwp"))
 
 
-@unittest.skipIf(sys.platform == "win32", "Not valid on Windows")
+@unittest.skipIf(sys.platform == "win32" or sys.platform == "uwp", "Not valid on Windows")
 class InterProcessSignalTests(unittest.TestCase):
     MAX_DURATION = 20   # Entire test should last at most 20 sec.
 
@@ -201,7 +201,7 @@ class InterProcessSignalTests(unittest.TestCase):
                           self.MAX_DURATION)
 
 
-@unittest.skipIf(sys.platform == "win32", "Not valid on Windows")
+@unittest.skipIf(sys.platform == "win32" or sys.platform == "uwp", "Not valid on Windows")
 class PosixTests(unittest.TestCase):
     def trivial_signal_handler(self, *args):
         pass
@@ -225,7 +225,7 @@ class PosixTests(unittest.TestCase):
         self.assertEqual(signal.getsignal(signal.SIGHUP), hup)
 
 
-@unittest.skipUnless(sys.platform == "win32", "Windows specific")
+@unittest.skipUnless(sys.platform == "win32" or sys.platform == "uwp", "Windows specific")
 class WindowsSignalTests(unittest.TestCase):
     def test_issue9324(self):
         # Updated for issue #10003, adding SIGBREAK
@@ -298,7 +298,7 @@ class WakeupFDTests(unittest.TestCase):
 
     # On Windows, files are always blocking and Windows does not provide a
     # function to test if a socket is in non-blocking mode.
-    @unittest.skipIf(sys.platform == "win32", "tests specific to POSIX")
+    @unittest.skipIf(sys.platform == "win32" or sys.platform == "uwp", "tests specific to POSIX")
     def test_set_wakeup_fd_blocking(self):
         rfd, wfd = os.pipe()
         self.addCleanup(os.close, rfd)
@@ -317,7 +317,7 @@ class WakeupFDTests(unittest.TestCase):
         signal.set_wakeup_fd(-1)
 
 
-@unittest.skipIf(sys.platform == "win32", "Not valid on Windows")
+@unittest.skipIf(sys.platform == "win32" or sys.platform == "uwp", "Not valid on Windows")
 class WakeupSignalTests(unittest.TestCase):
     @unittest.skipIf(_testcapi is None, 'need _testcapi')
     def check_wakeup(self, test_body, *signals, ordered=True):
@@ -584,7 +584,7 @@ class WakeupSocketSignalTests(unittest.TestCase):
         assert_python_ok('-c', code)
 
 
-@unittest.skipIf(sys.platform == "win32", "Not valid on Windows")
+@unittest.skipIf(sys.platform == "win32" or sys.platform == "uwp", "Not valid on Windows")
 class SiginterruptTest(unittest.TestCase):
 
     def readpipe_interrupted(self, interrupt):
@@ -669,7 +669,7 @@ class SiginterruptTest(unittest.TestCase):
         self.assertFalse(interrupted)
 
 
-@unittest.skipIf(sys.platform == "win32", "Not valid on Windows")
+@unittest.skipIf(sys.platform == "win32" or sys.platform == "uwp", "Not valid on Windows")
 class ItimerTest(unittest.TestCase):
     def setUp(self):
         self.hndl_called = False

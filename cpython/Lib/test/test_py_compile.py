@@ -79,7 +79,7 @@ class PyCompileTests(unittest.TestCase):
 
     @unittest.skipIf(hasattr(os, 'geteuid') and os.geteuid() == 0,
                      'non-root user required')
-    @unittest.skipIf(os.name == 'nt',
+    @unittest.skipIf(os.name == 'nt' or os.name == 'uwp_os',
                      'cannot control directory permissions on Windows')
     def test_exceptions_propagate(self):
         # Make sure that exceptions raised thanks to issues with writing

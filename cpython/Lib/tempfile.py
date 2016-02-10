@@ -221,7 +221,7 @@ def _get_default_tempdir():
             except PermissionError:
                 # This exception is thrown when a directory with the chosen name
                 # already exists on windows.
-                if (_os.name == 'nt' and _os.path.isdir(dir) and
+                if ((_os.name == 'nt' or _os.name == 'uwp_os') and _os.path.isdir(dir) and
                     _os.access(dir, _os.W_OK)):
                     continue
                 break   # no point trying more names in this directory
@@ -264,7 +264,7 @@ def _mkstemp_inner(dir, pre, suf, flags, output_type):
         except PermissionError:
             # This exception is thrown when a directory with the chosen name
             # already exists on windows.
-            if (_os.name == 'nt' and _os.path.isdir(dir) and
+            if ((_os.name == 'nt' or _os.name == 'uwp_os') and _os.path.isdir(dir) and
                 _os.access(dir, _os.W_OK)):
                 continue
             else:
@@ -372,7 +372,7 @@ def mkdtemp(suffix=None, prefix=None, dir=None):
         except PermissionError:
             # This exception is thrown when a directory with the chosen name
             # already exists on windows.
-            if (_os.name == 'nt' and _os.path.isdir(dir) and
+            if ((_os.name == 'nt' or _os.name == 'uwp_os') and _os.path.isdir(dir) and
                 _os.access(dir, _os.W_OK)):
                 continue
             else:
@@ -429,7 +429,7 @@ class _TemporaryFileCloser:
     # NT provides delete-on-close as a primitive, so we don't need
     # the wrapper to do anything special.  We still use it so that
     # file.name is useful (i.e. not "(fdopen)") with NamedTemporaryFile.
-    if _os.name != 'nt':
+    if _os.name != 'nt' and _os.name != 'uwp_os':
         # Cache the unlinker so we don't get spurious errors at
         # shutdown when the module-level "os" is None'd out.  Note
         # that this must be referenced as self.unlink, because the
@@ -543,7 +543,7 @@ def NamedTemporaryFile(mode='w+b', buffering=-1, encoding=None,
 
     # Setting O_TEMPORARY in the flags causes the OS to delete
     # the file when it is closed.  This is only supported by Windows.
-    if _os.name == 'nt' and delete:
+    if (_os.name == 'nt' or _os.name == 'uwp_os') and delete:
         flags |= _os.O_TEMPORARY
 
     (fd, name) = _mkstemp_inner(dir, prefix, suffix, flags, output_type)

@@ -106,27 +106,6 @@ elif 'ce' in _names:
     except ImportError:
         pass
 
-elif 'uwp' in _names:
-    name = 'uwp'
-    linesep = '\r\n'
-    from uwp import *
-    
-    try:
-        from uwp import _exit
-        __all__.append('_exit')
-    except ImportError:
-        pass
-    import ntpath as path
-
-    import uwp
-    __all__.extend(_get_exports_list(uwp))
-    del uwp
-
-    try:
-        from uwp import _have_functions
-    except ImportError:
-        pass
-
 elif 'uwp_os' in _names:
     name = 'uwp_os'
     linesep = '\r\n'

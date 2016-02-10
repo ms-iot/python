@@ -1192,7 +1192,7 @@ class EventLoopTestsMixin:
         self.assertIsNone(loop._csock)
         self.assertIsNone(loop._ssock)
 
-    @unittest.skipUnless(sys.platform != 'win32',
+    @unittest.skipUnless(sys.platform != 'win32' and sys.platform != 'uwp',
                          "Don't support pipes for Windows")
     def test_read_pipe(self):
         proto = MyReadPipeProto(loop=self.loop)
@@ -1227,7 +1227,7 @@ class EventLoopTestsMixin:
         # extra info is available
         self.assertIsNotNone(proto.transport.get_extra_info('pipe'))
 
-    @unittest.skipUnless(sys.platform != 'win32',
+    @unittest.skipUnless(sys.platform != 'win32' and sys.platform != 'uwp',
                          "Don't support pipes for Windows")
     # select, poll and kqueue don't support character devices (PTY) on Mac OS X
     # older than 10.6 (Snow Leopard)
@@ -1267,7 +1267,7 @@ class EventLoopTestsMixin:
         # extra info is available
         self.assertIsNotNone(proto.transport.get_extra_info('pipe'))
 
-    @unittest.skipUnless(sys.platform != 'win32',
+    @unittest.skipUnless(sys.platform != 'win32' and sys.platform != 'uwp',
                          "Don't support pipes for Windows")
     def test_write_pipe(self):
         rpipe, wpipe = os.pipe()
@@ -1306,7 +1306,7 @@ class EventLoopTestsMixin:
         self.loop.run_until_complete(proto.done)
         self.assertEqual('CLOSED', proto.state)
 
-    @unittest.skipUnless(sys.platform != 'win32',
+    @unittest.skipUnless(sys.platform != 'win32' and sys.platform != 'uwp',
                          "Don't support pipes for Windows")
     def test_write_pipe_disconnect_on_close(self):
         rsock, wsock = test_utils.socketpair()
@@ -1329,7 +1329,7 @@ class EventLoopTestsMixin:
         self.loop.run_until_complete(proto.done)
         self.assertEqual('CLOSED', proto.state)
 
-    @unittest.skipUnless(sys.platform != 'win32',
+    @unittest.skipUnless(sys.platform != 'win32' and sys.platform != 'uwp',
                          "Don't support pipes for Windows")
     # select, poll and kqueue don't support character devices (PTY) on Mac OS X
     # older than 10.6 (Snow Leopard)
@@ -1528,14 +1528,14 @@ class EventLoopTestsMixin:
 class SubprocessTestsMixin:
 
     def check_terminated(self, returncode):
-        if sys.platform == 'win32':
+        if sys.platform == 'win32' or sys.platform == 'uwp':
             self.assertIsInstance(returncode, int)
             # expect 1 but sometimes get 0
         else:
             self.assertEqual(-signal.SIGTERM, returncode)
 
     def check_killed(self, returncode):
-        if sys.platform == 'win32':
+        if sys.platform == 'win32' or sys.platform == 'uwp':
             self.assertIsInstance(returncode, int)
             # expect 1 but sometimes get 0
         else:
@@ -1656,7 +1656,7 @@ class SubprocessTestsMixin:
         self.check_terminated(proto.returncode)
         transp.close()
 
-    @unittest.skipIf(sys.platform == 'win32', "Don't have SIGHUP")
+    @unittest.skipIf(sys.platform == 'win32' or sys.platform == 'uwp', "Don't have SIGHUP")
     def test_subprocess_send_signal(self):
         prog = os.path.join(os.path.dirname(__file__), 'echo.py')
 
@@ -1735,7 +1735,7 @@ class SubprocessTestsMixin:
         self.loop.run_until_complete(proto.disconnects[1])
         stdin.write(b'xxx')
         self.loop.run_until_complete(proto.got_data[2].wait())
-        if sys.platform != 'win32':
+        if sys.platform != 'win32' and sys.platform != 'uwp':
             self.assertEqual(b'ERR:BrokenPipeError', proto.data[2])
         else:
             # After closing the read-end of a pipe, writing to the
@@ -1792,7 +1792,7 @@ class SubprocessTestsMixin:
             self.loop.run_until_complete(connect(shell=False))
 
 
-if sys.platform == 'win32':
+if sys.platform == 'win32' or sys.platform == 'uwp':
 
     class SelectEventLoopTests(EventLoopTestsMixin, test_utils.TestCase):
 

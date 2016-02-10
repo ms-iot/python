@@ -223,7 +223,7 @@ class AutoFileTests:
         else:
             self.fail("Should have raised OSError")
 
-    @unittest.skipIf(os.name == 'nt', "test only works on a POSIX-like system")
+    @unittest.skipIf(os.name == 'nt' or os.name == 'uwp_os', "test only works on a POSIX-like system")
     def testOpenDirFD(self):
         fd = os.open('.', os.O_RDONLY)
         with self.assertRaises(OSError) as cm:

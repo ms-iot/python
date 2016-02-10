@@ -54,7 +54,7 @@ def setup_module(machinery, name, path=None):
         delete_registry_tree(HKEY_CURRENT_USER, key)
 
 
-@unittest.skipUnless(sys.platform.startswith('win'), 'requires Windows')
+@unittest.skipUnless(sys.platform.startswith('win') or sys.platform == 'uwp', 'requires Windows')
 class WindowsRegistryFinderTests:
     # The module name is process-specific, allowing for
     # simultaneous runs of the same test on a single machine.

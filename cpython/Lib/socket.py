@@ -97,7 +97,7 @@ def _intenum_converter(value, enum_klass):
 _realsocket = socket
 
 # WSA error codes
-if sys.platform.lower().startswith("win"):
+if sys.platform.lower().startswith("win") or sys.platform == "uwp":
     errorTab = {}
     errorTab[10004] = "The operation was interrupted."
     errorTab[10009] = "A bad file handle was passed."

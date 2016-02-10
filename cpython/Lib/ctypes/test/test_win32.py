@@ -50,7 +50,7 @@ class FunctionCallTestCase(unittest.TestCase):
         # This is a special case on win32 x64
         windll.user32.GetDesktopWindow()
 
-@unittest.skipUnless(sys.platform == "win32", 'Windows-specific test')
+@unittest.skipUnless(sys.platform == "win32" or sys.platform == "uwp", 'Windows-specific test')
 class TestWintypes(unittest.TestCase):
     def test_HWND(self):
         from ctypes import wintypes

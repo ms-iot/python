@@ -32,7 +32,7 @@ class TrivialTests(unittest.TestCase):
             context = {}
             exec('from urllib.%s import *' % module, context)
             del context['__builtins__']
-            if module == 'request' and os.name == 'nt':
+            if module == 'request' and (os.name == 'nt' or os.name == 'uwp_os'):
                 u, p = context.pop('url2pathname'), context.pop('pathname2url')
                 self.assertEqual(u.__module__, 'nturl2path')
                 self.assertEqual(p.__module__, 'nturl2path')
@@ -49,7 +49,7 @@ class TrivialTests(unittest.TestCase):
         # XXX Name hacking to get this to work on Windows.
         fname = os.path.abspath(urllib.request.__file__).replace(os.sep, '/')
 
-        if os.name == 'nt':
+        if os.name == 'nt' or os.name == 'uwp_os':
             file_url = "file:///%s" % fname
         else:
             file_url = "file://%s" % fname
@@ -675,7 +675,7 @@ def sanepathname2url(path):
     except UnicodeEncodeError:
         raise unittest.SkipTest("path is not encodable to utf8")
     urlpath = urllib.request.pathname2url(path)
-    if os.name == "nt" and urlpath.startswith("///"):
+    if (os.name == "nt" or os.name == 'uwp_os') and urlpath.startswith("///"):
         urlpath = urlpath[2:]
     # XXX don't ask me about the mac...
     return urlpath

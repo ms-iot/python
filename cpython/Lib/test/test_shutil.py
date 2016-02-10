@@ -1399,7 +1399,7 @@ class TestWhich(unittest.TestCase):
         base_dir = os.path.dirname(self.dir)
         with support.change_cwd(path=self.dir):
             rv = shutil.which(self.file, path=base_dir)
-            if sys.platform == "win32":
+            if sys.platform == "win32" or sys.platform == "uwp":
                 # Windows: current directory implicitly on PATH
                 self.assertEqual(rv, os.path.join(os.curdir, self.file))
             else:

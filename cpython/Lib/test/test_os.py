@@ -1593,7 +1593,7 @@ class PosixUidGidTests(unittest.TestCase):
                 sys.executable, '-c',
                 'import os,sys;os.setregid(-1,-1);sys.exit(0)'])
 
-@unittest.skipIf(sys.platform == "win32", "Posix specific tests")
+@unittest.skipIf(sys.platform == "win32" or sys.platform == "uwp", "Posix specific tests")
 class Pep383Tests(unittest.TestCase):
     def setUp(self):
         if support.TESTFN_UNENCODABLE:
@@ -2872,11 +2872,11 @@ class TestScandir(unittest.TestCase):
         os.rmdir(path)
 
         # On POSIX, is_dir() result depends if scandir() filled d_type or not
-        if os.name == 'nt':
+        if os.name == 'nt' or os.name == 'uwp_os':
             self.assertTrue(entry.is_dir())
         self.assertFalse(entry.is_file())
         self.assertFalse(entry.is_symlink())
-        if os.name == 'nt':
+        if os.name == 'nt' or os.name == 'uwp_os':
             self.assertRaises(FileNotFoundError, entry.inode)
             # don't fail
             entry.stat()
@@ -2892,10 +2892,10 @@ class TestScandir(unittest.TestCase):
 
         self.assertFalse(entry.is_dir())
         # On POSIX, is_dir() result depends if scandir() filled d_type or not
-        if os.name == 'nt':
+        if os.name == 'nt' or os.name == 'uwp_os':
             self.assertTrue(entry.is_file())
         self.assertFalse(entry.is_symlink())
-        if os.name == 'nt':
+        if os.name == 'nt' or os.name == 'uwp_os':
             self.assertRaises(FileNotFoundError, entry.inode)
             # don't fail
             entry.stat()
@@ -2927,7 +2927,7 @@ class TestScandir(unittest.TestCase):
         entry.stat(follow_symlinks=False)
 
     def test_bytes(self):
-        if os.name == "nt":
+        if os.name == "nt" or os.name == 'uwp_os':
             # On Windows, os.scandir(bytes) must raise an exception
             self.assertRaises(TypeError, os.scandir, b'.')
             return

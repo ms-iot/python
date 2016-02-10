@@ -1566,7 +1566,7 @@ class DataHandler(BaseHandler):
 MAXFTPCACHE = 10        # Trim the ftp cache beyond this size
 
 # Helper for non-unix systems
-if os.name == 'nt':
+if os.name == 'nt' or os.name == 'uwp_os':
     from nturl2path import url2pathname, pathname2url
 else:
     def url2pathname(pathname):
@@ -2505,7 +2505,7 @@ if sys.platform == 'darwin':
         return getproxies_environment() or getproxies_macosx_sysconf()
 
 
-elif os.name == 'nt':
+elif os.name == 'nt' or os.name == 'uwp_os':
     def getproxies_registry():
         """Return a dictionary of scheme -> proxy server URL mappings.
 

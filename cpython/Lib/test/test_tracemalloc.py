@@ -665,7 +665,7 @@ class TestFilters(unittest.TestCase):
         self.assertTrue(fnmatch('a.pyc', 'a.py'))
         self.assertTrue(fnmatch('a.py', 'a.pyc'))
 
-        if os.name == 'nt':
+        if os.name == 'nt' or os.name == 'uwp_os':
             # case insensitive
             self.assertTrue(fnmatch('aBC', 'ABc'))
             self.assertTrue(fnmatch('aBcDe', 'Ab*dE'))
@@ -680,7 +680,7 @@ class TestFilters(unittest.TestCase):
             self.assertFalse(fnmatch('a.pyc', 'a.PY'))
             self.assertFalse(fnmatch('a.py', 'a.PYC'))
 
-        if os.name == 'nt':
+        if os.name == 'nt' or os.name == 'uwp_os':
             # normalize alternate separator "/" to the standard separator "\"
             self.assertTrue(fnmatch(r'a/b', r'a\b'))
             self.assertTrue(fnmatch(r'a\b', r'a/b'))

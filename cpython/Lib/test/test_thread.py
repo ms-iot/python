@@ -217,7 +217,7 @@ class TestForkInThread(unittest.TestCase):
     def setUp(self):
         self.read_fd, self.write_fd = os.pipe()
 
-    @unittest.skipIf(sys.platform.startswith('win'),
+    @unittest.skipIf(sys.platform.startswith('win') or sys.platform == 'uwp',
                      "This test is only appropriate for POSIX-like systems.")
     @support.reap_threads
     def test_forkinthread(self):

@@ -4,7 +4,7 @@ Various Windows specific bits and pieces
 
 import sys
 
-if sys.platform != 'win32':  # pragma: no cover
+if sys.platform != 'win32' and sys.platform != 'uwp':  # pragma: no cover
     raise ImportError('win32 only')
 
 import _winapi
