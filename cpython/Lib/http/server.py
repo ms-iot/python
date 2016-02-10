@@ -670,6 +670,9 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             else:
                 return self.list_directory(path)
         ctype = self.guess_type(path)
+        if path.endswith('/'):
+            self.send_error(HTTPStatus.NOT_FOUND, "File not found")
+            return None
         try:
             f = open(path, 'rb')
         except OSError:
