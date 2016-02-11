@@ -1,7 +1,7 @@
 # python
 ## cpython
 This folder contains a modified version of CPython which supports running in a Windows 10 UWP application.  
-Specifically, this supports running in Python in a background application on Windows 10 IoT Core and also contains some module extensions which also support Windows 10 IoT Core.
+Specifically, this supports running in Python in a background application on Windows 10 IoT Core and also contains some module extensions which also support Windows 10 IoT Core.  See [README_uwp.md](README_uwp.md) for differences running under Windows 10 IoT core.
 * Before performing any builds, ensure to run *cpython\PCBuild\get_externals -c* from command line first
 * For UWP specific builds, open *cpython\Tools\pyuwp\pyuwp.sln*.
 * For all CPython projects, open *cpython\PCBuild\pcbuild.sln*.
