@@ -1,6 +1,6 @@
 # Python for UWP
 
-PythonUWP is based on a modified version of CPython 3.5 which supports running as a Windows 10 UWP (Universal Windows Platform) application.  Specifically, this supports running in a background application on Windows 10 IoT core.
+PythonUWP is based on a modified version of CPython 3.5 which supports running as a Windows 10 [UWP (Universal Windows Platform)](https://msdn.microsoft.com/en-us/library/windows/apps/dn894631.aspx) application.  Specifically, this supports running in a background application on Windows 10 IoT core.
 
 Since there are a lot of differences between a win32 application and an background UWP application, naturally PythonUWP also inherited some of these differences.  This document tries to highlight some of them.  This is not an exhaustive list by any means.
 
