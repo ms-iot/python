@@ -5,6 +5,7 @@
 
 __author__ = 'Brian Quinlan (brian@sweetapp.com)'
 
+import sys
 from concurrent.futures._base import (FIRST_COMPLETED,
                                       FIRST_EXCEPTION,
                                       ALL_COMPLETED,
@@ -14,11 +15,7 @@ from concurrent.futures._base import (FIRST_COMPLETED,
                                       Executor,
                                       wait,
                                       as_completed)
-try:
+if sys.platform != 'uwp':
     from concurrent.futures.process import ProcessPoolExecutor
-except ImportError:
-    import sys
-    if sys.platform != 'uwp':
-        raise
 
 from concurrent.futures.thread import ThreadPoolExecutor
