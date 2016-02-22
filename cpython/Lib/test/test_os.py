@@ -14,7 +14,10 @@ import time
 import shutil
 from test import support
 import contextlib
-import mmap
+try:
+    import mmap
+except ImportError:
+    mmap = None
 import platform
 import re
 import uuid
@@ -740,6 +743,9 @@ class EnvironTests(mapping_tests.BasicTestMappingProtocol):
             # an environment variable is limited to 32,767 characters
             key = 'x' * 50000
             self.assertRaises(ValueError, os.environ.__delitem__, key)
+        elif sys.platform == "uwp":
+            key = 'missingkey'
+            self.assertRaises(KeyError, os.environ.__delitem__, key)
         else:
             # "=" is not allowed in a variable name
             key = 'key='
@@ -1159,6 +1165,7 @@ class RemoveDirsTests(unittest.TestCase):
         self.assertTrue(os.path.exists(support.TESTFN))
 
 
+@unittest.skipIf(sys.platform == 'uwp', "uwp doesn't support os.devnull")
 class DevNullTests(unittest.TestCase):
     def test_devnull(self):
         with open(os.devnull, 'wb') as f:
@@ -1313,10 +1320,12 @@ def _execvpe_mockup(defpath=None):
 class ExecTests(unittest.TestCase):
     @unittest.skipIf(USING_LINUXTHREADS,
                      "avoid triggering a linuxthreads bug: see issue #4970")
+    @unittest.skipUnless(hasattr(os, "execvpe"), "requires os.execvpe()")
     def test_execvpe_with_bad_program(self):
         self.assertRaises(OSError, os.execvpe, 'no such app-',
                           ['no such app-'], None)
 
+    @unittest.skipUnless(hasattr(os, "execvpe"), "requires os.execvpe()")
     def test_execvpe_with_bad_arglist(self):
         self.assertRaises(ValueError, os.execvpe, 'notepad', [], None)
 
@@ -1489,6 +1498,7 @@ class TestInvalidFD(unittest.TestCase):
     def test_writev(self):
         self.check(os.writev, [b'abc'])
 
+    @unittest.skipUnless(hasattr(os, 'set_inheritable'), 'test needs os.set_inheritable()')
     def test_inheritable(self):
         self.check(os.get_inheritable)
         self.check(os.set_inheritable, True)
@@ -1510,6 +1520,7 @@ class LinkTests(unittest.TestCase):
             if os.path.exists(file):
                 os.unlink(file)
 
+    @unittest.skipUnless(hasattr(os, 'link'), 'test needs os.link()')
     def _test_link(self, file1, file2):
         with open(file1, "w") as f1:
             f1.write("test")
@@ -1593,7 +1604,7 @@ class PosixUidGidTests(unittest.TestCase):
                 sys.executable, '-c',
                 'import os,sys;os.setregid(-1,-1);sys.exit(0)'])
 
-@unittest.skipIf(sys.platform == "win32", "Posix specific tests")
+@unittest.skipIf(sys.platform == "win32" or sys.platform == "uwp", "Posix specific tests")
 class Pep383Tests(unittest.TestCase):
     def setUp(self):
         if support.TESTFN_UNENCODABLE:
@@ -2545,7 +2556,12 @@ class OSErrorTests(unittest.TestCase):
         self.bytes_filenames.append(encoded)
         self.bytes_filenames.append(memoryview(encoded))
 
-        self.filenames = self.bytes_filenames + self.unicode_filenames
+        if sys.platform == "uwp":
+            # UWP only supports unicode filenames
+            self.filenames = self.unicode_filenames
+        else:
+            self.filenames = self.bytes_filenames + self.unicode_filenames
+
 
     def test_oserror_filename(self):
         funcs = [
@@ -2633,6 +2649,7 @@ class CPUCountTests(unittest.TestCase):
 
 
 class FDInheritanceTests(unittest.TestCase):
+    @unittest.skipUnless(hasattr(os, 'set_inheritable'), "need os.set_inheritable")
     def test_get_set_inheritable(self):
         fd = os.open(__file__, os.O_RDONLY)
         self.addCleanup(os.close, fd)
@@ -2692,12 +2709,16 @@ class FDInheritanceTests(unittest.TestCase):
         self.addCleanup(os.close, fd)
 
         # inheritable by default
-        fd2 = os.open(__file__, os.O_RDONLY)
-        try:
-            os.dup2(fd, fd2)
-            self.assertEqual(os.get_inheritable(fd2), True)
-        finally:
-            os.close(fd2)
+        if os.name == 'uwp_os':
+            # uwp doesn't support inheritable
+            pass
+        else:
+            fd2 = os.open(__file__, os.O_RDONLY)
+            try:
+                os.dup2(fd, fd2)
+                self.assertEqual(os.get_inheritable(fd2), True)
+            finally:
+                os.close(fd2)
 
         # force non-inheritable
         fd3 = os.open(__file__, os.O_RDONLY)
@@ -2872,11 +2893,11 @@ class TestScandir(unittest.TestCase):
         os.rmdir(path)
 
         # On POSIX, is_dir() result depends if scandir() filled d_type or not
-        if os.name == 'nt':
+        if os.name == 'nt' or os.name == 'uwp_os':
             self.assertTrue(entry.is_dir())
         self.assertFalse(entry.is_file())
         self.assertFalse(entry.is_symlink())
-        if os.name == 'nt':
+        if os.name == 'nt' or os.name == 'uwp_os':
             self.assertRaises(FileNotFoundError, entry.inode)
             # don't fail
             entry.stat()
@@ -2892,10 +2913,10 @@ class TestScandir(unittest.TestCase):
 
         self.assertFalse(entry.is_dir())
         # On POSIX, is_dir() result depends if scandir() filled d_type or not
-        if os.name == 'nt':
+        if os.name == 'nt' or os.name == 'uwp_os':
             self.assertTrue(entry.is_file())
         self.assertFalse(entry.is_symlink())
-        if os.name == 'nt':
+        if os.name == 'nt' or os.name == 'uwp_os':
             self.assertRaises(FileNotFoundError, entry.inode)
             # don't fail
             entry.stat()
@@ -2927,7 +2948,7 @@ class TestScandir(unittest.TestCase):
         entry.stat(follow_symlinks=False)
 
     def test_bytes(self):
-        if os.name == "nt":
+        if os.name == "nt" or os.name == 'uwp_os':
             # On Windows, os.scandir(bytes) must raise an exception
             self.assertRaises(TypeError, os.scandir, b'.')
             return

@@ -180,6 +180,8 @@ zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz''')
         for p, e in self.HSTRINGS:
             self.assertEqual(quopri.decodestring(e, header=True), p)
 
+    @unittest.skipUnless(hasattr(subprocess, 'Popen'), 
+                         'test needs subprocess.Popen()')
     def test_scriptencode(self):
         (p, e) = self.STRINGS[-1]
         process = subprocess.Popen([sys.executable, "-mquopri"],
@@ -196,6 +198,8 @@ zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz''')
             self.assertEqual(cout[i], e[i])
         self.assertEqual(cout, e)
 
+    @unittest.skipUnless(hasattr(subprocess, 'Popen'), 
+                         'test needs subprocess.Popen()')
     def test_scriptdecode(self):
         (p, e) = self.STRINGS[-1]
         process = subprocess.Popen([sys.executable, "-mquopri", "-d"],

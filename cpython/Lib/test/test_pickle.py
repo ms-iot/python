@@ -364,7 +364,11 @@ class CompatPickleTests(unittest.TestCase):
                     self.assertEqual(mapping('exceptions', name),
                                      ('builtins', name))
 
-        import multiprocessing.context
+        try:
+            import multiprocessing.context
+        except ImportError:
+            return
+
         for name, exc in get_exceptions(multiprocessing.context):
             with self.subTest(name):
                 self.assertEqual(reverse_mapping('multiprocessing.context', name),

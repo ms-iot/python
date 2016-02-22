@@ -599,8 +599,8 @@ def main(tests=None, **kwargs):
     if ns.verbose or ns.header or not (ns.quiet or ns.single or tests or ns.args):
         # Print basic platform information
         print("==", platform.python_implementation(), *sys.version.split())
-        print("==  ", platform.platform(aliased=True),
-                      "%s-endian" % sys.byteorder)
+        #print("==  ", platform.platform(aliased=True),
+        #              "%s-endian" % sys.byteorder)
         print("==  ", "hash algorithm:", sys.hash_info.algorithm,
               "64bit" if sys.maxsize > 2**32 else "32bit")
         print("==  ", os.getcwd())
@@ -904,6 +904,11 @@ def replace_stdout():
         sys.stdout.close()
         sys.stdout = stdout
     atexit.register(restore_stdout)
+
+if sys.platform == "uwp":
+    """ For UWP, do not replace the stdout as there isn't a stdout """
+    def replace_stdout():
+        pass
 
 def runtest(test, verbose, quiet,
             huntrleaks=False, use_resources=None,

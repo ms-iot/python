@@ -234,8 +234,11 @@ class TestSysConfig(unittest.TestCase):
         self.assertTrue(os.path.isfile(config_h), config_h)
 
     def test_get_scheme_names(self):
-        wanted = ('nt', 'nt_user', 'osx_framework_user',
-                  'posix_home', 'posix_prefix', 'posix_user')
+        wanted = ['nt', 'nt_user', 'osx_framework_user',
+                  'posix_home', 'posix_prefix', 'posix_user']
+        if sys.platform == 'uwp':
+            wanted.extend(['uwp_os', 'uwp_os_user'])
+        wanted = tuple(wanted)
         self.assertEqual(get_scheme_names(), wanted)
 
     @skip_unless_symlink
@@ -288,7 +291,7 @@ class TestSysConfig(unittest.TestCase):
             _main()
         self.assertTrue(len(output.getvalue().split('\n')) > 0)
 
-    @unittest.skipIf(sys.platform == "win32", "Does not apply to Windows")
+    @unittest.skipIf(sys.platform == "win32" or sys.platform == "uwp", "Does not apply to Windows")
     def test_ldshared_value(self):
         ldflags = sysconfig.get_config_var('LDFLAGS')
         ldshared = sysconfig.get_config_var('LDSHARED')
@@ -411,7 +414,7 @@ class TestSysConfig(unittest.TestCase):
 
 class MakefileTests(unittest.TestCase):
 
-    @unittest.skipIf(sys.platform.startswith('win'),
+    @unittest.skipIf(sys.platform.startswith('win') or sys.platform == 'uwp',
                      'Test is not Windows compatible')
     def test_get_makefile_filename(self):
         makefile = sysconfig.get_makefile_filename()

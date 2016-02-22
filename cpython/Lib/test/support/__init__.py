@@ -21,10 +21,7 @@ import shutil
 import socket
 import stat
 import struct
-if os.name != 'uwp_os':
 import subprocess
-else:
-    subprocess = None
 import sys
 import sysconfig
 import tempfile
@@ -1821,7 +1818,8 @@ def _check_docstrings():
     """Just used to check if docstrings are enabled"""
 
 MISSING_C_DOCSTRINGS = (check_impl_detail() and
-                        sys.platform != 'win32' and
+                        sys.platform != 'win32' and 
+                        sys.platform != 'uwp' and
                         not sysconfig.get_config_var('WITH_DOC_STRINGS'))
 
 HAVE_DOCSTRINGS = (_check_docstrings.__doc__ is not None and

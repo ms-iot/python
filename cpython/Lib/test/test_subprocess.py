@@ -25,6 +25,8 @@ except ImportError:
     threading = None
 
 mswindows = (sys.platform == "win32")
+if not hasattr(subprocess, 'Popen'):
+    raise unittest.SkipTest('test needs subprocess.Popen()')
 
 #
 # Depends on the following external programs: Python

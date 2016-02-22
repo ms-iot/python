@@ -435,6 +435,7 @@
     <ClInclude Include="..\..\PC\pythonuwp.h">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Include\odictobject.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Modules\_bisectmodule.c">
@@ -970,5 +971,6 @@
     <ClCompile Include="..\..\Python\pystrhex.c">
       <Filter>Python</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Objects\odictobject.c" />
   </ItemGroup>
 </Project>

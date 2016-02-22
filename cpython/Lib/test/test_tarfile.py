@@ -519,7 +519,7 @@ class MiscReadTestBase(CommonReadTest):
             tar.extractall(DIR, directories)
             for tarinfo in directories:
                 path = os.path.join(DIR, tarinfo.name)
-                if sys.platform != "win32":
+                if sys.platform != "win32" and sys.platform != "uwp":
                     # Win32 has no support for fine grained permissions.
                     self.assertEqual(tarinfo.mode & 0o777,
                                      os.stat(path).st_mode & 0o777)
@@ -548,7 +548,7 @@ class MiscReadTestBase(CommonReadTest):
                 tar.extract(tarinfo, path=DIR)
                 extracted = os.path.join(DIR, dirtype)
                 self.assertEqual(os.path.getmtime(extracted), tarinfo.mtime)
-                if sys.platform != "win32":
+                if sys.platform != "win32" and sys.platform != "uwp":
                     self.assertEqual(os.stat(extracted).st_mode & 0o777, 0o755)
         finally:
             support.rmtree(DIR)
@@ -1261,7 +1261,7 @@ class WriteTest(WriteTestBase, unittest.TestCase):
         self._test_pathname("foo" + os.sep + os.sep, "foo", dir=True)
 
     def test_abs_pathnames(self):
-        if sys.platform == "win32":
+        if sys.platform == "win32" or sys.platform == "uwp":
             self._test_pathname("C:\\foo", "foo")
         else:
             self._test_pathname("/foo", "foo")
@@ -1335,7 +1335,7 @@ class StreamWriteTest(WriteTestBase, unittest.TestCase):
         self.assertEqual(data.count(b"\0"), tarfile.RECORDSIZE,
                         "incorrect zero padding")
 
-    @unittest.skipUnless(sys.platform != "win32" and hasattr(os, "umask"),
+    @unittest.skipUnless(sys.platform != "win32" and sys.platform != "uwp" and hasattr(os, "umask"),
                          "Missing umask implementation")
     def test_file_mode(self):
         # Test for issue #8464: Create files with correct

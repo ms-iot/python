@@ -97,7 +97,7 @@ def _intenum_converter(value, enum_klass):
 _realsocket = socket
 
 # WSA error codes
-if sys.platform.lower().startswith("win"):
+if sys.platform.lower().startswith("win") or sys.platform == "uwp":
     errorTab = {}
     errorTab[10004] = "The operation was interrupted."
     errorTab[10009] = "A bad file handle was passed."
@@ -424,18 +424,23 @@ class socket(_socket.socket):
         """
         return _intenum_converter(super().type, SocketKind)
 
-    if os.name == 'nt':
+    if os.name == 'uwp_os':
         def get_inheritable(self):
             return os.get_handle_inheritable(self.fileno())
-        def set_inheritable(self, inheritable):
-            os.set_handle_inheritable(self.fileno(), inheritable)
+        get_inheritable.__doc__ = "Get the inheritable flag of the socket"
     else:
-        def get_inheritable(self):
-            return os.get_inheritable(self.fileno())
-        def set_inheritable(self, inheritable):
-            os.set_inheritable(self.fileno(), inheritable)
-    get_inheritable.__doc__ = "Get the inheritable flag of the socket"
-    set_inheritable.__doc__ = "Set the inheritable flag of the socket"
+        if os.name == 'nt':
+            def get_inheritable(self):
+                return os.get_handle_inheritable(self.fileno())
+            def set_inheritable(self, inheritable):
+                os.set_handle_inheritable(self.fileno(), inheritable)
+        else:
+            def get_inheritable(self):
+                return os.get_inheritable(self.fileno())
+            def set_inheritable(self, inheritable):
+                os.set_inheritable(self.fileno(), inheritable)
+        get_inheritable.__doc__ = "Get the inheritable flag of the socket"
+        set_inheritable.__doc__ = "Set the inheritable flag of the socket"
 
 def fromfd(fd, family, type, proto=0):
     """ fromfd(fd, family, type[, proto]) -> socket object

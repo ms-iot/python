@@ -585,7 +585,7 @@ class BasicSocketTests(unittest.TestCase):
             self.assertEqual(paths.cafile, CERTFILE)
             self.assertEqual(paths.capath, CAPATH)
 
-    @unittest.skipUnless(sys.platform == "win32", "Windows specific")
+    @unittest.skipUnless(sys.platform == "win32" or sys.platform == "uwp", "Windows specific")
     def test_enum_certificates(self):
         self.assertTrue(ssl.enum_certificates("CA"))
         self.assertTrue(ssl.enum_certificates("ROOT"))
@@ -998,7 +998,7 @@ class ContextTests(unittest.TestCase):
     def test_load_dh_params(self):
         ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
         ctx.load_dh_params(DHFILE)
-        if os.name != 'nt':
+        if os.name != 'nt' and os.name != 'uwp_os':
             ctx.load_dh_params(BYTES_DHFILE)
         self.assertRaises(TypeError, ctx.load_dh_params)
         self.assertRaises(TypeError, ctx.load_dh_params, None)
@@ -1127,7 +1127,7 @@ class ContextTests(unittest.TestCase):
         self.assertRaises(TypeError, ctx.load_default_certs, None)
         self.assertRaises(TypeError, ctx.load_default_certs, 'SERVER_AUTH')
 
-    @unittest.skipIf(sys.platform == "win32", "not-Windows specific")
+    @unittest.skipIf(sys.platform == "win32" or sys.platform == "uwp", "not-Windows specific")
     def test_load_default_certs_env(self):
         ctx = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
         with support.EnvironmentVarGuard() as env:
@@ -1524,7 +1524,7 @@ class NetworkedTests(unittest.TestCase):
                 cert = s.getpeercert()
                 self.assertTrue(cert)
 
-    @unittest.skipIf(os.name == "nt", "Can't use a socket as a file under Windows")
+    @unittest.skipIf(os.name == "nt" or os.name == "uwp_os", "Can't use a socket as a file under Windows")
     def test_makefile_close(self):
         # Issue #5238: creating a file-like object with makefile() shouldn't
         # delay closing the underlying "real socket" (here tested with its

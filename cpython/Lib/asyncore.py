@@ -320,7 +320,7 @@ class dispatcher:
 
     def listen(self, num):
         self.accepting = True
-        if os.name == 'nt' and num > 5:
+        if (os.name == 'nt' or os.name == 'uwp_os') and num > 5:
             num = 5
         return self.socket.listen(num)
 
@@ -333,7 +333,7 @@ class dispatcher:
         self.connecting = True
         err = self.socket.connect_ex(address)
         if err in (EINPROGRESS, EALREADY, EWOULDBLOCK) \
-        or err == EINVAL and os.name in ('nt', 'ce'):
+        or err == EINVAL and os.name in ('nt', 'ce', 'uwp_os'):
             self.addr = address
             return
         if err in (0, EISCONN):

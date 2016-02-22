@@ -16,7 +16,7 @@ from struct import calcsize as _calcsize
 if __version__ != _ctypes_version:
     raise Exception("Version number mismatch", __version__, _ctypes_version)
 
-if _os.name in ("nt", "ce"):
+if _os.name in ("nt", "ce", 'uwp_os'):
     from _ctypes import FormatError
 
 DEFAULT_MODE = RTLD_LOCAL
@@ -262,7 +262,7 @@ class c_wchar(_SimpleCData):
 def _reset_cache():
     _pointer_type_cache.clear()
     _c_functype_cache.clear()
-    if _os.name in ("nt", "ce"):
+    if _os.name in ("nt", "ce", "uwp_os"):
         _win_functype_cache.clear()
     # _SimpleCData.c_wchar_p_from_param
     POINTER(c_wchar).from_param = c_wchar_p.from_param
@@ -273,7 +273,8 @@ def _reset_cache():
     # function is needed for the unittests on Win64 to succeed.  This MAY
     # be a compiler bug, since the problem occurs only when _ctypes is
     # compiled with the MS SDK compiler.  Or an uninitialized variable?
-    CFUNCTYPE(c_int)(lambda: None)
+    if _sys.platform != 'uwp':
+        CFUNCTYPE(c_int)(lambda: None)
 
 def create_unicode_buffer(init, size=None):
     """create_unicode_buffer(aString) -> character array

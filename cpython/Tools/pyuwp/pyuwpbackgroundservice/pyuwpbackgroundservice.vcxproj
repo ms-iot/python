@@ -306,6 +306,22 @@
     </ClCompile>
     <ClCompile Include="StartupTask.cpp" />
   </ItemGroup>
+  <PropertyGroup>
+    <PythonLibRootFolder>..\..\..\Lib</PythonLibRootFolder>
+  </PropertyGroup>
+  <ItemGroup>
+    <ExcludeLibFilters Include="$(PythonLibRootFolder)\**\__pycache__\**" />
+    <ExcludeLibFilters Include="$(PythonLibRootFolder)\distutils\**" />
+    <ExcludeLibFilters Include="$(PythonLibRootFolder)\idlelib\**" />
+    <ExcludeLibFilters Include="$(PythonLibRootFolder)\lzma\**" />
+    <ExcludeLibFilters Include="$(PythonLibRootFolder)\mmap\**" />
+    <ExcludeLibFilters Include="$(PythonLibRootFolder)\msilib\**" />
+    <ExcludeLibFilters Include="$(PythonLibRootFolder)\multiprocessing\**" />
+    <ExcludeLibFilters Include="$(PythonLibRootFolder)\sqlite\**" />
+    <ExcludeLibFilters Include="$(PythonLibRootFolder)\tkinter\**" />
+    <ExcludeLibFilters Include="$(PythonLibRootFolder)\venv\**" />
+    <ExcludeLibFilters Include="$(PythonLibRootFolder)\webbrowser.py" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\PCbuild\uwp\pyexpat.vcxproj">
       <Project>{43ab54bd-cb0d-48d2-81c8-066ee4ded4b9}</Project>
@@ -325,6 +341,9 @@
     <ProjectReference Include="..\..\..\PCBuild\uwp\_ctypes.vcxproj">
       <Project>{6bccda23-80f4-4c46-a82e-133d64b13fdb}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\PCbuild\uwp\_ctypes_test.vcxproj">
+      <Project>{e557e75d-d541-4141-be50-428c5589a5c4}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\PCbuild\uwp\_elementtree.vcxproj">
       <Project>{83fa65c4-177f-46d3-afc2-9232a127cc68}</Project>
     </ProjectReference>
@@ -333,6 +352,15 @@
     </ProjectReference>
     <ProjectReference Include="..\..\..\PCbuild\uwp\_ssl.vcxproj">
       <Project>{5195eec7-59ab-4b59-a53b-83550aea89af}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\PCbuild\uwp\_testcapi.vcxproj">
+      <Project>{dd7be91e-723a-4ef7-9abd-add15ceb19f6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\PCbuild\uwp\_testimportmultiple.vcxproj">
+      <Project>{6264398b-b2a3-4a30-86f3-82460780e715}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\PCbuild\uwp\_testmultiphase.vcxproj">
+      <Project>{24da5a1f-cac2-409b-bca7-aaad7a398b59}</Project>
     </ProjectReference>
     <ProjectReference Include="..\ptvsdhelper\_ptvsdhelper.vcxproj">
       <Project>{18a52e7c-6207-43fc-879b-0dd7952967a2}</Project>
@@ -403,7 +431,25 @@
       ]]></Code>
     </Task>
   </UsingTask>
-  <Target Name="BuildLibs" BeforeTargets="ClCompile">
-    <Zip InputDirectory="..\..\..\Lib" OutputFileName="$(ProjectDir)lib.zip" OverwriteExistingFile="true" />
+  <Target Name="CopyLibs">
+    <ItemGroup>
+      <PythonLibFiles Include="$(PythonLibRootFolder)\**" />
+      <PythonLibFiles Remove="@(ExcludeLibFilters)" />
+    </ItemGroup>
+    <MakeDir Directories="$(ProjectDir)\PythonHome" />
+    <Copy SourceFiles="@(PythonLibFiles)" DestinationFolder="$(ProjectDir)\PythonHome\Lib\%(RecursiveDir)" />
+
+    <MakeDir Directories="$(ProjectDir)\PythonHome\Include" />
+    <Copy SourceFiles="..\..\..\PC\pyconfig.h" DestinationFolder="$(ProjectDir)\PythonHome\Include" />
+
+    <ItemGroup>
+        <None Include="PythonHome\**">
+          <DeploymentContent>true</DeploymentContent>
+          <Visible>false</Visible>
+        </None>
+    </ItemGroup>
+  </Target>
+  <Target Name="BuildLibs" DependsOnTargets="CopyLibs" BeforeTargets="ClCompile">
+    <Zip InputDirectory="$(ProjectDir)\PythonHome\Lib" OutputFileName="$(ProjectDir)\lib.zip" OverwriteExistingFile="true" />
   </Target>
 </Project>

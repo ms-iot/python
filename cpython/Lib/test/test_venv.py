@@ -13,10 +13,12 @@ import subprocess
 import sys
 import tempfile
 from test.support import (captured_stdout, captured_stderr,
-                          can_symlink, EnvironmentVarGuard, rmtree)
+                          can_symlink, EnvironmentVarGuard, rmtree, import_module)
 import textwrap
 import unittest
-import venv
+
+# Skip tests if venv doesn't exist.
+venv = import_module('venv')
 
 # pip currently requires ssl support, so we ensure we handle
 # it being missing (http://bugs.python.org/issue19744)

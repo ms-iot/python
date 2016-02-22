@@ -458,7 +458,8 @@ pygettimeofday_new(_PyTime_t *tp, _Py_clock_info_t *info, int raise)
         }
         info->resolution = timeIncrement * 1e-7;
 #else
-        info->resolution = 0;
+        /* Unknown resolution.  Use the lowest resolution. */
+        info->resolution = 1e-7;
 #endif
         info->adjustable = 1;
     }
@@ -549,10 +550,6 @@ pymonotonic_new(_PyTime_t *tp, _Py_clock_info_t *info, int raise)
     static _PyTime_t last = 0;
 #endif
 #if defined(MS_WINDOWS)
-#ifndef MS_UWP
-    static ULONGLONG (*GetTickCount64) (void) = NULL;
-    static ULONGLONG (CALLBACK *Py_GetTickCount64)(void);
-#endif
     static int has_gettickcount64 = -1;
     ULONGLONG result;
 
@@ -585,7 +582,8 @@ pymonotonic_new(_PyTime_t *tp, _Py_clock_info_t *info, int raise)
         }
         info->resolution = timeIncrement * 1e-7;
 #else
-        info->resolution = 0;
+        /* Unknown resolution.  Use the lowest resolution. */
+        info->resolution = 1e-7;
 #endif
         info->adjustable = 0;
     }

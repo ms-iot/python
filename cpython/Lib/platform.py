@@ -126,7 +126,7 @@ try:
 except AttributeError:
     # os.devnull was added in Python 2.4, so emulate it for earlier
     # Python versions
-    if sys.platform in ('dos', 'win32', 'win16'):
+    if sys.platform in ('dos', 'win32', 'win16', 'uwp'):
         # Use the old CP/M NUL as device name
         DEV_NULL = 'NUL'
     else:
@@ -162,6 +162,10 @@ def libc_ver(executable=sys.executable, lib='', version='',
         The file is read and scanned in chunks of chunksize bytes.
 
     """
+    if (sys.executable == executable and sys.platform == 'uwp'):
+        # This function only works with executables compiled with gcc.
+        # return the default values.
+        return lib, version
     if hasattr(os.path, 'realpath'):
         # Python 2.2 introduced os.path.realpath(); it is used
         # here to work around problems with Cygwin not being
@@ -384,13 +388,14 @@ def dist(distname='', version='', id='',
                                supported_dists=supported_dists,
                                full_distribution_name=0)
 
-def popen(cmd, mode='r', bufsize=-1):
+if hasattr(os, 'popen'):
+    def popen(cmd, mode='r', bufsize=-1):
 
-    """ Portable popen() interface.
-    """
-    import warnings
-    warnings.warn('use os.popen instead', DeprecationWarning, stacklevel=2)
-    return os.popen(cmd, mode, bufsize)
+        """ Portable popen() interface.
+        """
+        import warnings
+        warnings.warn('use os.popen instead', DeprecationWarning, stacklevel=2)
+        return os.popen(cmd, mode, bufsize)
 
 def _norm_version(version, build=''):
 
@@ -523,6 +528,7 @@ def win32_ver(release='', version='', csd='', ptype=''):
              RegCloseKey, GetVersionEx
         from win32con import HKEY_LOCAL_MACHINE, VER_PLATFORM_WIN32_NT, \
              VER_PLATFORM_WIN32_WINDOWS, VER_NT_WORKSTATION
+        has_registry = True
     except ImportError:
         # Emulate the win32api module using Python APIs
         try:
@@ -533,17 +539,22 @@ def win32_ver(release='', version='', csd='', ptype=''):
         else:
             # Emulation using winreg (added in Python 2.0) and
             # sys.getwindowsversion() (added in Python 2.3)
-            import winreg
             GetVersionEx = sys.getwindowsversion
-            RegQueryValueEx = winreg.QueryValueEx
-            RegOpenKeyEx = winreg.OpenKeyEx
-            RegCloseKey = winreg.CloseKey
-            HKEY_LOCAL_MACHINE = winreg.HKEY_LOCAL_MACHINE
-            VER_PLATFORM_WIN32_WINDOWS = 1
-            VER_PLATFORM_WIN32_NT = 2
-            VER_NT_WORKSTATION = 1
-            VER_NT_SERVER = 3
-            REG_SZ = 1
+            try:
+                import winreg
+            except ImportError:
+                has_registry = False
+            else:
+                has_registry = True
+                RegQueryValueEx = winreg.QueryValueEx
+                RegOpenKeyEx = winreg.OpenKeyEx
+                RegCloseKey = winreg.CloseKey
+                HKEY_LOCAL_MACHINE = winreg.HKEY_LOCAL_MACHINE
+                VER_PLATFORM_WIN32_WINDOWS = 1
+                VER_PLATFORM_WIN32_NT = 2
+                VER_NT_WORKSTATION = 1
+                VER_NT_SERVER = 3
+                REG_SZ = 1
 
     # Find out the registry key and some general version infos
     winver = GetVersionEx()
@@ -556,6 +567,8 @@ def win32_ver(release='', version='', csd='', ptype=''):
         if csd[:13] == 'Service Pack ':
             csd = 'SP' + csd[13:]
 
+    if not has_registry:
+        return release, version, csd, ptype
     if plat == VER_PLATFORM_WIN32_WINDOWS:
         regkey = 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion'
         # Try to guess the release name
@@ -880,7 +893,7 @@ def _syscmd_file(target, default=''):
         default in case the command should fail.
 
     """
-    if sys.platform in ('dos', 'win32', 'win16'):
+    if sys.platform in ('dos', 'win32', 'win16', 'uwp'):
         # XXX Others too ?
         return default
     target = _follow_symlinks(target)
@@ -902,6 +915,7 @@ def _syscmd_file(target, default=''):
 # Default values for architecture; non-empty strings override the
 # defaults given as parameters
 _default_architecture = {
+    'uwp': ('', 'WindowsPE'),
     'win32': ('', 'WindowsPE'),
     'win16': ('', 'Windows'),
     'dos': ('', 'MSDOS'),

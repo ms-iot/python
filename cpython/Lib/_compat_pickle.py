@@ -5,6 +5,9 @@
 # This is a copy of lib2to3.fixes.fix_imports.MAPPING.  We cannot import
 # lib2to3 and use the mapping defined there, because lib2to3 uses pickle.
 # Thus, this could cause the module to be imported recursively.
+
+import sys
+
 IMPORT_MAPPING = {
     '__builtin__' : 'builtins',
     'copy_reg': 'copyreg',
@@ -176,8 +179,12 @@ IMPORT_MAPPING.update({
     'SimpleDialog': 'tkinter.simpledialog',
     'DocXMLRPCServer': 'xmlrpc.server',
     'SimpleHTTPServer': 'http.server',
-    'CGIHTTPServer': 'http.server',
 })
+
+if sys.platform != 'uwp':
+    IMPORT_MAPPING.update({
+        'CGIHTTPServer': 'http.server',
+    })
 
 REVERSE_IMPORT_MAPPING.update({
     '_bz2': 'bz2',
@@ -211,10 +218,14 @@ REVERSE_NAME_MAPPING.update({
         ('DocXMLRPCServer', 'DocCGIXMLRPCRequestHandler'),
     ('http.server', 'SimpleHTTPRequestHandler'):
         ('SimpleHTTPServer', 'SimpleHTTPRequestHandler'),
-    ('http.server', 'CGIHTTPRequestHandler'):
-        ('CGIHTTPServer', 'CGIHTTPRequestHandler'),
     ('_socket', 'socket'): ('socket', '_socketobject'),
 })
+
+if sys.platform != 'uwp':
+    REVERSE_NAME_MAPPING.update({
+        ('http.server', 'CGIHTTPRequestHandler'):
+            ('CGIHTTPServer', 'CGIHTTPRequestHandler'),
+    })
 
 PYTHON3_OSERROR_EXCEPTIONS = (
     'BrokenPipeError',

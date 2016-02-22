@@ -558,9 +558,9 @@ class PydocDocTest(unittest.TestCase):
     def test_synopsis_sourceless(self):
         expected = os.__doc__.splitlines()[0]
         filename = os.__cached__
-        synopsis = pydoc.synopsis(filename)
-
-        self.assertEqual(synopsis, expected)
+        if os.path.exists(filename):
+            synopsis = pydoc.synopsis(filename)
+            self.assertEqual(synopsis, expected)
 
     def test_synopsis_sourceless_empty_doc(self):
         with test.support.temp_cwd() as test_dir:

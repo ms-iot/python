@@ -69,6 +69,8 @@ ipch/
 *.opensdf
 *.sdf
 *.cachefile
+*.VC.opendb
+.vs/
 
 # Visual Studio profiler
 *.psess
@@ -202,3 +204,4 @@ cpython/.hg
 
 uwp/10.0/
 cpython/PCbuild/uwp/10.0/
+PythonHome/

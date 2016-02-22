@@ -60,6 +60,8 @@ class TestTool(unittest.TestCase):
     ]
     """)
 
+    @unittest.skipUnless(hasattr(subprocess, 'Popen'), 
+                         'test needs subprocess.Popen()') 
     def test_stdin_stdout(self):
         with subprocess.Popen(
                 (sys.executable, '-m', 'json.tool'),

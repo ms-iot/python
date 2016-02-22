@@ -563,12 +563,10 @@ faulthandler_dump_traceback_later(PyObject *self,
     int repeat = 0;
     PyObject *file = NULL;
     int exit = 0;
-#ifndef MS_UWP
     int fd;
     PyThreadState *tstate;
     char *header;
     size_t header_len;
-#endif
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs,
         "d|iOi:dump_traceback_later", kwlist,
@@ -583,10 +581,6 @@ faulthandler_dump_traceback_later(PyObject *self,
         PyErr_SetString(PyExc_ValueError, "timeout must be greater than 0");
         return NULL;
     }
-#ifdef MS_UWP
-    PyErr_SetString(PyExc_NotImplementedError, "dump_tracebacks_later is not supported for UWP Apps");
-    return NULL;
-#else
 
     tstate = get_thread_state();
     if (tstate == NULL)
@@ -630,7 +624,6 @@ faulthandler_dump_traceback_later(PyObject *self,
     }
 
     Py_RETURN_NONE;
-#endif
 }
 
 static PyObject*

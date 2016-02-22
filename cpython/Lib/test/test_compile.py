@@ -102,6 +102,7 @@ class TestSpecifics(unittest.TestCase):
         exec('z = a', g, d)
         self.assertEqual(d['z'], 12)
 
+    @unittest.skipIf(sys.getrecursionlimit() <= 500, "requires recursion limit > 500")
     def test_extended_arg(self):
         longexpr = 'x = x or ' + '-x' * 2500
         g = {}

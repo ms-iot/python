@@ -138,8 +138,10 @@ try:
 except NameError:
     _SSLv2_IF_EXISTS = None
 
+if sys.platform == "win32" or sys.platform == "uwp":
+    from _ssl import enum_certificates
 if sys.platform == "win32":
-    from _ssl import enum_certificates, enum_crls
+    from _ssl import enum_crls
 
 from socket import socket, AF_INET, SOCK_STREAM, create_connection
 from socket import SOL_SOCKET, SO_TYPE
@@ -416,7 +418,7 @@ class SSLContext(_SSLContext):
     def load_default_certs(self, purpose=Purpose.SERVER_AUTH):
         if not isinstance(purpose, _ASN1Object):
             raise TypeError(purpose)
-        if sys.platform == "win32":
+        if sys.platform == "win32" or sys.platform == "uwp":
             for storename in self._windows_cert_stores:
                 self._load_windows_store_certs(storename, purpose)
         self.set_default_verify_paths()

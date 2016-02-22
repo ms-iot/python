@@ -1006,7 +1006,7 @@ class GeneralModuleTests(unittest.TestCase):
         except ImportError:
             self.skipTest('could not import needed symbols from socket')
 
-        if sys.platform == "win32":
+        if sys.platform == "win32" or sys.platform == "uwp":
             try:
                 inet_pton(AF_INET6, '::')
             except OSError as e:
@@ -1094,7 +1094,7 @@ class GeneralModuleTests(unittest.TestCase):
         except ImportError:
             self.skipTest('could not import needed symbols from socket')
 
-        if sys.platform == "win32":
+        if sys.platform == "win32" or sys.platform == "uwp":
             try:
                 inet_ntop(AF_INET6, b'\x00' * 16)
             except OSError as e:
@@ -1195,7 +1195,7 @@ class GeneralModuleTests(unittest.TestCase):
             else:
                 break
 
-    @unittest.skipUnless(os.name == "nt", "Windows specific")
+    @unittest.skipUnless(os.name == "nt" or os.name == "uwp_os", "Windows specific")
     def test_sock_ioctl(self):
         self.assertTrue(hasattr(socket.socket, 'ioctl'))
         self.assertTrue(hasattr(socket, 'SIO_RCVALL'))
@@ -1419,7 +1419,7 @@ class GeneralModuleTests(unittest.TestCase):
             self.assertEqual(str(s.family), 'AddressFamily.AF_INET')
             self.assertEqual(str(s.type), 'SocketKind.SOCK_STREAM')
 
-    @unittest.skipIf(os.name == 'nt', 'Will not work on Windows')
+    @unittest.skipIf(os.name == 'nt' or os.name == "uwp_os", 'Will not work on Windows')
     def test_uknown_socket_family_repr(self):
         # Test that when created with a family that's not one of the known
         # AF_*/SOCK_* constants, socket.family just returns the number.
@@ -4818,6 +4818,7 @@ class InheritanceTest(unittest.TestCase):
             with newsock:
                 self.assertEqual(newsock.get_inheritable(), False)
 
+    @unittest.skipIf(os.name == 'uwp_os', "Inheritable handles are not supported in UWP.")
     def test_set_inheritable(self):
         sock = socket.socket()
         with sock:
@@ -4909,7 +4910,7 @@ class NonblockConstantTest(unittest.TestCase):
         socket.setdefaulttimeout(t)
 
 
-@unittest.skipUnless(os.name == "nt", "Windows specific")
+@unittest.skipUnless(os.name == "nt" or os.name == "uwp_os", "Windows specific")
 @unittest.skipUnless(multiprocessing, "need multiprocessing")
 class TestSocketSharing(SocketTCPTest):
     # This must be classmethod and not staticmethod or multiprocessing

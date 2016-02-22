@@ -4159,7 +4159,7 @@ parseKeyUsage(PCCERT_CONTEXT pCertCtx, DWORD flags)
 
 #ifdef MS_UWP
 
-PyObject * uwp_enumcertificates(void);
+PyObject * uwp_enumcertificates(const char *store_name);
 
 #endif
 
@@ -4181,7 +4181,7 @@ _ssl_enum_certificates_impl(PyModuleDef *module, const char *store_name)
 /*[clinic end generated code: output=cc4ebc10b8adacfc input=915f60d70461ea4e]*/
 {
 #ifdef MS_UWP
-    return uwp_enumcertificates();
+    return uwp_enumcertificates(store_name);
 #else
     HCERTSTORE hStore = NULL;
     PCCERT_CONTEXT pCertCtx = NULL;

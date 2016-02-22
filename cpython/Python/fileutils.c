@@ -563,7 +563,7 @@ attributes_to_mode(DWORD attr)
 
 #ifdef MS_UWP
 void
-_Py_attribute_data_to_stat(FILE_BASIC_INFO *basicInfo, FILE_STANDARD_INFO *standardInfo, int reparse_tag, struct _Py_stat_struct *result)
+_Py_attribute_data_to_stat(FILE_BASIC_INFO *basicInfo, FILE_STANDARD_INFO *standardInfo, FILE_ID_INFO* fileIdInfo, int reparse_tag, struct _Py_stat_struct *result)
 {
     memset(result, 0, sizeof(*result));
     result->st_mode = attributes_to_mode(basicInfo->FileAttributes);
@@ -579,6 +579,9 @@ _Py_attribute_data_to_stat(FILE_BASIC_INFO *basicInfo, FILE_STANDARD_INFO *stand
         /* now set the bits that make this a symlink */
         result->st_mode |= S_IFLNK;
     }
+    result->st_file_attributes = basicInfo->FileAttributes;
+    result->st_ino = *(long long*)&fileIdInfo->FileId;
+    result->st_dev = fileIdInfo->VolumeSerialNumber;
 }
 #else
 void
@@ -624,6 +627,7 @@ _Py_fstat_noraise(int fd, struct _Py_stat_struct *status)
 #ifdef MS_UWP
     FILE_BASIC_INFO fbi;
     FILE_STANDARD_INFO fsi;
+    FILE_ID_INFO fii;
 #else
     BY_HANDLE_FILE_INFORMATION info;
 #endif
@@ -646,16 +650,6 @@ _Py_fstat_noraise(int fd, struct _Py_stat_struct *status)
     }
     memset(status, 0, sizeof(*status));
 
-#ifdef MS_UWP
-    if (!GetFileInformationByHandleEx(h, FileBasicInfo, &fbi, sizeof(fbi))) {
-        return -1;
-    }
-    if (!GetFileInformationByHandleEx(h, FileStandardInfo, &fsi, sizeof(fsi))) {
-        return -1;
-    }
-
-    _Py_attribute_data_to_stat(&fbi, &fsi, 0, status);
-#else
     type = GetFileType(h);
     if (type == FILE_TYPE_UNKNOWN) {
         DWORD error = GetLastError();
@@ -674,6 +668,19 @@ _Py_fstat_noraise(int fd, struct _Py_stat_struct *status)
         return 0;
     }
 
+#ifdef MS_UWP
+    if (!GetFileInformationByHandleEx(h, FileBasicInfo, &fbi, sizeof(fbi))) {
+        return -1;
+    }
+    if (!GetFileInformationByHandleEx(h, FileStandardInfo, &fsi, sizeof(fsi))) {
+        return -1;
+    }
+    if (!GetFileInformationByHandleEx(h, FileIdInfo, &fii, sizeof(fii))) {
+        return -1;
+    }
+
+    _Py_attribute_data_to_stat(&fbi, &fsi, &fii, 0, status);
+#else
     if (!GetFileInformationByHandle(h, &info)) {
         /* The Win32 error is already set, but we also set errno for
            callers who expect it */
@@ -762,9 +769,6 @@ static int
 get_inheritable(int fd, int raise)
 {
 #ifdef MS_WINDOWS
-#ifdef MS_UWP
-    return 0;
-#else
     HANDLE handle;
     DWORD flags;
 
@@ -783,6 +787,10 @@ get_inheritable(int fd, int raise)
         return -1;
     }
 
+#ifdef MS_UWP
+    (flags);
+    return 0;
+#else
     if (!GetHandleInformation(handle, &flags)) {
         if (raise)
             PyErr_SetFromWindowsErr(0);
@@ -849,7 +857,14 @@ set_inheritable(int fd, int inheritable, int raise, int *atomic_flag_works)
 
 #ifdef MS_WINDOWS
 #ifdef MS_UWP
-    return 0;
+    if (!inheritable) {
+        return 0;
+    }
+
+    if (raise) {
+        PyErr_SetString(PyExc_NotImplementedError, "Inheritable handles are not supported in UWP.");
+    }
+    return -1;
 #else
     if (!_PyVerify_fd(fd)) {
         if (raise)

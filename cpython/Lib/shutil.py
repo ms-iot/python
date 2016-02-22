@@ -1056,7 +1056,7 @@ def get_terminal_size(fallback=(80, 24)):
     if columns <= 0 or lines <= 0:
         try:
             size = os.get_terminal_size(sys.__stdout__.fileno())
-        except (NameError, OSError):
+        except (NameError, OSError, AttributeError):
             size = os.terminal_size(fallback)
         if columns <= 0:
             columns = size.columns
@@ -1096,7 +1096,7 @@ def which(cmd, mode=os.F_OK | os.X_OK, path=None):
         return None
     path = path.split(os.pathsep)
 
-    if sys.platform == "win32":
+    if sys.platform == "win32" or sys.platform == "uwp":
         # The current directory takes precedence on Windows.
         if not os.curdir in path:
             path.insert(0, os.curdir)

@@ -245,7 +245,7 @@ class ZipAppTest(unittest.TestCase):
             self.assertEqual(set(z.namelist()), {'__main__.py'})
 
     # (Unix only) tests that archives with shebang lines are made executable
-    @unittest.skipIf(sys.platform == 'win32',
+    @unittest.skipIf(sys.platform == 'win32' or sys.platform == 'uwp',
                      'Windows does not support an executable bit')
     def test_shebang_is_executable(self):
         # Test that an archive with a shebang line is made executable.

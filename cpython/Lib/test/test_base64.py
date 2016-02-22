@@ -628,6 +628,8 @@ class TestMain(unittest.TestCase):
         if os.path.exists(support.TESTFN):
             os.unlink(support.TESTFN)
 
+    @unittest.skipUnless(hasattr(subprocess, 'Popen'), 
+                         'test needs subprocess.Popen()')
     def get_output(self, *args, **options):
         args = (sys.executable, '-m', 'base64') + args
         return subprocess.check_output(args, **options)

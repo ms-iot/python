@@ -11,7 +11,7 @@ try:
     from test import support
 except ImportError:
     from asyncio import test_support as support
-if sys.platform != 'win32':
+if sys.platform != 'win32' and sys.platform != 'uwp':
     from asyncio import unix_events
 
 # Program blocking
@@ -144,7 +144,7 @@ class SubprocessMixin:
         proc = self.loop.run_until_complete(create)
         proc.kill()
         returncode = self.loop.run_until_complete(proc.wait())
-        if sys.platform == 'win32':
+        if sys.platform == 'win32' or sys.platform == 'uwp':
             self.assertIsInstance(returncode, int)
             # expect 1 but sometimes get 0
         else:
@@ -156,13 +156,13 @@ class SubprocessMixin:
         proc = self.loop.run_until_complete(create)
         proc.terminate()
         returncode = self.loop.run_until_complete(proc.wait())
-        if sys.platform == 'win32':
+        if sys.platform == 'win32' or sys.platform == 'uwp':
             self.assertIsInstance(returncode, int)
             # expect 1 but sometimes get 0
         else:
             self.assertEqual(-signal.SIGTERM, returncode)
 
-    @unittest.skipIf(sys.platform == 'win32', "Don't have SIGHUP")
+    @unittest.skipIf(sys.platform == 'win32' or sys.platform == 'uwp', "Don't have SIGHUP")
     def test_send_signal(self):
         code = 'import time; print("sleeping", flush=True); time.sleep(3600)'
         args = [sys.executable, '-c', code]
@@ -414,7 +414,7 @@ class SubprocessMixin:
         self.assertFalse(killed)
 
 
-if sys.platform != 'win32':
+if sys.platform != 'win32' and sys.platform != 'uwp':
     # Unix
     class SubprocessWatcherMixin(SubprocessMixin):
 
@@ -440,6 +440,9 @@ if sys.platform != 'win32':
 
         Watcher = unix_events.FastChildWatcher
 
+elif sys.platform == 'uwp':
+    # UWP doesn't have ProactorEventLoop
+    pass
 else:
     # Windows
     class SubprocessProactorTests(SubprocessMixin, test_utils.TestCase):

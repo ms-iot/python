@@ -272,6 +272,7 @@ class PlatformTest(unittest.TestCase):
             ):
             self.assertEqual(platform._parse_release_file(input), output)
 
+    @unittest.skipUnless(hasattr(platform, 'popen'), 'test needs platform.popen()')
     def test_popen(self):
         mswindows = (sys.platform == "win32")
 

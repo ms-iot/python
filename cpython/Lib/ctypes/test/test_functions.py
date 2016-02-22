@@ -17,7 +17,7 @@ except NameError:
 
 import _ctypes_test
 dll = CDLL(_ctypes_test.__file__)
-if sys.platform == "win32":
+if sys.platform == "win32" or sys.platform == "uwp":
     windll = WinDLL(_ctypes_test.__file__)
 
 class POINT(Structure):
@@ -341,7 +341,7 @@ class FunctionTestCase(unittest.TestCase):
         s2h = dll.ret_2h_func(inp)
         self.assertEqual((s2h.x, s2h.y), (99*2, 88*3))
 
-    @unittest.skipUnless(sys.platform == "win32", 'Windows-specific test')
+    @unittest.skipUnless(sys.platform == "win32" or sys.platform == "uwp", 'Windows-specific test')
     def test_struct_return_2H_stdcall(self):
         class S2H(Structure):
             _fields_ = [("x", c_short),
@@ -369,7 +369,7 @@ class FunctionTestCase(unittest.TestCase):
         self.assertEqual((s8i.a, s8i.b, s8i.c, s8i.d, s8i.e, s8i.f, s8i.g, s8i.h),
                              (9*2, 8*3, 7*4, 6*5, 5*6, 4*7, 3*8, 2*9))
 
-    @unittest.skipUnless(sys.platform == "win32", 'Windows-specific test')
+    @unittest.skipUnless(sys.platform == "win32" or sys.platform == "uwp", 'Windows-specific test')
     def test_struct_return_8H_stdcall(self):
         class S8I(Structure):
             _fields_ = [("a", c_int),

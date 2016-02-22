@@ -9,7 +9,7 @@ libc_name = None
 
 def setUpModule():
     global libc_name
-    if os.name == "nt":
+    if os.name == "nt" or os.name == "uwp_os":
         libc_name = find_library("c")
     elif os.name == "ce":
         libc_name = "coredll"
@@ -49,7 +49,7 @@ class LoaderTest(unittest.TestCase):
                 cdll.LoadLibrary(lib)
                 CDLL(lib)
 
-    @unittest.skipUnless(os.name in ("nt", "ce"),
+    @unittest.skipUnless(os.name in ("nt", "ce", "uwp_os"),
                          'test specific to Windows (NT/CE)')
     def test_load_library(self):
         # CRT is no longer directly loadable. See issue23606 for the
@@ -70,7 +70,7 @@ class LoaderTest(unittest.TestCase):
             windll.LoadLibrary("coredll").GetModuleHandleW
             WinDLL("coredll").GetModuleHandleW
 
-    @unittest.skipUnless(os.name in ("nt", "ce"),
+    @unittest.skipUnless(os.name in ("nt", "ce", "uwp_os"),
                          'test specific to Windows (NT/CE)')
     def test_load_ordinal_functions(self):
         import _ctypes_test

@@ -416,7 +416,7 @@ class IOTest(unittest.TestCase):
         # On Windows and Mac OSX this test comsumes large resources; It takes
         # a long time to build the >2GB file and takes >2GB of disk space
         # therefore the resource must be enabled to run this test.
-        if sys.platform[:3] == 'win' or sys.platform == 'darwin':
+        if sys.platform[:3] == 'win' or sys.platform == 'darwin' or sys.platform == 'uwp':
             support.requires(
                 'largefile',
                 'test requires %s bytes and a long time to run' % self.LARGE)
@@ -3350,6 +3350,7 @@ class MiscIOTest(unittest.TestCase):
         self._check_warn_on_dealloc(support.TESTFN, "wb")
         self._check_warn_on_dealloc(support.TESTFN, "w")
 
+    @unittest.skipUnless(hasattr(os, "pipe"), "requires os.pipe()")
     def _check_warn_on_dealloc_fd(self, *args, **kwargs):
         fds = []
         def cleanup_fds():
@@ -3529,7 +3530,7 @@ class PyMiscIOTest(MiscIOTest):
     io = pyio
 
 
-@unittest.skipIf(os.name == 'nt', 'POSIX signals required for this test.')
+@unittest.skipIf(os.name == 'nt' or os.name == 'uwp_os', 'POSIX signals required for this test.')
 class SignalsTest(unittest.TestCase):
 
     def setUp(self):

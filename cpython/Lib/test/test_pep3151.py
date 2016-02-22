@@ -121,7 +121,7 @@ class HierarchyTest(unittest.TestCase):
 class AttributesTest(unittest.TestCase):
 
     def test_windows_error(self):
-        if os.name == "nt":
+        if os.name == "nt" or os.name == "uwp_os":
             self.assertIn('winerror', dir(OSError))
         else:
             self.assertNotIn('winerror', dir(OSError))

@@ -1418,7 +1418,7 @@ Z_get(void *ptr, Py_ssize_t size)
 }
 #endif
 
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
 static PyObject *
 BSTR_set(void *ptr, PyObject *value, Py_ssize_t size)
 {
@@ -1562,7 +1562,7 @@ static struct fielddesc formattable[] = {
     { 'U', U_set, U_get, &ffi_type_pointer},
     { 'Z', Z_set, Z_get, &ffi_type_pointer},
 #endif
-#ifdef MS_WIN32
+#if defined(MS_WIN32) || defined(MS_ARM)
     { 'X', BSTR_set, BSTR_get, &ffi_type_pointer},
     { 'v', vBOOL_set, vBOOL_get, &ffi_type_sshort},
 #endif

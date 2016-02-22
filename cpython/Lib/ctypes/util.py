@@ -3,7 +3,7 @@ import contextlib
 import subprocess
 
 # find_library(name) returns the pathname of a library, or None.
-if os.name == "nt":
+if os.name == "nt" or os.name == "uwp_os":
 
     def _get_build_version():
         """Return the version of MSVC that was used to build Python.

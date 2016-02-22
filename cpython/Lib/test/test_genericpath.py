@@ -206,6 +206,7 @@ class GenericTest:
     def test_samefile_on_symlink(self):
         self._test_samefile_on_link_func(os.symlink)
 
+    @unittest.skipUnless(hasattr(os, "link"), "requires os.link()")
     def test_samefile_on_link(self):
         self._test_samefile_on_link_func(os.link)
 
@@ -239,6 +240,7 @@ class GenericTest:
     def test_samestat_on_symlink(self):
         self._test_samestat_on_link_func(os.symlink)
 
+    @unittest.skipUnless(hasattr(os, "link"), "requires os.link()")
     def test_samestat_on_link(self):
         self._test_samestat_on_link_func(os.link)
 
@@ -384,7 +386,12 @@ class CommonTest(GenericTest):
         # Abspath returns bytes when the arg is bytes
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", DeprecationWarning)
-            for path in (b'', b'foo', b'f\xf2\xf2', b'/foo', b'C:\\'):
+            paths = (b'', b'foo', b'/foo', b'C:\\')
+            # b'f\xf2\xf2' is not a valid utf8 string. UWP only accepts valid 
+            # utf8 strings as paths.
+            if sys.platform != "uwp":
+                paths.extend(b'f\xf2\xf2')
+            for path in paths:
                 self.assertIsInstance(self.pathmodule.abspath(path), bytes)
 
     def test_realpath(self):
@@ -422,7 +429,7 @@ class CommonTest(GenericTest):
         # UTF-8 name. Windows allows to create a directory with an
         # arbitrary bytes name, but fails to enter this directory
         # (when the bytes name is used).
-        and sys.platform not in ('win32', 'darwin')):
+        and sys.platform not in ('win32', 'darwin', 'uwp')):
             name = support.TESTFN_UNDECODABLE
         elif support.TESTFN_NONASCII:
             name = support.TESTFN_NONASCII

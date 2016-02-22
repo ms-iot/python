@@ -6,7 +6,11 @@ import re
 import sys
 import unittest
 from test import support
-from distutils.util import get_platform
+try:
+    from distutils.util import get_platform
+except ImportError:
+    def get_platform():
+        return sys.platform
 from contextlib import contextmanager
 from .util import temp_module
 
@@ -54,7 +58,7 @@ def setup_module(machinery, name, path=None):
         delete_registry_tree(HKEY_CURRENT_USER, key)
 
 
-@unittest.skipUnless(sys.platform.startswith('win'), 'requires Windows')
+@unittest.skipUnless(sys.platform.startswith('win') or sys.platform == 'uwp', 'requires Windows')
 class WindowsRegistryFinderTests:
     # The module name is process-specific, allowing for
     # simultaneous runs of the same test on a single machine.

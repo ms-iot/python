@@ -2707,7 +2707,9 @@ Check doctest with a non-ascii filename:
     TestResults(failed=1, attempted=1)
     """
 
-def test_CLI(): r"""
+# UWP doesn't support test.support.script_helper
+if sys.platform != 'uwp':
+    def test_CLI(): r"""
 The doctest module can be used to run doctests against an arbitrary file.
 These tests test this CLI functionality.
 

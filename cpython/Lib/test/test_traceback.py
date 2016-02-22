@@ -116,6 +116,9 @@ class SyntaxTracebackCases(unittest.TestCase):
         # - respect file encoding (Issue3975)
         import tempfile, sys, subprocess, os
 
+        if not hasattr(subprocess, 'Popen'):
+            raise unittest.SkipTest('test needs subprocess.Popen()')
+
         # The spawned subprocess has its stdout redirected to a PIPE, and its
         # encoding may be different from the current interpreter, on Windows
         # at least.

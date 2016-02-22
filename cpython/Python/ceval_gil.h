@@ -207,10 +207,16 @@ static void drop_gil(PyThreadState *tstate)
 static void take_gil(PyThreadState *tstate)
 {
     int err;
+#ifdef MS_UWP
+    int last_error;
+#endif
     if (tstate == NULL)
         Py_FatalError("take_gil: NULL tstate");
 
     err = errno;
+#ifdef MS_UWP
+    last_error = GetLastError();
+#endif
     MUTEX_LOCK(gil_mutex);
 
     if (!_Py_atomic_load_relaxed(&gil_locked))
@@ -257,6 +263,9 @@ _ready:
 
     MUTEX_UNLOCK(gil_mutex);
     errno = err;
+#ifdef MS_UWP
+    SetLastError(last_error);
+#endif
 }
 
 void _PyEval_SetSwitchInterval(unsigned long microseconds)

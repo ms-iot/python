@@ -32,7 +32,7 @@ _names = sys.builtin_module_names
 __all__ = ["altsep", "curdir", "pardir", "sep", "pathsep", "linesep",
            "defpath", "name", "path", "devnull", "SEEK_SET", "SEEK_CUR",
            "SEEK_END", "fsencode", "fsdecode", "get_exec_path", "fdopen",
-           "popen", "extsep"]
+           "extsep"]
 
 def _exists(name):
     return name in globals()
@@ -103,27 +103,6 @@ elif 'ce' in _names:
 
     try:
         from ce import _have_functions
-    except ImportError:
-        pass
-
-elif 'uwp' in _names:
-    name = 'uwp'
-    linesep = '\r\n'
-    from uwp import *
-    
-    try:
-        from uwp import _exit
-        __all__.append('_exit')
-    except ImportError:
-        pass
-    import ntpath as path
-
-    import uwp
-    __all__.extend(_get_exports_list(uwp))
-    del uwp
-
-    try:
-        from uwp import _have_functions
     except ImportError:
         pass
 
@@ -573,89 +552,90 @@ try:
 except NameError:
     environ = {}
 
-def execl(file, *args):
-    """execl(file, *args)
+if _exists('execv') and _exists('execve'):
+    def execl(file, *args):
+        """execl(file, *args)
 
-    Execute the executable file with argument list args, replacing the
-    current process. """
-    execv(file, args)
+        Execute the executable file with argument list args, replacing the
+        current process. """
+        execv(file, args)
 
-def execle(file, *args):
-    """execle(file, *args, env)
+    def execle(file, *args):
+        """execle(file, *args, env)
 
-    Execute the executable file with argument list args and
-    environment env, replacing the current process. """
-    env = args[-1]
-    execve(file, args[:-1], env)
+        Execute the executable file with argument list args and
+        environment env, replacing the current process. """
+        env = args[-1]
+        execve(file, args[:-1], env)
 
-def execlp(file, *args):
-    """execlp(file, *args)
+    def execlp(file, *args):
+        """execlp(file, *args)
 
-    Execute the executable file (which is searched for along $PATH)
-    with argument list args, replacing the current process. """
-    execvp(file, args)
+        Execute the executable file (which is searched for along $PATH)
+        with argument list args, replacing the current process. """
+        execvp(file, args)
 
-def execlpe(file, *args):
-    """execlpe(file, *args, env)
+    def execlpe(file, *args):
+        """execlpe(file, *args, env)
 
-    Execute the executable file (which is searched for along $PATH)
-    with argument list args and environment env, replacing the current
-    process. """
-    env = args[-1]
-    execvpe(file, args[:-1], env)
+        Execute the executable file (which is searched for along $PATH)
+        with argument list args and environment env, replacing the current
+        process. """
+        env = args[-1]
+        execvpe(file, args[:-1], env)
 
-def execvp(file, args):
-    """execvp(file, args)
+    def execvp(file, args):
+        """execvp(file, args)
 
-    Execute the executable file (which is searched for along $PATH)
-    with argument list args, replacing the current process.
-    args may be a list or tuple of strings. """
-    _execvpe(file, args)
+        Execute the executable file (which is searched for along $PATH)
+        with argument list args, replacing the current process.
+        args may be a list or tuple of strings. """
+        _execvpe(file, args)
 
-def execvpe(file, args, env):
-    """execvpe(file, args, env)
+    def execvpe(file, args, env):
+        """execvpe(file, args, env)
 
-    Execute the executable file (which is searched for along $PATH)
-    with argument list args and environment env , replacing the
-    current process.
-    args may be a list or tuple of strings. """
-    _execvpe(file, args, env)
+        Execute the executable file (which is searched for along $PATH)
+        with argument list args and environment env , replacing the
+        current process.
+        args may be a list or tuple of strings. """
+        _execvpe(file, args, env)
 
-__all__.extend(["execl","execle","execlp","execlpe","execvp","execvpe"])
+    __all__.extend(["execl","execle","execlp","execlpe","execvp","execvpe"])
 
-def _execvpe(file, args, env=None):
-    if env is not None:
-        exec_func = execve
-        argrest = (args, env)
-    else:
-        exec_func = execv
-        argrest = (args,)
-        env = environ
+    def _execvpe(file, args, env=None):
+        if env is not None:
+            exec_func = execve
+            argrest = (args, env)
+        else:
+            exec_func = execv
+            argrest = (args,)
+            env = environ
 
-    head, tail = path.split(file)
-    if head:
-        exec_func(file, *argrest)
-        return
-    last_exc = saved_exc = None
-    saved_tb = None
-    path_list = get_exec_path(env)
-    if name != 'nt':
-        file = fsencode(file)
-        path_list = map(fsencode, path_list)
-    for dir in path_list:
-        fullname = path.join(dir, file)
-        try:
-            exec_func(fullname, *argrest)
-        except OSError as e:
-            last_exc = e
-            tb = sys.exc_info()[2]
-            if (e.errno != errno.ENOENT and e.errno != errno.ENOTDIR
-                and saved_exc is None):
-                saved_exc = e
-                saved_tb = tb
-    if saved_exc:
-        raise saved_exc.with_traceback(saved_tb)
-    raise last_exc.with_traceback(tb)
+        head, tail = path.split(file)
+        if head:
+            exec_func(file, *argrest)
+            return
+        last_exc = saved_exc = None
+        saved_tb = None
+        path_list = get_exec_path(env)
+        if name != 'nt':
+            file = fsencode(file)
+            path_list = map(fsencode, path_list)
+        for dir in path_list:
+            fullname = path.join(dir, file)
+            try:
+                exec_func(fullname, *argrest)
+            except OSError as e:
+                last_exc = e
+                tb = sys.exc_info()[2]
+                if (e.errno != errno.ENOENT and e.errno != errno.ENOTDIR
+                    and saved_exc is None):
+                    saved_exc = e
+                    saved_tb = tb
+        if saved_exc:
+            raise saved_exc.with_traceback(saved_tb)
+        raise last_exc.with_traceback(tb)
 
 
 def get_exec_path(env=None):
@@ -1017,27 +997,30 @@ otherwise return -SIG, where SIG is the signal that killed it. """
     __all__.extend(["spawnlp", "spawnlpe"])
 
 
-# Supply os.popen()
-def popen(cmd, mode="r", buffering=-1):
-    if not isinstance(cmd, str):
-        raise TypeError("invalid cmd type (%s, expected string)" % type(cmd))
-    if mode not in ("r", "w"):
-        raise ValueError("invalid mode %r" % mode)
-    if buffering == 0 or buffering is None:
-        raise ValueError("popen() does not support unbuffered streams")
-    import subprocess, io
-    if mode == "r":
-        proc = subprocess.Popen(cmd,
-                                shell=True,
-                                stdout=subprocess.PIPE,
-                                bufsize=buffering)
-        return _wrap_close(io.TextIOWrapper(proc.stdout), proc)
-    else:
-        proc = subprocess.Popen(cmd,
-                                shell=True,
-                                stdin=subprocess.PIPE,
-                                bufsize=buffering)
-        return _wrap_close(io.TextIOWrapper(proc.stdin), proc)
+if name != 'uwp_os':
+    # Supply os.popen()
+    def popen(cmd, mode="r", buffering=-1):
+        if not isinstance(cmd, str):
+            raise TypeError("invalid cmd type (%s, expected string)" % type(cmd))
+        if mode not in ("r", "w"):
+            raise ValueError("invalid mode %r" % mode)
+        if buffering == 0 or buffering is None:
+            raise ValueError("popen() does not support unbuffered streams")
+        import subprocess, io
+        if mode == "r":
+            proc = subprocess.Popen(cmd,
+                                    shell=True,
+                                    stdout=subprocess.PIPE,
+                                    bufsize=buffering)
+            return _wrap_close(io.TextIOWrapper(proc.stdout), proc)
+        else:
+            proc = subprocess.Popen(cmd,
+                                    shell=True,
+                                    stdin=subprocess.PIPE,
+                                    bufsize=buffering)
+            return _wrap_close(io.TextIOWrapper(proc.stdin), proc)
+
+    __all__.extend(["popen"])
 
 # Helper for popen() -- a proxy for a file whose close waits for the process
 class _wrap_close:

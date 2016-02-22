@@ -15,7 +15,11 @@ from contextlib import ExitStack
 from test import support
 from test.support import TESTFN
 from os.path import splitdrive
-from distutils.spawn import find_executable, spawn
+try:
+    from distutils.spawn import find_executable, spawn
+except:
+    def find_executable(*args, **kwargs):
+        return False
 from shutil import (_make_tarball, _make_zipfile, make_archive,
                     register_archive_format, unregister_archive_format,
                     get_archive_formats, Error, unpack_archive,
@@ -1399,7 +1403,7 @@ class TestWhich(unittest.TestCase):
         base_dir = os.path.dirname(self.dir)
         with support.change_cwd(path=self.dir):
             rv = shutil.which(self.file, path=base_dir)
-            if sys.platform == "win32":
+            if sys.platform == "win32" or sys.platform == "uwp":
                 # Windows: current directory implicitly on PATH
                 self.assertEqual(rv, os.path.join(os.curdir, self.file))
             else:

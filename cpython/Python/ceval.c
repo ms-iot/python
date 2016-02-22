@@ -688,7 +688,11 @@ Py_MakePendingCalls(void)
 /* The interpreter's recursion limit */
 
 #ifndef Py_DEFAULT_RECURSION_LIMIT
+#ifndef MS_UWP
 #define Py_DEFAULT_RECURSION_LIMIT 1000
+#else
+#define Py_DEFAULT_RECURSION_LIMIT 500
+#endif
 #endif
 static int recursion_limit = Py_DEFAULT_RECURSION_LIMIT;
 int _Py_CheckRecursionLimit = Py_DEFAULT_RECURSION_LIMIT;

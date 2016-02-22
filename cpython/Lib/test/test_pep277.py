@@ -103,7 +103,7 @@ class UnicodeFileTests(unittest.TestCase):
             self._apply_failure(os.remove, name)
             self._apply_failure(os.listdir, name)
 
-    if sys.platform == 'win32':
+    if sys.platform == 'win32' or sys.platform == 'uwp':
         # Windows is lunatic. Issue #13366.
         _listdir_failure = NotADirectoryError, FileNotFoundError
     else:

@@ -21,6 +21,9 @@ except ImportError:
 from test import support
 from test.support import run_unittest, findfile, python_is_optimized
 
+if not hasattr(subprocess, 'Popen'):
+    raise unittest.SkipTest('test needs subprocess.Popen()')
+
 try:
     gdb_version, _ = subprocess.Popen(["gdb", "-nx", "--version"],
                                       stdout=subprocess.PIPE).communicate()

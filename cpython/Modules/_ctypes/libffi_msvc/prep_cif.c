@@ -151,7 +151,7 @@ ffi_status ffi_prep_cif(/*@out@*/ /*@partial@*/ ffi_cif *cif,
       else
 #endif
 	{
-#if !defined(_MSC_VER) && !defined(__MINGW32__)
+#if (!defined(_MSC_VER) && !defined(__MINGW32__)) || defined(ARM)
 		/* Don't know if this is a libffi bug or not.  At least on
 		   Windows with MSVC, function call parameters are *not*
 		   aligned in the same way as structure fields are, they are

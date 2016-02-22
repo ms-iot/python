@@ -318,6 +318,7 @@ static CThunkObject* CThunkObject_new(Py_ssize_t nArgs)
     memset(&p->cif, 0, sizeof(p->cif));
     p->converters = NULL;
     p->callable = NULL;
+    p->restype = NULL;
     p->setfunc = NULL;
     p->ffi_restype = NULL;
 

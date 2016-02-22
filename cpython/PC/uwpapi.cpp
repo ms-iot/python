@@ -3,9 +3,14 @@
 #ifdef MS_UWP
 
 #include <Windows.h>
+#include <ppltasks.h>
+#include <string>
+#include <locale>
+#include <codecvt>
 
 #define X509_ASN_ENC "x509_asn"
 
+using namespace concurrency;
 using namespace Platform;
 using namespace Windows::ApplicationModel;
 using namespace Windows::System::UserProfile;
@@ -83,7 +88,8 @@ extern "C" {
             set_item(d, L"APPDATA", [] { return ApplicationData::Current->RoamingFolder->Path; }) &&
             set_item(d, L"LOCALAPPDATA", [] { return ApplicationData::Current->LocalFolder->Path; }) &&
             set_item(d, L"TEMP", [] { return ApplicationData::Current->TemporaryFolder->Path; }) &&
-            set_item(d, L"TMP", [] { return ApplicationData::Current->TemporaryFolder->Path; })
+            set_item(d, L"TMP", [] { return ApplicationData::Current->TemporaryFolder->Path; }) &&
+            set_item(d, L"PATH", [] { return ref new String(); })
             )
             return d;
 
@@ -91,13 +97,24 @@ extern "C" {
         return nullptr;
     }
 
-    PyObject * uwp_enumcertificates()
+    PyObject * uwp_enumcertificates(const char *store_name)
     {
         PyObject *result = NULL;
         PyObject *keyusage = NULL, *cert = NULL, *enc = NULL, *tup = NULL;
-        auto asyncResult = CertificateStores::FindAllAsync();
-        auto certs = asyncResult->GetResults();
+        
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+        auto wStoreName = ref new Platform::String(converter.from_bytes(std::string(store_name)).c_str());
 
+        if (wStoreName->IsEmpty())
+        {
+            // Empty string return invalid args.
+            return PyErr_SetFromWindowsErr(ERROR_INVALID_PARAMETER);
+        }
+
+        auto certQuery = ref new CertificateQuery();
+        certQuery->StoreName = wStoreName;
+        auto certs = concurrency::create_task(CertificateStores::FindAllAsync(certQuery)).get();
+        
         result = PyList_New(0);
         if (result == NULL)
         {
@@ -148,7 +165,7 @@ extern "C" {
 
             PyTuple_SET_ITEM(tup, 1, enc);
 
-            PyTuple_SET_ITEM(tup, 1, keyusage);
+            PyTuple_SET_ITEM(tup, 2, keyusage);
 
             PyList_Append(result, tup);
 

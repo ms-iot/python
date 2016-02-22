@@ -924,15 +924,11 @@ PyDoc_STRVAR(perf_counter_doc,
 \n\
 Performance counter for benchmarking.");
 
+#ifndef MS_UWP
 static PyObject*
 py_process_time(_Py_clock_info_t *info)
 {
 #if defined(MS_WINDOWS)
-#ifdef MS_UWP
-    PyErr_SetString(PyExc_NotImplementedError,
-        "Process times are not available in UWP apps");
-    return NULL;
-#else
     HANDLE process;
     FILETIME creation_time, exit_time, kernel_time, user_time;
     ULARGE_INTEGER large;
@@ -957,7 +953,6 @@ py_process_time(_Py_clock_info_t *info)
         info->adjustable = 0;
     }
     return PyFloat_FromDouble(total * 1e-7);
-#endif
 #else
 
 #if defined(HAVE_SYS_RESOURCE_H)
@@ -1053,7 +1048,7 @@ PyDoc_STRVAR(process_time_doc,
 "process_time() -> float\n\
 \n\
 Process time for profiling: sum of the kernel and user-space CPU time.");
-
+#endif
 
 static PyObject *
 time_get_clock_info(PyObject *self, PyObject *args)
@@ -1087,8 +1082,10 @@ time_get_clock_info(PyObject *self, PyObject *args)
         obj = pymonotonic(&info);
     else if (strcmp(name, "perf_counter") == 0)
         obj = perf_counter(&info);
+#ifndef MS_UWP
     else if (strcmp(name, "process_time") == 0)
         obj = py_process_time(&info);
+#endif
     else {
         PyErr_SetString(PyExc_ValueError, "unknown clock");
         return NULL;
@@ -1277,7 +1274,9 @@ static PyMethodDef time_methods[] = {
     {"tzset",           time_tzset, METH_NOARGS, tzset_doc},
 #endif
     {"monotonic",       time_monotonic, METH_NOARGS, monotonic_doc},
+#ifndef MS_UWP
     {"process_time",    time_process_time, METH_NOARGS, process_time_doc},
+#endif
     {"perf_counter",    time_perf_counter, METH_NOARGS, perf_counter_doc},
     {"get_clock_info",  time_get_clock_info, METH_VARARGS, get_clock_info_doc},
     {NULL,              NULL}           /* sentinel */

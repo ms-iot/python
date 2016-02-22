@@ -22,6 +22,13 @@ if os.name == 'nt':
     else:
         supports_symlinks = False
         _getfinalpathname = None
+elif os.name == 'uwp_os':
+    import uwp_os as nt
+    if sys.getwindowsversion()[:2] >= (6, 0):
+        from uwp_os import _getfinalpathname
+    else:
+        _getfinalpathname = None
+    supports_symlinks = False
 else:
     nt = None
 
@@ -113,7 +120,7 @@ class _WindowsFlavour(_Flavour):
     has_drv = True
     pathmod = ntpath
 
-    is_supported = (os.name == 'nt')
+    is_supported = (os.name == 'nt' or os.name == 'uwp_os')
 
     drive_letters = (
         set(chr(x) for x in range(ord('a'), ord('z') + 1)) |
@@ -262,7 +269,7 @@ class _PosixFlavour(_Flavour):
     has_drv = False
     pathmod = posixpath
 
-    is_supported = (os.name != 'nt')
+    is_supported = (os.name != 'nt' and os.name != 'uwp_os')
 
     def splitroot(self, part, sep=sep):
         if part and part[0] == sep:
@@ -605,7 +612,7 @@ class PurePath(object):
         new PurePath object.
         """
         if cls is PurePath:
-            cls = PureWindowsPath if os.name == 'nt' else PurePosixPath
+            cls = PureWindowsPath if os.name == 'nt' or os.name == 'uwp_os' else PurePosixPath
         return cls._from_parts(args)
 
     def __reduce__(self):
@@ -952,7 +959,7 @@ class Path(PurePath):
 
     def __new__(cls, *args, **kwargs):
         if cls is Path:
-            cls = WindowsPath if os.name == 'nt' else PosixPath
+            cls = WindowsPath if os.name == 'nt'  or os.name == 'uwp_os'else PosixPath
         self = cls._from_parts(args, init=False)
         if not self._flavour.is_supported:
             raise NotImplementedError("cannot instantiate %r on your system"

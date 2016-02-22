@@ -194,6 +194,8 @@ class BugsTestCase(unittest.TestCase):
         # The max stack depth should match the value in Python/marshal.c.
         if os.name == 'nt' and hasattr(sys, 'gettotalrefcount'):
             MAX_MARSHAL_STACK_DEPTH = 1000
+        elif os.name == 'uwp_os':
+            MAX_MARSHAL_STACK_DEPTH = 500
         else:
             MAX_MARSHAL_STACK_DEPTH = 2000
         for i in range(MAX_MARSHAL_STACK_DEPTH - 2):

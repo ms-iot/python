@@ -119,6 +119,7 @@ class CompileallTests(unittest.TestCase):
         compileall.compile_dir(self.directory, quiet=True, workers=5)
         self.assertTrue(pool_mock.called)
 
+    @skipUnless(_have_multiprocessing, "requires multiprocessing")
     def test_compile_workers_non_positive(self):
         with self.assertRaisesRegex(ValueError,
                                     "workers must be greater or equal to 0"):

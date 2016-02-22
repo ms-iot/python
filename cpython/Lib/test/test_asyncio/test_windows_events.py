@@ -3,13 +3,16 @@ import sys
 import unittest
 from unittest import mock
 
-if sys.platform != 'win32':
+if sys.platform != 'win32' and sys.platform != 'uwp':
     raise unittest.SkipTest('Windows only')
 
 import _winapi
 
 import asyncio
-from asyncio import _overlapped
+try:
+    from asyncio import _overlapped
+except ImportError:
+    _overlapped = None
 from asyncio import test_utils
 from asyncio import windows_events
 
@@ -28,6 +31,7 @@ class UpperProto(asyncio.Protocol):
             self.trans.close()
 
 
+@unittest.skipUnless(hasattr(asyncio, "ProactorEventLoop"), "requires asyncio.ProactorEventLoop")
 class ProactorTests(test_utils.TestCase):
 
     def setUp(self):

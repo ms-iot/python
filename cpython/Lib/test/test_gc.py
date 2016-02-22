@@ -632,6 +632,8 @@ class GCTests(unittest.TestCase):
     @cpython_only
     def test_garbage_at_shutdown(self):
         import subprocess
+        if not hasattr(subprocess, 'Popen'):
+            raise unittest.SkipTest('test needs subprocess.Popen()')
         code = """if 1:
             import gc
             import _testcapi
