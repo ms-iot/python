@@ -1,0 +1,139 @@
+#include "pch.h"
+#include "event.h"
+#include "Types.h"
+
+using namespace Microsoft::WRL;
+using namespace Windows::Foundation;
+using namespace Windows::ApplicationModel::AppService;
+
+namespace PyAppServiceRequest
+{
+    typedef AppServiceRequest thisType;
+#pragma region getset
+
+    static PyObject * Message(PyObject *obj, void *closure)
+    {
+        PyObject* const FailureValue = NULL;
+        return ExceptionGuard([=]
+        {
+            PyWinRTObject *self = reinterpret_cast<PyWinRTObject*>(obj);
+            auto thisObj = Platform_cast<thisType>(self->pInspectable);
+            auto retval = PyDict_FromPlatformValueSet(thisObj->Message);
+            return retval.Detach();
+        }, FailureValue);
+    }
+
+    static PyGetSetDef getset[] = {
+        { "Message",
+        (getter)Message, NULL,
+        "Gets the message that request from the app service contains.",
+        NULL },
+        { NULL }  /* Sentinel */
+    };
+
+#pragma endregion getset
+
+#pragma region methods
+    PyDoc_STRVAR(SendResponse_doc, "Sends a response to a received request.");
+    static PyObject * SendResponse(PyObject *obj, PyObject *args)
+    {
+        PyObject* const FailureValue = NULL;
+        return ExceptionGuard([=]
+        {
+            PyObject* dict;
+            if (!PyArg_ParseTuple(args, "O", &dict))
+                return FailureValue;
+
+            auto valueSet = PyDict_ToValueSet(dict);
+            PyWinRTObject *self = reinterpret_cast<PyWinRTObject*>(obj);
+            auto thisObj = Platform_cast<thisType>(self->pInspectable);
+            AppServiceResponseStatus response;
+            {
+                AllowThreadsContext context;
+                response = concurrency::create_task(thisObj->SendResponseAsync(valueSet)).get();
+            }
+
+            auto appServiceResponseStatus_type = GetTypeFromModule("WinRT.ApplicationModel.AppService", "AppServiceResponseStatus");
+            return PyObject_CallFunction((PyObject*)appServiceResponseStatus_type, "i", static_cast<int>(response));
+        }, FailureValue);
+    }
+
+    static PyMethodDef methods[] = {
+        { "_CreateFromIInspectable", WinRTHelper<thisType>::CreateFromInspectable, METH_CLASS | METH_VARARGS, NULL },
+        { "SendResponse", SendResponse, METH_VARARGS, SendResponse_doc },
+        { NULL, NULL },
+    };
+
+#pragma endregion methods
+
+    static const char type_name[] = "WinRT.ApplicationModel.AppService.AppServiceRequest";
+    static const char docstring[] = "Provides data for the AppServiceConnection.RequestReceived event that occurs when a message arrives from the other endpoint of the app service connection.";
+
+    PyTypeObject Type = {
+        PyVarObject_HEAD_INIT(NULL, 0)
+        type_name,                                                      /* tp_name */
+        sizeof(PyWinRTObject),                                          /* tp_basicsize */
+        0,                                                              /* tp_itemsize */
+        0,                                                              /* tp_dealloc */
+        0,                                                              /* tp_print */
+        0,                                                              /* tp_getattr */
+        0,                                                              /* tp_setattr */
+        0,                                                              /* tp_reserved */
+        0,                                                              /* tp_repr */
+        0,                                                              /* tp_as_number */
+        0,                                                              /* tp_as_sequence */
+        0,                                                              /* tp_as_mapping */
+        0,                                                              /* tp_hash  */
+        0,                                                              /* tp_call */
+        0,                                                              /* tp_str */
+        0,                                                              /* tp_getattro */
+        0,                                                              /* tp_setattro */
+        0,                                                              /* tp_as_buffer */
+        Py_TPFLAGS_DEFAULT,                                             /* tp_flags */
+        docstring,                                                      /* tp_doc */
+        0,                                                              /* tp_traverse */
+        0,                                                              /* tp_clear */
+        0,                                                              /* tp_richcompare */
+        0,                                                              /* tp_weaklistoffset */
+        0,                                                              /* tp_iter */
+        0,                                                              /* tp_iternext */
+        methods,                                                        /* tp_methods */
+        0,                                                              /* tp_members */
+        getset,                                                         /* tp_getset */
+        0,                                                              /* tp_base */
+        0,                                                              /* tp_dict */
+        0,                                                              /* tp_descr_get */
+        0,                                                              /* tp_descr_set */
+        0,                                                              /* tp_dictoffset */
+        0,                                                              /* tp_init */
+        0,                                                              /* tp_alloc */
+        0,                                                              /* tp_new */
+    };
+
+    static PyTypeObject* ReadyType()
+    {
+        Py_TYPE(&Type) = &PyType_Type;
+        auto winrt_object_type = GetTypeFromModule("WinRT", "Object");
+
+        Type.tp_base = winrt_object_type;
+        Type.tp_bases = PyTuple_Pack(1, winrt_object_type);
+
+        if (PyType_Ready(&Type) < 0)
+        {
+            return NULL;
+        }
+
+        return &Type;
+    }
+}
+
+PyTypeObject* GetAppServiceRequest_Type()
+{
+    static PyTypeObject* type;
+    if (!type)
+    {
+        type = PyAppServiceRequest::ReadyType();
+    }
+
+    return type;
+}

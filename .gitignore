@@ -186,6 +186,7 @@ FakesAssemblies/
 
 # Python work
 lib.zip
+WinRTExtension.zip
 cpython/Tools/pyuwp/uwp/
 Generated Files/
 cpython/PC/pythonnt_rc*.h
@@ -196,6 +197,7 @@ cpython/externals/
 wini2c/uwp/8.2/
 wingpio/uwp/
 winspi/uwp/
+extensions/winrt/uwp/
 
 uwp/8.2/
 

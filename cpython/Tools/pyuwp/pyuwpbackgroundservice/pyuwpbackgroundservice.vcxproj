@@ -308,6 +308,7 @@
   </ItemGroup>
   <PropertyGroup>
     <PythonLibRootFolder>..\..\..\Lib</PythonLibRootFolder>
+    <WinRTExtensionRootFolder>..\..\..\..\extensions\winrt\WinRTExtension</WinRTExtensionRootFolder>
   </PropertyGroup>
   <ItemGroup>
     <ExcludeLibFilters Include="$(PythonLibRootFolder)\**\__pycache__\**" />
@@ -364,6 +365,12 @@
     </ProjectReference>
     <ProjectReference Include="..\ptvsdhelper\_ptvsdhelper.vcxproj">
       <Project>{18a52e7c-6207-43fc-879b-0dd7952967a2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\extensions\winrt\_winrt\_winrt.vcxproj">
+      <Project>{7FD68D21-0C9C-40F0-9CAB-1722FD21C93D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\extensions\winrt\_app_service\_app_service.vcxproj">
+      <Project>{1DA495F1-E72D-4901-83D8-6B0BE785C9EF}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
@@ -432,6 +439,7 @@
     </Task>
   </UsingTask>
   <Target Name="CopyLibs">
+    <!-- Standard libraries -->
     <ItemGroup>
       <PythonLibFiles Include="$(PythonLibRootFolder)\**" />
       <PythonLibFiles Remove="@(ExcludeLibFilters)" />
@@ -442,6 +450,13 @@
     <MakeDir Directories="$(ProjectDir)\PythonHome\Include" />
     <Copy SourceFiles="..\..\..\PC\pyconfig.h" DestinationFolder="$(ProjectDir)\PythonHome\Include" />
 
+    <!-- WinRT extension -->
+    <ItemGroup>
+      <WinRTExtensionFiles Include="$(WinRTExtensionRootFolder)\**" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(WinRTExtensionFiles)" DestinationFolder="$(ProjectDir)\PythonHome\WinRTExtension\%(RecursiveDir)" />
+
     <ItemGroup>
         <None Include="PythonHome\**">
           <DeploymentContent>true</DeploymentContent>
@@ -451,5 +466,6 @@
   </Target>
   <Target Name="BuildLibs" DependsOnTargets="CopyLibs" BeforeTargets="ClCompile">
     <Zip InputDirectory="$(ProjectDir)\PythonHome\Lib" OutputFileName="$(ProjectDir)\lib.zip" OverwriteExistingFile="true" />
+    <Zip InputDirectory="$(ProjectDir)\PythonHome\WinRTExtension" OutputFileName="$(ProjectDir)\WinRTExtension.zip" OverwriteExistingFile="true" />
   </Target>
 </Project>

@@ -69,6 +69,10 @@
       <Link>Redist\Retail\x86\Python35.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="$(InputDir)\Win32\_app_service.pyd">
+      <Link>Redist\Retail\x86\PythonHome\DLLs\_app_service.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="$(InputDir)\Win32\_bz2.pyd">
       <Link>Redist\Retail\x86\PythonHome\DLLs\_bz2.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -93,6 +97,10 @@
       <Link>Redist\Retail\x86\PythonHome\DLLs\_ssl.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="$(InputDir)\Win32\_winrt.pyd">
+      <Link>Redist\Retail\x86\PythonHome\DLLs\_winrt.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="$(InputDir)\Win32\pyexpat.pyd">
       <Link>Redist\Retail\x86\PythonHome\DLLs\pyexpat.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -111,6 +119,10 @@
     </Content>
     <Content Include="$(InputDir)\Win32\Python35_d.dll">
       <Link>Redist\Debug\x86\Python35_d.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\Win32\_app_service_d.pyd">
+      <Link>Redist\Debug\x86\PythonHome\DLLs\_app_service.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\Win32\_bz2_d.pyd">
@@ -137,6 +149,10 @@
       <Link>Redist\Debug\x86\PythonHome\DLLs\_ssl.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="$(InputDir)\Win32\_winrt_d.pyd">
+      <Link>Redist\Debug\x86\PythonHome\DLLs\_winrt.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="$(InputDir)\Win32\pyexpat_d.pyd">
       <Link>Redist\Debug\x86\PythonHome\DLLs\pyexpat.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -158,6 +174,10 @@
     -->
     <Content Include="$(InputDir)\amd64\Python35.dll">
       <Link>Redist\Retail\x64\Python35.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\_app_service.pyd">
+      <Link>Redist\Retail\x64\PythonHome\DLLs\_app_service.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\_bz2.pyd">
@@ -184,6 +204,10 @@
       <Link>Redist\Retail\x64\PythonHome\DLLs\_ssl.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="$(InputDir)\amd64\_winrt.pyd">
+      <Link>Redist\Retail\x64\PythonHome\DLLs\_winrt.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="$(InputDir)\amd64\pyexpat.pyd">
       <Link>Redist\Retail\x64\PythonHome\DLLs\pyexpat.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -198,6 +222,10 @@
     </Content>
     <Content Include="$(InputDir)\amd64\Python35_d.dll">
       <Link>Redist\Debug\x64\Python35_d.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\_app_service_d.pyd">
+      <Link>Redist\Debug\x64\PythonHome\DLLs\_app_service.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\_bz2_d.pyd">
@@ -222,6 +250,10 @@
     </Content>
     <Content Include="$(InputDir)\amd64\_ssl_d.pyd">
       <Link>Redist\Debug\x64\PythonHome\DLLs\_ssl.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\amd64\_winrt_d.pyd">
+      <Link>Redist\Debug\x64\PythonHome\DLLs\_winrt.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\amd64\pyexpat_d.pyd">
@@ -251,6 +283,10 @@
       <Link>Redist\Retail\arm\Python35.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="$(InputDir)\arm\_app_service.pyd">
+      <Link>Redist\Retail\arm\PythonHome\DLLs\_app_service.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="$(InputDir)\arm\_bz2.pyd">
       <Link>Redist\Retail\arm\PythonHome\DLLs\_bz2.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -275,6 +311,10 @@
       <Link>Redist\Retail\arm\PythonHome\DLLs\_ssl.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="$(InputDir)\arm\_winrt.pyd">
+      <Link>Redist\Retail\arm\PythonHome\DLLs\_winrt.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="$(InputDir)\arm\pyexpat.pyd">
       <Link>Redist\Retail\arm\PythonHome\DLLs\pyexpat.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -289,6 +329,10 @@
     </Content>
     <Content Include="$(InputDir)\arm\Python35_d.dll">
       <Link>Redist\Debug\arm\Python35_d.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\arm\_app_service_d.pyd">
+      <Link>Redist\Debug\arm\PythonHome\DLLs\_app_service.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="$(InputDir)\arm\_bz2_d.pyd">
@@ -315,6 +359,10 @@
       <Link>Redist\Debug\arm\PythonHome\DLLs\_ssl.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <Content Include="$(InputDir)\arm\_winrt_d.pyd">
+      <Link>Redist\Debug\arm\PythonHome\DLLs\_winrt.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="$(InputDir)\arm\pyexpat_d.pyd">
       <Link>Redist\Debug\arm\PythonHome\DLLs\pyexpat.pyd</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -338,6 +386,10 @@
     <!-- Neutral -->
     <Content Include="..\pyuwpbackgroundservice\lib.zip">
       <Link>References\CommonConfiguration\Neutral\PythonHome\lib.zip</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\pyuwpbackgroundservice\WinRTExtension.zip">
+      <Link>References\CommonConfiguration\Neutral\PythonHome\WinRTExtension.zip</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="..\pyuwpbackgroundservice\Assets\Logo.scale-100.png">
