@@ -206,6 +206,8 @@ msvcrt_get_osfhandle_impl(PyModuleDef *module, int fd)
     return handle;
 }
 
+#if !defined(MS_UWP)
+
 /* Console I/O */
 /*[clinic input]
 msvcrt.kbhit -> long
@@ -236,19 +238,12 @@ static int
 msvcrt_getch_impl(PyModuleDef *module)
 /*[clinic end generated code: output=199e3d89f49c166a input=37a40cf0ed0d1153]*/
 {
-#ifndef MS_UWP
     int ch;
-#endif
 
-#ifdef MS_UWP
-    PyErr_SetString(PyExc_NotImplementedError, "Not supported in UWP Apps");
-    return NULL;
-#else
     Py_BEGIN_ALLOW_THREADS
     ch = _getch();
     Py_END_ALLOW_THREADS
     return ch;
-#endif
 }
 
 /*[clinic input]
@@ -279,19 +274,12 @@ static int
 msvcrt_getche_impl(PyModuleDef *module)
 /*[clinic end generated code: output=8aa369be6550068e input=43311ade9ed4a9c0]*/
 {
-#ifndef MS_UWP
     int ch;
-#endif
 
-#ifdef MS_UWP
-    PyErr_SetString(PyExc_NotImplementedError, "Not supported in UWP Apps");
-    return NULL;
-#else
     Py_BEGIN_ALLOW_THREADS
     ch = _getche();
     Py_END_ALLOW_THREADS
     return ch;
-#endif
 }
 
 /*[clinic input]
@@ -364,15 +352,9 @@ static PyObject *
 msvcrt_ungetch_impl(PyModuleDef *module, char char_value)
 /*[clinic end generated code: output=19a4cd3249709ec9 input=22f07ee9001bbf0f]*/
 {
-
-#ifdef MS_UWP
-    PyErr_SetString(PyExc_NotImplementedError, "Not supported in UWP Apps");
-    return NULL;
-#else
     if (_ungetch(char_value) == EOF)
         return PyErr_SetFromErrno(PyExc_IOError);
     Py_RETURN_NONE;
-#endif
 }
 
 /*[clinic input]
@@ -392,6 +374,8 @@ msvcrt_ungetwch_impl(PyModuleDef *module, int unicode_char)
         return PyErr_SetFromErrno(PyExc_IOError);
     Py_RETURN_NONE;
 }
+
+#endif /* defined(MS_UWP) */
 
 #ifdef _DEBUG
 /*[clinic input]
@@ -470,7 +454,7 @@ msvcrt_SetErrorMode_impl(PyModuleDef *module, unsigned int mode)
 /*[clinic end generated code: output=544c60b085be79c6 input=d8b167258d32d907]*/
 {
 #ifndef MS_UWP
-	unsigned int res;
+    unsigned int res;
 #endif
 
 #ifdef MS_UWP
@@ -503,12 +487,11 @@ static struct PyMethodDef msvcrt_functions[] = {
     MSVCRT_CRTSETREPORTFILE_METHODDEF
     MSVCRT_CRTSETREPORTMODE_METHODDEF
     MSVCRT_SET_ERROR_MODE_METHODDEF
-#endif /* !MS_UWP */
     MSVCRT_GETWCH_METHODDEF
     MSVCRT_GETWCHE_METHODDEF
     MSVCRT_PUTWCH_METHODDEF
     MSVCRT_UNGETWCH_METHODDEF
-
+#endif /* !MS_UWP */
     {NULL,                      NULL}
 };
 

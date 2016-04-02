@@ -165,6 +165,8 @@ exit:
     return return_value;
 }
 
+#if !defined(MS_UWP)
+
 PyDoc_STRVAR(msvcrt_kbhit__doc__,
 "kbhit($module, /)\n"
 "--\n"
@@ -401,6 +403,8 @@ msvcrt_ungetwch(PyModuleDef *module, PyObject *arg)
 exit:
     return return_value;
 }
+
+#endif /* defined(MS_UWP) */
 
 #if defined(_DEBUG)
 
