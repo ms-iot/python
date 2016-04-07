@@ -1242,7 +1242,7 @@ static PyObject *format_error(PyObject *self, PyObject *args)
     if (lpMsgBuf) {
         result = PyUnicode_FromWideChar(lpMsgBuf, wcslen(lpMsgBuf));
 #ifdef MS_UWP
-		HeapFree(GetProcessHeap(), 0, lpMsgBuf);
+        HeapFree(GetProcessHeap(), 0, lpMsgBuf);
 #else
         LocalFree(lpMsgBuf);
 #endif

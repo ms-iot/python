@@ -493,7 +493,11 @@ PyErr_SetFromErrnoWithFilenameObjects(PyObject *exc, PyObject *filenameObject, P
                 MAKELANGID(LANG_NEUTRAL,
                            SUBLANG_DEFAULT),
                            /* Default language */
+#ifndef MS_UWP
                 (LPWSTR) &s_buf,
+#else
+                s_buf,
+#endif
                 s_buf_len,              /* size not used */
                 NULL);                  /* no args */
             if (len==0) {
@@ -590,7 +594,7 @@ PyObject *PyErr_SetExcFromWindowsErrWithFilenameObjects(
     PyObject *filenameObject2)
 {
     int len;
-#ifdef MS_UWP
+#ifndef MS_UWP
     const int s_buf_len = 0;
     WCHAR *s_buf = NULL; /* Free via LocalFree */
 #else
@@ -613,7 +617,11 @@ PyObject *PyErr_SetExcFromWindowsErrWithFilenameObjects(
         err,
         MAKELANGID(LANG_NEUTRAL,
         SUBLANG_DEFAULT), /* Default language */
+#ifndef MS_UWP
         (LPWSTR) &s_buf,
+#else
+        s_buf,
+#endif
         s_buf_len,
         NULL);          /* no args */
     if (len==0) {
