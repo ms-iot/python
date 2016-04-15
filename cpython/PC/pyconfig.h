@@ -90,7 +90,7 @@ WIN32 is still required for the locale module.
 #endif
 #ifndef PYTHONPATH
 #   ifdef MS_UWP
-#	    define PYTHONPATH L".\\DLLs;.\\lib;.\\lib.zip"
+#	    define PYTHONPATH L".\\DLLs;.\\lib;.\\lib.zip;.\\WinRTExtension;.\\WinRTExtension.zip"
 #   else
 #	    define PYTHONPATH L".\\DLLs;.\\lib"
 #   endif
