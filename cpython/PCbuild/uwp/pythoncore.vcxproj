@@ -92,6 +92,8 @@
       <EnableCOMDATFolding Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">false</EnableCOMDATFolding>
       <EnableCOMDATFolding Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</EnableCOMDATFolding>
       <EnableCOMDATFolding Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</EnableCOMDATFolding>
+      <EnableCOMDATFolding Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</EnableCOMDATFolding>
+      <EnableCOMDATFolding Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</EnableCOMDATFolding>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
