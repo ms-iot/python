@@ -109,6 +109,18 @@ if _os.name in ("nt", "ce", "uwp_os"):
     if _os.name == "ce":
         # 'ce' doesn't have the stdcall calling convention
         _FUNCFLAG_STDCALL = _FUNCFLAG_CDECL
+    if _os.name == "uwp_os":
+        # LoadLibrary in 'uwp_os' really calls LoadPackagedLibrary which requires
+        # a relative path to the app install directory.  
+        def make_dlopen_wrapper():
+            captured_dlopen = _dlopen
+            def _dlopen_wrapper(name, mode):
+                app_dir = _os.environ['InstallPath']
+                rel_path = _os.path.relpath(name, app_dir)
+                return captured_dlopen(rel_path, mode)
+            _dlopen_wrapper.__doc__ = captured_dlopen.__doc__
+            return _dlopen_wrapper
+        _dlopen = make_dlopen_wrapper()
 
     _win_functype_cache = {}
     def WINFUNCTYPE(restype, *argtypes, **kw):

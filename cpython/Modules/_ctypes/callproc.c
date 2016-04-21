@@ -1242,7 +1242,7 @@ static PyObject *format_error(PyObject *self, PyObject *args)
     if (lpMsgBuf) {
         result = PyUnicode_FromWideChar(lpMsgBuf, wcslen(lpMsgBuf));
 #ifdef MS_UWP
-		HeapFree(GetProcessHeap(), 0, lpMsgBuf);
+        HeapFree(GetProcessHeap(), 0, lpMsgBuf);
 #else
         LocalFree(lpMsgBuf);
 #endif
@@ -1251,19 +1251,6 @@ static PyObject *format_error(PyObject *self, PyObject *args)
     }
     return result;
 }
-
-#ifdef MS_UWP
-WINBASEAPI
-_Ret_maybenull_
-HMODULE
-WINAPI
-LoadLibraryExW(
-_In_ LPCWSTR lpLibFileName,
-_Reserved_ HANDLE hFile,
-_In_ DWORD dwFlags
-);
-#define LOAD_PACKAGED_LIBRARY 0x00000004
-#endif
 
 static char load_library_doc[] =
 "LoadLibrary(name) -> handle\n\
@@ -1285,7 +1272,7 @@ static PyObject *load_library(PyObject *self, PyObject *args)
         return NULL;
 
 #ifdef MS_UWP
-	hMod = LoadLibraryExW(name, 0, LOAD_PACKAGED_LIBRARY);
+    hMod = LoadPackagedLibrary(name, 0);
 #else
     hMod = LoadLibraryW(name);
 #endif
