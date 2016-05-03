@@ -118,14 +118,10 @@ extern "C" {
                 case GpioPinDriveMode::OutputOpenDrainPullUp:
                     if (value == PINVALUE_HIGH) {
                         pin->Write(GpioPinValue::High);
-                        ret = SUCCESS;
                     } else if (value == PINVALUE_LOW) {
                         pin->Write(GpioPinValue::Low);
-                        ret = SUCCESS;
-                    } else {
-                        PyErr_Format(PyExc_TypeError, "Invalid pin value specified for pin %d", pin->PinNumber);
                     }
-
+                    ret = SUCCESS;
                     break;
                 default:
                     PyErr_SetString(PyExc_TypeError, "Pin not setup for output");
