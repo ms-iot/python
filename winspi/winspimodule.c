@@ -109,12 +109,10 @@ winspi_spidevice_read(PySpiDeviceObject *self, PyObject *args, PyObject *kwargs)
 
     result = PyBytes_FromStringAndSize(NULL, count);
 
-    Py_BEGIN_ALLOW_THREADS
     if (FAILURE == read_spidevice(self->ob_device, PyBytes_AsString(result), count)) {
         Py_DECREF(result);
         result = NULL;
     }
-    Py_END_ALLOW_THREADS
 
     return result;
 }
@@ -143,9 +141,7 @@ winspi_spidevice_write(PySpiDeviceObject *self, PyObject *args, PyObject *kwargs
     if (bytes == NULL)
         return NULL;
 
-    Py_BEGIN_ALLOW_THREADS
     writeresult = write_spidevice(self->ob_device, PyBytes_AsString(bytes), PyBytes_Size(bytes));
-    Py_END_ALLOW_THREADS
 
     if (writeresult == FAILURE) {
         return NULL;
@@ -183,11 +179,9 @@ winspi_spidevice_transfer(PySpiDeviceObject *self, PyObject *args, PyObject *kwa
 
     result = PyBytes_FromStringAndSize(NULL, count);
 
-    Py_BEGIN_ALLOW_THREADS
     if (FAILURE == transferfullduplex_spidevice(self->ob_device, PyBytes_AsString(byteArray), PyBytes_Size(byteArray), PyBytes_AsString(result), count)) {
         result = NULL;
     }
-    Py_END_ALLOW_THREADS
 
     return result;
 }
@@ -221,11 +215,9 @@ winspi_spidevice_transfersequential(PySpiDeviceObject *self, PyObject *args, PyO
 
     result = PyBytes_FromStringAndSize(NULL, count);
 
-    Py_BEGIN_ALLOW_THREADS
     if (FAILURE == transfersequential_spidevice(self->ob_device, PyBytes_AsString(byteArray), PyBytes_Size(byteArray), PyBytes_AsString(result), count)) {
         result = NULL;
     }
-    Py_END_ALLOW_THREADS
 
     return result;
 }
@@ -242,11 +234,9 @@ winspi_spidevice_deviceid(PySpiDeviceObject *self, PyObject *args) {
     PyObject* result = NULL;
     VALIDATE_SPIDEVICE(self);
 
-    Py_BEGIN_ALLOW_THREADS
     if (SUCCESS == get_deviceid_spidevice(self->ob_device, id, _MAX_FNAME)) {
         result = PyUnicode_FromString(id);
     }
-    Py_END_ALLOW_THREADS
 
     return result;
 }
@@ -263,11 +253,9 @@ winspi_spidevice_chipselectline(PySpiDeviceObject *self, PyObject *args) {
     PyObject* result = NULL;
     VALIDATE_SPIDEVICE(self);
 
-    Py_BEGIN_ALLOW_THREADS
     if (SUCCESS == get_chipselectline_spidevice(self->ob_device, &val)) {
         result = PyLong_FromLong(val);
     }
-    Py_END_ALLOW_THREADS
 
     return result;
 }
@@ -284,11 +272,9 @@ winspi_spidevice_clockfrequency(PySpiDeviceObject *self, PyObject *args) {
     PyObject* result = NULL;
     VALIDATE_SPIDEVICE(self);
 
-    Py_BEGIN_ALLOW_THREADS
     if (SUCCESS == get_clockfrequency_spidevice(self->ob_device, &val)) {
         result = PyLong_FromLong(val);
     }
-    Py_END_ALLOW_THREADS
 
     return result;
 }
@@ -305,11 +291,9 @@ winspi_spidevice_databitlength(PySpiDeviceObject *self, PyObject *args) {
     PyObject* result = NULL;
     VALIDATE_SPIDEVICE(self);
 
-    Py_BEGIN_ALLOW_THREADS
     if (SUCCESS == get_databitlength_spidevice(self->ob_device, &val)) {
         result = PyLong_FromLong(val);
     }
-    Py_END_ALLOW_THREADS
 
     return result;
 }
@@ -326,11 +310,9 @@ winspi_spidevice_mode(PySpiDeviceObject *self, PyObject *args) {
     PyObject* result = NULL;
     VALIDATE_SPIDEVICE(self);
 
-    Py_BEGIN_ALLOW_THREADS
     if (SUCCESS == get_mode_spidevice(self->ob_device, &val)) {
         result = PyLong_FromLong(val);
     }
-    Py_END_ALLOW_THREADS
 
     return result;
 }
@@ -347,11 +329,9 @@ winspi_spidevice_sharingmode(PySpiDeviceObject *self, PyObject *args) {
     PyObject* result = NULL;
     VALIDATE_SPIDEVICE(self);
 
-    Py_BEGIN_ALLOW_THREADS
     if (SUCCESS == get_sharingmode_spidevice(self->ob_device, &val)) {
         result = PyLong_FromLong(val);
     }
-    Py_END_ALLOW_THREADS
 
     return result;
 }
@@ -368,11 +348,9 @@ winspi_spibusinfo_chipselectlinecount(PySpiBusInfoObject *self, PyObject *args) 
     PyObject* result = NULL;
     VALIDATE_SPIBUSINFO(self);
 
-    Py_BEGIN_ALLOW_THREADS;
     if (SUCCESS == get_chipselectlinecount_spibusinfo(self->ob_businfo, &val)) {
         result = PyLong_FromLong(val);
     }
-    Py_END_ALLOW_THREADS;
 
     return result;
 }
@@ -389,11 +367,9 @@ winspi_spibusinfo_maxclockfrequency(PySpiBusInfoObject *self, PyObject *args) {
     PyObject* result = NULL;
     VALIDATE_SPIBUSINFO(self);
 
-    Py_BEGIN_ALLOW_THREADS;
     if (SUCCESS == get_maxclockfrequency_spibusinfo(self->ob_businfo, &val)) {
         result = PyLong_FromLong(val);
     }
-    Py_END_ALLOW_THREADS;
 
     return result;
 }
@@ -410,11 +386,9 @@ winspi_spibusinfo_minclockfrequency(PySpiBusInfoObject *self, PyObject *args) {
     PyObject* result = NULL;
     VALIDATE_SPIBUSINFO(self);
 
-    Py_BEGIN_ALLOW_THREADS;
     if (SUCCESS == get_minclockfrequency_spibusinfo(self->ob_businfo, &val)) {
         result = PyLong_FromLong(val);
     }
-    Py_END_ALLOW_THREADS;
 
     return result;
 }
@@ -431,7 +405,6 @@ winspi_spibusinfo_supporteddatalengthbits(PySpiBusInfoObject *self, PyObject *ar
     PyObject* result = NULL;
     VALIDATE_SPIBUSINFO(self);
 
-    Py_BEGIN_ALLOW_THREADS;
     if (SUCCESS == get_supporteddatalengthbits_spibusinfo(self->ob_businfo, 0, NULL, &count)) {
         int* entries = (int*)malloc(sizeof(int) * count);
         if (entries != NULL) {
@@ -444,7 +417,6 @@ winspi_spibusinfo_supporteddatalengthbits(PySpiBusInfoObject *self, PyObject *ar
             }
         }
     }
-    Py_END_ALLOW_THREADS;
 
     return result;
 }
@@ -519,9 +491,7 @@ spidevice_init(PySpiDeviceObject *self, PyObject *args, PyObject *kwds)
         &shareMode))
         return -1;
 
-    Py_BEGIN_ALLOW_THREADS
     self->ob_device = new_spidevice(id, chipselectline, clockfrequency, databitlength, mode, shareMode);
-    Py_END_ALLOW_THREADS
     if (self->ob_device == NULL)
         return -1;
 
@@ -548,9 +518,7 @@ spibusinfo_init(PySpiDeviceObject *self, PyObject *args, PyObject *kwds)
 
     nameString = PyUnicode_AsWideCharString(name, NULL);
 
-    Py_BEGIN_ALLOW_THREADS
     self->ob_device = new_spibusinfo(nameString);
-    Py_END_ALLOW_THREADS
     if (self->ob_device == NULL)
         return -1;
 

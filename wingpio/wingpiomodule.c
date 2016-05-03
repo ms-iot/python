@@ -515,9 +515,7 @@ wingpio_add_event_detect(PyObject *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    Py_BEGIN_ALLOW_THREADS;
     ret = enable_event_detect_gpio_channel(channel, bouncetime, &token);
-    Py_END_ALLOW_THREADS;
 
     if (ret == FAILURE) {
         return NULL;
@@ -621,9 +619,7 @@ wingpio_remove_event_detect(PyObject *self, PyObject *args) {
         currentCallback = currentCallback->next;
     }
 
-    Py_BEGIN_ALLOW_THREADS;
     ret = disable_event_detect_gpio_channel(channel, handler->pin_event_token);
-    Py_END_ALLOW_THREADS;
 
     free(handler);
 
