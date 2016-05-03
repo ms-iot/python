@@ -99,8 +99,8 @@ static PyObject *
 winspi_spidevice_read(PySpiDeviceObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *kwlist[] = { "count", NULL };
-    int* count = 1;
-    PyBytesObject* result = NULL;
+    int count = 1;
+    PyObject* result = NULL;
 
     VALIDATE_SPIDEVICE(self);
 
@@ -131,7 +131,7 @@ winspi_spidevice_write(PySpiDeviceObject *self, PyObject *args, PyObject *kwargs
 {
     static char *kwlist[] = { "data", NULL };
     PyObject* data = NULL;
-    PyBytesObject* bytes = NULL;
+    PyObject* bytes = NULL;
     int writeresult = FAILURE;
 
     VALIDATE_SPIDEVICE(self);
@@ -160,7 +160,7 @@ PyDoc_STRVAR(transfer_doc,
     "Writes the bytes to the device and reads the expected number of bytes in full duplex\n"
     "\n"
     "bytes=Byte array to be written to the device\n"
-    "\n",
+    "\n"
     "count=Number of bytes expected to be read\n"
     );
 static PyObject *
@@ -168,9 +168,9 @@ winspi_spidevice_transfer(PySpiDeviceObject *self, PyObject *args, PyObject *kwa
 {
     static char *kwlist[] = { "data", "count", NULL };
     PyObject* data = NULL;
-    PyBytesObject* byteArray = NULL;
-    int* count = 1;
-    PyBytesObject* result = NULL;
+    PyObject* byteArray = NULL;
+    int count = 1;
+    PyObject* result = NULL;
 
     VALIDATE_SPIDEVICE(self);
 
@@ -198,7 +198,7 @@ PyDoc_STRVAR(transfersequential_doc,
     "Writes the bytes to the device and reads the expected number of bytes in sequential mode\n"
     "\n"
     "bytes=Byte array to be written to the device\n"
-    "\n",
+    "\n"
     "count=Number of bytes expected to be read\n"
     );
 static PyObject *
@@ -206,9 +206,9 @@ winspi_spidevice_transfersequential(PySpiDeviceObject *self, PyObject *args, PyO
 {
     static char *kwlist[] = { "data", "count", NULL };
     PyObject* data = NULL;
-    PyBytesObject* byteArray = NULL;
-    int* count = 1;
-    PyBytesObject* result = NULL;
+    PyObject* byteArray = NULL;
+    int count = 1;
+    PyObject* result = NULL;
 
     VALIDATE_SPIDEVICE(self);
 
@@ -243,7 +243,7 @@ winspi_spidevice_deviceid(PySpiDeviceObject *self, PyObject *args) {
     VALIDATE_SPIDEVICE(self);
 
     Py_BEGIN_ALLOW_THREADS
-    if (SUCCESS == get_deviceid_spidevice(self->ob_device, &id, _MAX_FNAME)) {
+    if (SUCCESS == get_deviceid_spidevice(self->ob_device, id, _MAX_FNAME)) {
         result = PyUnicode_FromString(id);
     }
     Py_END_ALLOW_THREADS
@@ -450,10 +450,10 @@ winspi_spibusinfo_supporteddatalengthbits(PySpiBusInfoObject *self, PyObject *ar
 }
 
 static PyMethodDef spidevice_methods[] = {
-    { "read", (PyCFunctionWithKeywords)winspi_spidevice_read, METH_VARARGS | METH_KEYWORDS, read_doc },
-    { "write", (PyCFunctionWithKeywords)winspi_spidevice_write, METH_VARARGS | METH_KEYWORDS, write_doc },
-    { "transfer", (PyCFunctionWithKeywords)winspi_spidevice_transfer, METH_VARARGS | METH_KEYWORDS, transfer_doc },
-    { "transfersequential", (PyCFunctionWithKeywords)winspi_spidevice_transfersequential, METH_VARARGS | METH_KEYWORDS, transfersequential_doc },
+    { "read", (PyCFunction)winspi_spidevice_read, METH_VARARGS | METH_KEYWORDS, read_doc },
+    { "write", (PyCFunction)winspi_spidevice_write, METH_VARARGS | METH_KEYWORDS, write_doc },
+    { "transfer", (PyCFunction)winspi_spidevice_transfer, METH_VARARGS | METH_KEYWORDS, transfer_doc },
+    { "transfersequential", (PyCFunction)winspi_spidevice_transfersequential, METH_VARARGS | METH_KEYWORDS, transfersequential_doc },
     { "deviceid", (PyCFunction)winspi_spidevice_deviceid, METH_NOARGS, deviceid_doc },
     { "chipselectline", (PyCFunction)winspi_spidevice_chipselectline, METH_NOARGS, csl_doc },
     { "clockfrequency", (PyCFunction)winspi_spidevice_clockfrequency, METH_NOARGS, clockfrequency_doc },
@@ -493,26 +493,25 @@ static PyTypeObject spibusinfo_type = {
 };
 
 PyDoc_STRVAR(spidevice_doc,
-    "spidevice(friendlyname, chipselectline, clockfrequency=<default>, databitlength=<default>, mode=MODE0, sharingmode=EXCLUSIVEMODE) -> spidevice\n"
+    "spidevice(id, chipselectline, clockfrequency=<default>, databitlength=<default>, mode=MODE0, sharingmode=EXCLUSIVEMODE) -> spidevice\n"
     "\n"
     "Creates a new instance of SPI device");
 static int
 spidevice_init(PySpiDeviceObject *self, PyObject *args, PyObject *kwds)
 {
-    static char *keywords[] = { "name", "chipselectline", "clockfrequency", "databitlength", "mode", "sharingmode", NULL };
-    PyObject *name = NULL, *tmp = NULL;
+    static char *keywords[] = { "id", "chipselectline", "clockfrequency", "databitlength", "mode", "sharingmode", NULL };
+    int id = 0;
     int chipselectline = 0;
     int clockfrequency = -1;
     int databitlength = -1;
     int mode = MODE0;
     int shareMode = EXCLUSIVEMODE;
-    wchar_t* nameString = NULL;
 
     if (!PyArg_ParseTupleAndKeywords(args,
         kwds,
-        "Oi|iiii:spidevice",
+        "ii|iiii:spidevice",
         keywords,
-        &name,
+        &id,
         &chipselectline,
         &clockfrequency,
         &databitlength,
@@ -520,10 +519,8 @@ spidevice_init(PySpiDeviceObject *self, PyObject *args, PyObject *kwds)
         &shareMode))
         return -1;
 
-    nameString = PyUnicode_AsWideCharString(name, NULL);
-
     Py_BEGIN_ALLOW_THREADS
-    self->ob_device = new_spidevice(nameString, chipselectline, clockfrequency, databitlength, mode, shareMode);
+    self->ob_device = new_spidevice(id, chipselectline, clockfrequency, databitlength, mode, shareMode);
     Py_END_ALLOW_THREADS
     if (self->ob_device == NULL)
         return -1;
@@ -564,6 +561,7 @@ PyMODINIT_FUNC
 PyInit__winspi(void)
 {
     PyObject *module = NULL;
+    int lightning_enabled;
 
     // Initialize the device type
     spidevice_type.tp_dealloc = (destructor)spidevice_dealloc;
@@ -600,11 +598,17 @@ PyInit__winspi(void)
     if ((module = PyModule_Create(&winspi_module)) == NULL)
         return NULL;
 
+    lightning_enabled = enable_lightning_if_available();
+
     Py_INCREF(&spidevice_type);
     PyModule_AddObject(module, "spidevice", (PyObject*)&spidevice_type);
-
-    Py_INCREF(&spibusinfo_type);
-    PyModule_AddObject(module, "spibusinfo", (PyObject*)&spibusinfo_type);
+    
+    if (lightning_enabled) {
+        // Lightning doesn't support spibusinfo
+    } else {
+        Py_INCREF(&spibusinfo_type);
+        PyModule_AddObject(module, "spibusinfo", (PyObject*)&spibusinfo_type);
+    }
 
     define_constants(module);
 
