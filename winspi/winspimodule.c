@@ -450,8 +450,8 @@ winspi_spibusinfo_supporteddatalengthbits(PySpiBusInfoObject *self, PyObject *ar
 }
 
 static PyMethodDef spidevice_methods[] = {
-	{ "read", (PyCFunctionWithKeywords)winspi_spidevice_read, METH_VARARGS | METH_KEYWORDS, read_doc },
-	{ "write", (PyCFunctionWithKeywords)winspi_spidevice_write, METH_VARARGS | METH_KEYWORDS, write_doc },
+    { "read", (PyCFunctionWithKeywords)winspi_spidevice_read, METH_VARARGS | METH_KEYWORDS, read_doc },
+    { "write", (PyCFunctionWithKeywords)winspi_spidevice_write, METH_VARARGS | METH_KEYWORDS, write_doc },
     { "transfer", (PyCFunctionWithKeywords)winspi_spidevice_transfer, METH_VARARGS | METH_KEYWORDS, transfer_doc },
     { "transfersequential", (PyCFunctionWithKeywords)winspi_spidevice_transfersequential, METH_VARARGS | METH_KEYWORDS, transfersequential_doc },
     { "deviceid", (PyCFunction)winspi_spidevice_deviceid, METH_NOARGS, deviceid_doc },
@@ -472,10 +472,10 @@ static PyMethodDef spibusinfo_methods[] = {
 };
 
 static struct PyModuleDef winspi_module = {
-	PyModuleDef_HEAD_INIT,
-	"_winspi",       // name of module
-	moduledocstring,  // module documentation, may be NULL
-	-1,               // size of per-interpreter state of the module, or -1 if the module keeps state in global variables.
+    PyModuleDef_HEAD_INIT,
+    "_winspi",       // name of module
+    moduledocstring,  // module documentation, may be NULL
+    -1,               // size of per-interpreter state of the module, or -1 if the module keeps state in global variables.
 };
 
 static PyTypeObject spidevice_type = {
@@ -563,7 +563,7 @@ spibusinfo_init(PySpiDeviceObject *self, PyObject *args, PyObject *kwds)
 PyMODINIT_FUNC
 PyInit__winspi(void)
 {
-	PyObject *module = NULL;
+    PyObject *module = NULL;
 
     // Initialize the device type
     spidevice_type.tp_dealloc = (destructor)spidevice_dealloc;
@@ -598,7 +598,7 @@ PyInit__winspi(void)
         return NULL;
 
     if ((module = PyModule_Create(&winspi_module)) == NULL)
-		return NULL;
+        return NULL;
 
     Py_INCREF(&spidevice_type);
     PyModule_AddObject(module, "spidevice", (PyObject*)&spidevice_type);
@@ -608,5 +608,5 @@ PyInit__winspi(void)
 
     define_constants(module);
 
-	return module;
+    return module;
 }

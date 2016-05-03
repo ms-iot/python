@@ -31,14 +31,14 @@ extern "C" {
             SpiConnectionSettings^ settings = ref new SpiConnectionSettings(chipSelectLine);
             String^ deviceName = ref new String(name);
             String^ querySyntax = SpiDevice::GetDeviceSelector(deviceName);
-			auto asyncop = DeviceInformation::FindAllAsync(querySyntax);
-			while (asyncop->Status != AsyncStatus::Completed) {
-				if (asyncop->Status == AsyncStatus::Error) {
-					PyErr_Format(PyExc_RuntimeError, "Could not find information for device '%S': %d", name, asyncop->ErrorCode);
-					return NULL;
-				}
-				Sleep(50);
-			}
+            auto asyncop = DeviceInformation::FindAllAsync(querySyntax);
+            while (asyncop->Status != AsyncStatus::Completed) {
+                if (asyncop->Status == AsyncStatus::Error) {
+                    PyErr_Format(PyExc_RuntimeError, "Could not find information for device '%S': %d", name, asyncop->ErrorCode);
+                    return NULL;
+                }
+                Sleep(50);
+            }
             auto info = asyncop->GetResults();
             if (info == nullptr || info->Size == 0) {
                 PyErr_Format(PyExc_RuntimeError, "Could not find information for device '%S'", name);
@@ -86,16 +86,16 @@ extern "C" {
                 return NULL;
             }
 
-			auto spideviceop = SpiDevice::FromIdAsync(id, settings);
-			while (spideviceop->Status != AsyncStatus::Completed) {
-				if (spideviceop->Status == AsyncStatus::Error) {
-					PyErr_Format(PyExc_RuntimeError, "Could get SPI device: %d", spideviceop->ErrorCode);
-					return NULL;
-				}
-				Sleep(50);
-			}
+            auto spideviceop = SpiDevice::FromIdAsync(id, settings);
+            while (spideviceop->Status != AsyncStatus::Completed) {
+                if (spideviceop->Status == AsyncStatus::Error) {
+                    PyErr_Format(PyExc_RuntimeError, "Could get SPI device: %d", spideviceop->ErrorCode);
+                    return NULL;
+                }
+                Sleep(50);
+            }
 
-			auto spidevice = spideviceop->GetResults();
+            auto spidevice = spideviceop->GetResults();
             if (spidevice == nullptr) {
                 PyErr_SetString(PyExc_RuntimeError, "Could not find SPI device specified");
                 return NULL;
@@ -115,15 +115,15 @@ extern "C" {
         try {
             String^ deviceName = ref new String(name);
             String^ querySyntax = SpiDevice::GetDeviceSelector(deviceName);
-			auto asyncop = DeviceInformation::FindAllAsync(querySyntax);
-			while (asyncop->Status != AsyncStatus::Completed) {
-				if (asyncop->Status == AsyncStatus::Error) {
-					PyErr_Format(PyExc_RuntimeError, "Could not find information for device '%S': %d", name, asyncop->ErrorCode);
-					return NULL;
-				}
-				Sleep(50);
-			}
-			auto info = asyncop->GetResults();
+            auto asyncop = DeviceInformation::FindAllAsync(querySyntax);
+            while (asyncop->Status != AsyncStatus::Completed) {
+                if (asyncop->Status == AsyncStatus::Error) {
+                    PyErr_Format(PyExc_RuntimeError, "Could not find information for device '%S': %d", name, asyncop->ErrorCode);
+                    return NULL;
+                }
+                Sleep(50);
+            }
+            auto info = asyncop->GetResults();
             if (info == nullptr || info->Size == 0) {
                 PyErr_Format(PyExc_RuntimeError, "Could not find information for device '%S'", name);
                 return NULL;
@@ -166,9 +166,9 @@ extern "C" {
         END_PYERR_EXCEPTION_WATCH
 
         return ret;
-	}
+    }
 
-	int read_spidevice(void *device, char* buffer, unsigned int length) {
+    int read_spidevice(void *device, char* buffer, unsigned int length) {
         int ret = FAILURE;
 
         BEGIN_PYERR_EXCEPTION_WATCH
@@ -179,32 +179,32 @@ extern "C" {
         END_PYERR_EXCEPTION_WATCH
 
         return ret;
-	}
+    }
 
-	int transfersequential_spidevice(void *device, char* data, unsigned int count, char* buffer, unsigned int length) {
+    int transfersequential_spidevice(void *device, char* data, unsigned int count, char* buffer, unsigned int length) {
         int ret = FAILURE;
 
         BEGIN_PYERR_EXCEPTION_WATCH
         SpiDevice^ deviceObj = SPIDEVICE_FROMPOINTER(device);
-		unsigned char* udata = reinterpret_cast<unsigned char*>(data);
-		unsigned char* ubuffer = reinterpret_cast<unsigned char*>(buffer);
+        unsigned char* udata = reinterpret_cast<unsigned char*>(data);
+        unsigned char* ubuffer = reinterpret_cast<unsigned char*>(buffer);
 
-		deviceObj->TransferSequential(ArrayReference<unsigned char>(udata, count), ArrayReference<unsigned char>(ubuffer, length));
+        deviceObj->TransferSequential(ArrayReference<unsigned char>(udata, count), ArrayReference<unsigned char>(ubuffer, length));
         ret = SUCCESS;
         END_PYERR_EXCEPTION_WATCH
 
         return ret;
     }
 
-	int transferfullduplex_spidevice(void *device, char* data, unsigned int count, char* buffer, unsigned int length) {
+    int transferfullduplex_spidevice(void *device, char* data, unsigned int count, char* buffer, unsigned int length) {
         int ret = FAILURE;
 
         BEGIN_PYERR_EXCEPTION_WATCH
-        SpiDevice^ deviceObj = SPIDEVICE_FROMPOINTER(device);
-		unsigned char* udata = reinterpret_cast<unsigned char*>(data);
-		unsigned char* ubuffer = reinterpret_cast<unsigned char*>(buffer);
+            SpiDevice^ deviceObj = SPIDEVICE_FROMPOINTER(device);
+        unsigned char* udata = reinterpret_cast<unsigned char*>(data);
+        unsigned char* ubuffer = reinterpret_cast<unsigned char*>(buffer);
 
-		deviceObj->TransferFullDuplex(ArrayReference<unsigned char>(udata, count), ArrayReference<unsigned char>(ubuffer, length));
+        deviceObj->TransferFullDuplex(ArrayReference<unsigned char>(udata, count), ArrayReference<unsigned char>(ubuffer, length));
         ret = SUCCESS;
         END_PYERR_EXCEPTION_WATCH
 

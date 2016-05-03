@@ -23,26 +23,26 @@ return FAILURE; \
 }
 
 extern "C" {
-	void *new_i2cdevice(wchar_t *name, int slaveAddress, int busSpeed, int sharingMode) {
-		ComPtr<IInspectable> spInspectable = nullptr;
+    void *new_i2cdevice(wchar_t *name, int slaveAddress, int busSpeed, int sharingMode) {
+        ComPtr<IInspectable> spInspectable = nullptr;
         try {
             I2cConnectionSettings^ settings = ref new I2cConnectionSettings(slaveAddress);
             String^ deviceName = ref new String(name);
             String^ querySyntax = I2cDevice::GetDeviceSelector(deviceName);
-			auto asyncop = DeviceInformation::FindAllAsync(querySyntax);
-			while (asyncop->Status != AsyncStatus::Completed) {
-				if (asyncop->Status == AsyncStatus::Error) {
-					PyErr_Format(PyExc_RuntimeError, "Could not find information for device '%S': %d", name, asyncop->ErrorCode);
-					return NULL;
-				}
-				Sleep(50);
-			}
-			auto info = asyncop->GetResults();
-			if (info == nullptr || info->Size == 0) {
-				PyErr_Format(PyExc_RuntimeError, "Could not find information for device '%S'", name);
-				return NULL;
-			}
-			String^ id = info->GetAt(0)->Id;
+            auto asyncop = DeviceInformation::FindAllAsync(querySyntax);
+            while (asyncop->Status != AsyncStatus::Completed) {
+                if (asyncop->Status == AsyncStatus::Error) {
+                    PyErr_Format(PyExc_RuntimeError, "Could not find information for device '%S': %d", name, asyncop->ErrorCode);
+                    return NULL;
+                }
+                Sleep(50);
+            }
+            auto info = asyncop->GetResults();
+            if (info == nullptr || info->Size == 0) {
+                PyErr_Format(PyExc_RuntimeError, "Could not find information for device '%S'", name);
+                return NULL;
+            }
+            String^ id = info->GetAt(0)->Id;
 
             switch (busSpeed)
             {
@@ -70,16 +70,16 @@ extern "C" {
                 return NULL;
             }
 
-			auto i2cop = I2cDevice::FromIdAsync(id, settings);
-			while (i2cop->Status != AsyncStatus::Completed) {
-				if (i2cop->Status == AsyncStatus::Error) {
-					PyErr_Format(PyExc_RuntimeError, "Could get I2C device: %d", i2cop->ErrorCode);
-					return NULL;
-				}
-				Sleep(50);
-			}
+            auto i2cop = I2cDevice::FromIdAsync(id, settings);
+            while (i2cop->Status != AsyncStatus::Completed) {
+                if (i2cop->Status == AsyncStatus::Error) {
+                    PyErr_Format(PyExc_RuntimeError, "Could get I2C device: %d", i2cop->ErrorCode);
+                    return NULL;
+                }
+                Sleep(50);
+            }
 
-			auto i2cdevice = i2cop->GetResults();
+            auto i2cdevice = i2cop->GetResults();
             if (i2cdevice == nullptr) {
                 PyErr_SetString(PyExc_RuntimeError, "Could not find I2C device specified");
                 return NULL;
@@ -91,57 +91,57 @@ extern "C" {
             return NULL;
         }
 
-		return spInspectable.Detach();
+        return spInspectable.Detach();
     }
 
-	void delete_i2cdevice(void *device) {
-		if (device != NULL) {
-			ComPtr<IInspectable> realDevice;
-			realDevice.Attach((IInspectable*)device);
-		}
-	}
-
-	int write_i2cdevice(void *device, char* data, unsigned int count) {
-        int ret = FAILURE;
-
-        BEGIN_PYERR_EXCEPTION_WATCH
-
-		I2cDevice^ i2cDevice = I2CDEVICE_FROMPOINTER(device);
-		unsigned char* udata = reinterpret_cast<unsigned char*>(data);
-		i2cDevice->Write(ArrayReference<unsigned char>(udata, count));
-        ret = SUCCESS;
-
-        END_PYERR_EXCEPTION_WATCH
-            
-        return ret;
-	}
-
-	int read_i2cdevice(void *device, char* buffer, unsigned int length) {
-        int ret = FAILURE;
-
-        BEGIN_PYERR_EXCEPTION_WATCH
-            
-        I2cDevice^ i2cDevice = I2CDEVICE_FROMPOINTER(device);
-		unsigned char* ubuffer = reinterpret_cast<unsigned char*>(buffer);
-
-		i2cDevice->Read(ArrayReference<unsigned char>(ubuffer, length));
-        ret = SUCCESS;
-
-        END_PYERR_EXCEPTION_WATCH
-
-        return ret;
+    void delete_i2cdevice(void *device) {
+        if (device != NULL) {
+            ComPtr<IInspectable> realDevice;
+            realDevice.Attach((IInspectable*)device);
+        }
     }
 
-	int writeread_i2cdevice(void *device, char* data, unsigned int count, char* buffer, unsigned int length) {
+    int write_i2cdevice(void *device, char* data, unsigned int count) {
         int ret = FAILURE;
 
         BEGIN_PYERR_EXCEPTION_WATCH
 
         I2cDevice^ i2cDevice = I2CDEVICE_FROMPOINTER(device);
-		unsigned char* udata = reinterpret_cast<unsigned char*>(data);
-		unsigned char* ubuffer = reinterpret_cast<unsigned char*>(buffer);
+        unsigned char* udata = reinterpret_cast<unsigned char*>(data);
+        i2cDevice->Write(ArrayReference<unsigned char>(udata, count));
+        ret = SUCCESS;
 
-		i2cDevice->WriteRead(ArrayReference<unsigned char>(udata, count), ArrayReference<unsigned char>(ubuffer, length));
+        END_PYERR_EXCEPTION_WATCH
+            
+        return ret;
+    }
+
+    int read_i2cdevice(void *device, char* buffer, unsigned int length) {
+        int ret = FAILURE;
+
+        BEGIN_PYERR_EXCEPTION_WATCH
+            
+        I2cDevice^ i2cDevice = I2CDEVICE_FROMPOINTER(device);
+        unsigned char* ubuffer = reinterpret_cast<unsigned char*>(buffer);
+
+        i2cDevice->Read(ArrayReference<unsigned char>(ubuffer, length));
+        ret = SUCCESS;
+
+        END_PYERR_EXCEPTION_WATCH
+
+        return ret;
+    }
+
+    int writeread_i2cdevice(void *device, char* data, unsigned int count, char* buffer, unsigned int length) {
+        int ret = FAILURE;
+
+        BEGIN_PYERR_EXCEPTION_WATCH
+
+        I2cDevice^ i2cDevice = I2CDEVICE_FROMPOINTER(device);
+        unsigned char* udata = reinterpret_cast<unsigned char*>(data);
+        unsigned char* ubuffer = reinterpret_cast<unsigned char*>(buffer);
+
+        i2cDevice->WriteRead(ArrayReference<unsigned char>(udata, count), ArrayReference<unsigned char>(ubuffer, length));
         ret = SUCCESS;
 
         END_PYERR_EXCEPTION_WATCH
@@ -192,26 +192,26 @@ extern "C" {
 
         BEGIN_PYERR_EXCEPTION_WATCH
 
-		I2cDevice^ i2cDevice = I2CDEVICE_FROMPOINTER(device);
+        I2cDevice^ i2cDevice = I2CDEVICE_FROMPOINTER(device);
 
-		switch (i2cDevice->ConnectionSettings->BusSpeed)
-		{
-		case I2cBusSpeed::FastMode:
-			*busspeed = FASTSPEED;
-            ret = SUCCESS;
-            break;
-		case I2cBusSpeed::StandardMode:
-			*busspeed = STANDARDSPEED;			
-            ret = SUCCESS;
-            break;
+        switch (i2cDevice->ConnectionSettings->BusSpeed)
+        {
+            case I2cBusSpeed::FastMode:
+                *busspeed = FASTSPEED;
+                ret = SUCCESS;
+                break;
+            case I2cBusSpeed::StandardMode:
+                *busspeed = STANDARDSPEED;
+                ret = SUCCESS;
+                break;
         }
 
         END_PYERR_EXCEPTION_WATCH
 
-		return ret;
-	}
+            return ret;
+    }
 
-	int get_sharingmode_i2cdevice(void *device, int* sharingmode) {
+    int get_sharingmode_i2cdevice(void *device, int* sharingmode) {
         int ret = FAILURE;
 
         VALIDATE_POINTER(sharingmode, "Pointer was not valid");
@@ -220,16 +220,16 @@ extern "C" {
 
         I2cDevice^ i2cDevice = I2CDEVICE_FROMPOINTER(device);
 
-		switch (i2cDevice->ConnectionSettings->SharingMode)
-		{
-		case I2cSharingMode::Exclusive:
-			*sharingmode = EXCLUSIVEMODE;
-            ret = SUCCESS;
-            break;
-		case I2cSharingMode::Shared:
-			*sharingmode = SHAREDMODE;
-            ret = SUCCESS;
-            break;
+        switch (i2cDevice->ConnectionSettings->SharingMode)
+        {
+            case I2cSharingMode::Exclusive:
+                *sharingmode = EXCLUSIVEMODE;
+                ret = SUCCESS;
+                break;
+            case I2cSharingMode::Shared:
+                *sharingmode = SHAREDMODE;
+                ret = SUCCESS;
+                break;
         }
 
         END_PYERR_EXCEPTION_WATCH
@@ -237,7 +237,7 @@ extern "C" {
         return ret;
     }
 
-	int get_address_i2cdevice(void *device, int* slaveaddress) {
+    int get_address_i2cdevice(void *device, int* slaveaddress) {
         int ret = FAILURE;
 
         VALIDATE_POINTER(slaveaddress, "Pointer was not valid");
@@ -246,7 +246,7 @@ extern "C" {
 
         I2cDevice^ i2cDevice = I2CDEVICE_FROMPOINTER(device);
 
-		*slaveaddress = (int)i2cDevice->ConnectionSettings->SlaveAddress;
+        *slaveaddress = (int)i2cDevice->ConnectionSettings->SlaveAddress;
 
         ret = SUCCESS;
 
