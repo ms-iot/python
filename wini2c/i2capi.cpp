@@ -211,7 +211,6 @@ extern "C" {
         unsigned char* ubuffer = reinterpret_cast<unsigned char*>(buffer);
 
         i2cDevice->WriteRead(ArrayReference<unsigned char>(udata, count), ArrayReference<unsigned char>(ubuffer, length));
-        //auto transferResult = i2cDevice->WriteReadPartial(ArrayReference<unsigned char>(udata, count), ArrayReference<unsigned char>(ubuffer, length));
         ret = SUCCESS;
 
         END_PYERR_EXCEPTION_WATCH
