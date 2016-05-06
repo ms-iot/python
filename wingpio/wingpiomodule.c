@@ -12,7 +12,7 @@ struct gpio_event_handler_info {
     int pin_event_detected;
     int pin_event_edge;
     long long pin_event_token;
-    struct gpio_event_handler *pin_event_callbacks;
+    struct gpio_event_callback *pin_event_callbacks;
     struct gpio_event_handler_info* next;
 };
 
@@ -220,7 +220,6 @@ PyDoc_STRVAR(output_doc,
 static PyObject *
 wingpio_output(PyObject *self, PyObject *args)
 {
-    unsigned int gpio;
     int channel = -1;
     int value = -1;
     int i;
@@ -360,7 +359,6 @@ PyDoc_STRVAR(input_doc,
 static PyObject *
 wingpio_input(PyObject *self, PyObject *args)
 {
-    unsigned int gpio;
     int channel;
     PyObject *value = NULL;
     int result = 0;
@@ -390,7 +388,6 @@ wingpio_cleanup(PyObject *self, PyObject *args, PyObject *kwargs)
     int chancount = -666;
     int found = 0;
     int channel = -666;
-    unsigned int gpio;
     PyObject *chanlist = NULL;
     PyObject *chantuple = NULL;
     PyObject *tempobj;
@@ -518,9 +515,7 @@ wingpio_add_event_detect(PyObject *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    Py_BEGIN_ALLOW_THREADS;
     ret = enable_event_detect_gpio_channel(channel, bouncetime, &token);
-    Py_END_ALLOW_THREADS;
 
     if (ret == FAILURE) {
         return NULL;
@@ -624,9 +619,7 @@ wingpio_remove_event_detect(PyObject *self, PyObject *args) {
         currentCallback = currentCallback->next;
     }
 
-    Py_BEGIN_ALLOW_THREADS;
     ret = disable_event_detect_gpio_channel(channel, handler->pin_event_token);
-    Py_END_ALLOW_THREADS;
 
     free(handler);
 
@@ -728,14 +721,14 @@ wingpio_add_event_callback(PyObject *self, PyObject *args, PyObject *kwargs) {
 }
 
 PyMethodDef wingpio_methods[] = {
-    { "setup", (PyCFunctionWithKeywords)wingpio_setup, METH_VARARGS | METH_KEYWORDS, setup_doc },
-    { "cleanup", (PyCFunctionWithKeywords)wingpio_cleanup, METH_VARARGS | METH_KEYWORDS, cleanup_doc },
+    { "setup", (PyCFunction)wingpio_setup, METH_VARARGS | METH_KEYWORDS, setup_doc },
+    { "cleanup", (PyCFunction)wingpio_cleanup, METH_VARARGS | METH_KEYWORDS, cleanup_doc },
     { "output", wingpio_output, METH_VARARGS, output_doc },
     { "input", wingpio_input, METH_VARARGS, input_doc },
-    { "add_event_detect", (PyCFunctionWithKeywords)wingpio_add_event_detect, METH_VARARGS | METH_KEYWORDS, add_event_detect_doc },
+    { "add_event_detect", (PyCFunction)wingpio_add_event_detect, METH_VARARGS | METH_KEYWORDS, add_event_detect_doc },
     { "remove_event_detect", wingpio_remove_event_detect, METH_VARARGS, remove_event_detect_doc },
     { "event_detected", wingpio_event_detected, METH_VARARGS, event_detected_doc },
-    { "add_event_callback", (PyCFunctionWithKeywords)wingpio_add_event_callback, METH_VARARGS | METH_KEYWORDS, add_event_callback_doc },
+    { "add_event_callback", (PyCFunction)wingpio_add_event_callback, METH_VARARGS | METH_KEYWORDS, add_event_callback_doc },
     { NULL, NULL, 0, NULL }
 };
 

@@ -2,11 +2,13 @@
 #include "python.h"
 #include "spiapi.h"
 
+using namespace Windows::Devices;
 using namespace Windows::Devices::Spi;
 using namespace Windows::Devices::Enumeration;
 using namespace Windows::Foundation;
 using namespace Platform;
 using namespace Platform::Collections;
+using namespace Microsoft::IoT::Lightning::Providers;
 using namespace Microsoft::WRL;
 
 #define SPIDEVICE_TOPOINTER(d) (reinterpret_cast<IInspectable*>((Object^)d))
@@ -24,85 +26,156 @@ PyErr_SetString(PyExc_TypeError, errmsg); \
 return FAILURE; \
 }
 
+static SpiDevice^ GetDeviceInboxDriver(int index, SpiConnectionSettings^ settings) {
+    if (index < 0) {
+        PyErr_Format(PyExc_RuntimeError, "Could not find Spi  id: '%d'", index);
+        return nullptr;
+    }
+
+    String^ deviceName = ref new String(L"SPI");
+    deviceName += index.ToString();
+    String^ querySyntax = SpiDevice::GetDeviceSelector(deviceName);
+    auto asyncop = DeviceInformation::FindAllAsync(querySyntax);
+    while (asyncop->Status != AsyncStatus::Completed) {
+        if (asyncop->Status == AsyncStatus::Error) {
+            PyErr_Format(PyExc_RuntimeError, "Could not find information for device '%S': %d", deviceName->Data(), asyncop->ErrorCode);
+            return nullptr;
+        }
+        Sleep(50);
+    }
+
+    auto info = asyncop->GetResults();
+    if (info == nullptr || info->Size == 0) {
+        PyErr_Format(PyExc_RuntimeError, "Could not find information for device '%S'", deviceName->Data());
+        return nullptr;
+    }
+
+    String^ id = info->GetAt(0)->Id;
+    auto i2cop = SpiDevice::FromIdAsync(id, settings);
+    while (i2cop->Status != AsyncStatus::Completed) {
+        if (i2cop->Status == AsyncStatus::Error) {
+            PyErr_Format(PyExc_RuntimeError, "Could get Spi device: %d", i2cop->ErrorCode);
+            return nullptr;
+        }
+        Sleep(50);
+    }
+
+    auto i2cdevice = i2cop->GetResults();
+    if (i2cdevice == nullptr) {
+        PyErr_SetString(PyExc_RuntimeError, "Could not find I2C device specified");
+        return nullptr;
+    }
+
+    return i2cdevice;
+}
+
+static SpiDevice^ GetDeviceLightning(int id, SpiConnectionSettings^ settings) {
+    auto asyncop = SpiController::GetControllersAsync(LightningSpiProvider::GetSpiProvider());
+    while (asyncop->Status != AsyncStatus::Completed) {
+        if (asyncop->Status == AsyncStatus::Error) {
+            PyErr_Format(PyExc_RuntimeError, "Could not find Spi controller: %d", asyncop->ErrorCode);
+            return nullptr;
+        }
+        Sleep(50);
+    }
+
+    auto controllers = asyncop->GetResults();
+    if (controllers == nullptr) {
+        PyErr_Format(PyExc_RuntimeError, "Could not find Spi controller");
+        return nullptr;
+    }
+
+    if (id < 0 || static_cast<unsigned int>(id) >= controllers->Size) {
+        PyErr_Format(PyExc_RuntimeError, "Could not find Spi controller id: '%d'", id);
+        return nullptr;
+    }
+
+    auto controller = controllers->GetAt(id);
+    auto i2cdevice = controller->GetDevice(settings);
+    if (i2cdevice == nullptr) {
+        PyErr_SetString(PyExc_RuntimeError, "Could not find Spi device specified");
+        return nullptr;
+    }
+
+    return i2cdevice;
+}
+
+static SpiDevice^ GetDevice(int id, SpiConnectionSettings^ settings) {
+    if (LightningProvider::IsLightningEnabled) {
+        return GetDeviceLightning(id, settings);
+    }
+    else {
+        return GetDeviceInboxDriver(id, settings);
+    }
+}
+
+static SpiConnectionSettings^ GetSpiConnectionSettings(int chipSelectLine, int clockFrequency, int dataBitLength, int mode, int sharingMode) {
+    SpiConnectionSettings^ settings = ref new SpiConnectionSettings(chipSelectLine);
+
+    if (clockFrequency != -1) {
+        settings->ClockFrequency = clockFrequency;
+    }
+
+    if (dataBitLength != -1) {
+        settings->DataBitLength = dataBitLength;
+    }
+
+    switch (mode)
+    {
+    case MODE0:
+        settings->Mode = SpiMode::Mode0;
+        break;
+    case MODE1:
+        settings->Mode = SpiMode::Mode1;
+        break;
+    case MODE2:
+        settings->Mode = SpiMode::Mode2;
+        break;
+    case MODE3:
+        settings->Mode = SpiMode::Mode3;
+        break;
+    default:
+        PyErr_Format(PyExc_TypeError, "Invalid SPI mode specified '%d'", mode);
+        return nullptr;
+    }
+
+    switch (sharingMode)
+    {
+    case SHAREDMODE:
+        settings->SharingMode = SpiSharingMode::Shared;
+        break;
+    case EXCLUSIVEMODE:
+        settings->SharingMode = SpiSharingMode::Exclusive;
+        break;
+    default:
+        PyErr_Format(PyExc_TypeError, "Invalid SPI sharing mode specified '%d'", sharingMode);
+        return nullptr;
+    }
+
+    return settings;
+}
+
 extern "C" {
-    void *new_spidevice(wchar_t *name, int chipSelectLine, int clockFrequency, int dataBitLength, int mode, int sharingMode) {
+    int enable_lightning_if_available() {
+        if (LightningProvider::IsLightningEnabled) {
+            LowLevelDevicesController::DefaultProvider = LightningProvider::GetAggregateProvider();
+            return TRUE;
+        }
+        return FALSE;
+    }
+
+    void *new_spidevice(int id, int chipSelectLine, int clockFrequency, int dataBitLength, int mode, int sharingMode) {
         ComPtr<IInspectable> spInspectable = nullptr;
         try {
-            SpiConnectionSettings^ settings = ref new SpiConnectionSettings(chipSelectLine);
-            String^ deviceName = ref new String(name);
-            String^ querySyntax = SpiDevice::GetDeviceSelector(deviceName);
-			auto asyncop = DeviceInformation::FindAllAsync(querySyntax);
-			while (asyncop->Status != AsyncStatus::Completed) {
-				if (asyncop->Status == AsyncStatus::Error) {
-					PyErr_Format(PyExc_RuntimeError, "Could not find information for device '%S': %d", name, asyncop->ErrorCode);
-					return NULL;
-				}
-				Sleep(50);
-			}
-            auto info = asyncop->GetResults();
-            if (info == nullptr || info->Size == 0) {
-                PyErr_Format(PyExc_RuntimeError, "Could not find information for device '%S'", name);
-                return NULL;
-            }
-            String^ id = info->GetAt(0)->Id;
-
-            if (clockFrequency != -1) {
-                settings->ClockFrequency = clockFrequency;
-            }
-
-            if (dataBitLength != -1) {
-                settings->DataBitLength = dataBitLength;
-            }
-
-            switch (mode)
-            {
-            case MODE0:
-                settings->Mode = SpiMode::Mode0;
-                break;
-            case MODE1:
-                settings->Mode = SpiMode::Mode1;
-                break;
-            case MODE2:
-                settings->Mode = SpiMode::Mode2;
-                break;
-            case MODE3:
-                settings->Mode = SpiMode::Mode3;
-                break;
-            default:
-                PyErr_Format(PyExc_TypeError, "Invalid SPI mode specified '%d'", mode);
+            auto settings = GetSpiConnectionSettings(chipSelectLine, clockFrequency, dataBitLength, mode, sharingMode);
+            if (settings == nullptr) {
                 return NULL;
             }
 
-            switch (sharingMode)
-            {
-            case SHAREDMODE:
-                settings->SharingMode = SpiSharingMode::Shared;
-                break;
-            case EXCLUSIVEMODE:
-                settings->SharingMode = SpiSharingMode::Exclusive;
-                break;
-            default:
-                PyErr_Format(PyExc_TypeError, "Invalid SPI sharing mode specified '%d'", sharingMode);
-                return NULL;
-            }
-
-			auto spideviceop = SpiDevice::FromIdAsync(id, settings);
-			while (spideviceop->Status != AsyncStatus::Completed) {
-				if (spideviceop->Status == AsyncStatus::Error) {
-					PyErr_Format(PyExc_RuntimeError, "Could get SPI device: %d", spideviceop->ErrorCode);
-					return NULL;
-				}
-				Sleep(50);
-			}
-
-			auto spidevice = spideviceop->GetResults();
-            if (spidevice == nullptr) {
-                PyErr_SetString(PyExc_RuntimeError, "Could not find SPI device specified");
-                return NULL;
-            }
-
+            auto spidevice = GetDevice(id, settings);
             spInspectable = SPIDEVICE_TOPOINTER(spidevice);
-        } catch (Exception^ e) {
+        }
+        catch (Exception^ e) {
             PyErr_Format(PyExc_RuntimeError, "An unexpected exception occurred during SPI device creation: %S", e->Message->Data());
             return NULL;
         }
@@ -115,15 +188,15 @@ extern "C" {
         try {
             String^ deviceName = ref new String(name);
             String^ querySyntax = SpiDevice::GetDeviceSelector(deviceName);
-			auto asyncop = DeviceInformation::FindAllAsync(querySyntax);
-			while (asyncop->Status != AsyncStatus::Completed) {
-				if (asyncop->Status == AsyncStatus::Error) {
-					PyErr_Format(PyExc_RuntimeError, "Could not find information for device '%S': %d", name, asyncop->ErrorCode);
-					return NULL;
-				}
-				Sleep(50);
-			}
-			auto info = asyncop->GetResults();
+            auto asyncop = DeviceInformation::FindAllAsync(querySyntax);
+            while (asyncop->Status != AsyncStatus::Completed) {
+                if (asyncop->Status == AsyncStatus::Error) {
+                    PyErr_Format(PyExc_RuntimeError, "Could not find information for device '%S': %d", name, asyncop->ErrorCode);
+                    return NULL;
+                }
+                Sleep(50);
+            }
+            auto info = asyncop->GetResults();
             if (info == nullptr || info->Size == 0) {
                 PyErr_Format(PyExc_RuntimeError, "Could not find information for device '%S'", name);
                 return NULL;
@@ -166,9 +239,9 @@ extern "C" {
         END_PYERR_EXCEPTION_WATCH
 
         return ret;
-	}
+    }
 
-	int read_spidevice(void *device, char* buffer, unsigned int length) {
+    int read_spidevice(void *device, char* buffer, unsigned int length) {
         int ret = FAILURE;
 
         BEGIN_PYERR_EXCEPTION_WATCH
@@ -179,32 +252,32 @@ extern "C" {
         END_PYERR_EXCEPTION_WATCH
 
         return ret;
-	}
+    }
 
-	int transfersequential_spidevice(void *device, char* data, unsigned int count, char* buffer, unsigned int length) {
+    int transfersequential_spidevice(void *device, char* data, unsigned int count, char* buffer, unsigned int length) {
         int ret = FAILURE;
 
         BEGIN_PYERR_EXCEPTION_WATCH
         SpiDevice^ deviceObj = SPIDEVICE_FROMPOINTER(device);
-		unsigned char* udata = reinterpret_cast<unsigned char*>(data);
-		unsigned char* ubuffer = reinterpret_cast<unsigned char*>(buffer);
+        unsigned char* udata = reinterpret_cast<unsigned char*>(data);
+        unsigned char* ubuffer = reinterpret_cast<unsigned char*>(buffer);
 
-		deviceObj->TransferSequential(ArrayReference<unsigned char>(udata, count), ArrayReference<unsigned char>(ubuffer, length));
+        deviceObj->TransferSequential(ArrayReference<unsigned char>(udata, count), ArrayReference<unsigned char>(ubuffer, length));
         ret = SUCCESS;
         END_PYERR_EXCEPTION_WATCH
 
         return ret;
     }
 
-	int transferfullduplex_spidevice(void *device, char* data, unsigned int count, char* buffer, unsigned int length) {
+    int transferfullduplex_spidevice(void *device, char* data, unsigned int count, char* buffer, unsigned int length) {
         int ret = FAILURE;
 
         BEGIN_PYERR_EXCEPTION_WATCH
         SpiDevice^ deviceObj = SPIDEVICE_FROMPOINTER(device);
-		unsigned char* udata = reinterpret_cast<unsigned char*>(data);
-		unsigned char* ubuffer = reinterpret_cast<unsigned char*>(buffer);
+        unsigned char* udata = reinterpret_cast<unsigned char*>(data);
+        unsigned char* ubuffer = reinterpret_cast<unsigned char*>(buffer);
 
-		deviceObj->TransferFullDuplex(ArrayReference<unsigned char>(udata, count), ArrayReference<unsigned char>(ubuffer, length));
+        deviceObj->TransferFullDuplex(ArrayReference<unsigned char>(udata, count), ArrayReference<unsigned char>(ubuffer, length));
         ret = SUCCESS;
         END_PYERR_EXCEPTION_WATCH
 
@@ -384,7 +457,7 @@ extern "C" {
         return ret;
     }
 
-    int get_supporteddatalengthbits_spibusinfo(void* businfo, int length, int** entries, int* count) {
+    int get_supporteddatalengthbits_spibusinfo(void* businfo, int length, int* entries, int* count) {
         int ret = FAILURE;
 
         VALIDATE_POINTER(count, "Pointer is not valid");
@@ -399,7 +472,7 @@ extern "C" {
             PyErr_SetString(PyExc_RuntimeError, "Spaces for entries is less than total number of entries");
         } else {
             for (int i = 0; i < *count; i++) {
-                (*entries)[i] = busInfoObj->SupportedDataBitLengths->GetAt(i);
+                entries[i] = busInfoObj->SupportedDataBitLengths->GetAt(i);
             }
             ret = SUCCESS;
         }

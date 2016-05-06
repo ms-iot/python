@@ -2,6 +2,7 @@
   <Import Project="Common.Build.settings" />
 
   <ItemGroup>
+    <ProjectFile Include="NugetRestore.proj"/>
     <ProjectFile Include="GetExternals.proj"/>
     <ProjectFile Include="BuildPythonFiles.proj"/>
     <ProjectFile Include="SignPythonFiles.proj"/>

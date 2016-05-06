@@ -13,7 +13,9 @@ extern "C" {
         void *ob_businfo;
     } PySpiBusInfoObject;
 
-    void *new_spidevice(wchar_t *name, int chipSelectLine, int clockFrequency, int dataBitLength, int mode, int sharingMode);
+    int enable_lightning_if_available();
+
+    void *new_spidevice(int id, int chipSelectLine, int clockFrequency, int dataBitLength, int mode, int sharingMode);
     void delete_spidevice(void *device);
 
     void *new_spibusinfo(wchar_t *name);
@@ -33,7 +35,7 @@ extern "C" {
     int get_chipselectlinecount_spibusinfo(void* businfo, int* chipselectlinecount);
     int get_maxclockfrequency_spibusinfo(void* businfo, int* maxclockfrequency);
     int get_minclockfrequency_spibusinfo(void* businfo, int* minclockfrequency);
-    int get_supporteddatalengthbits_spibusinfo(void* businfo, int length, int** entries, int* count);
+    int get_supporteddatalengthbits_spibusinfo(void* businfo, int length, int* entries, int* count);
 
 #ifdef __cplusplus
 }

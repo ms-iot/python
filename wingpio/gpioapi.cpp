@@ -5,8 +5,10 @@
 
 using namespace concurrency;
 using namespace Windows::Foundation;
+using namespace Windows::Devices;
 using namespace Windows::Devices::Gpio;
 using namespace Platform::Collections;
+using namespace Microsoft::IoT::Lightning::Providers;
 
 void OnPinValueChanged(GpioPin ^sender, GpioPinValueChangedEventArgs ^args);
 int InitializeGpioStatics(void(*event_callback)(int, int));
@@ -116,14 +118,10 @@ extern "C" {
                 case GpioPinDriveMode::OutputOpenDrainPullUp:
                     if (value == PINVALUE_HIGH) {
                         pin->Write(GpioPinValue::High);
-                        ret = SUCCESS;
                     } else if (value == PINVALUE_LOW) {
                         pin->Write(GpioPinValue::Low);
-                        ret = SUCCESS;
-                    } else {
-                        PyErr_Format(PyExc_TypeError, "Invalid pin value specified for pin %d", pin->PinNumber);
                     }
-
+                    ret = SUCCESS;
                     break;
                 default:
                     PyErr_SetString(PyExc_TypeError, "Pin not setup for output");
@@ -251,6 +249,13 @@ extern "C" {
 int
 InitializeGpioStatics(void(*event_callback)(int, int)) {
     int pinCount = FAILURE;
+    // Set the Lightning Provider as the default if Lightning driver is enabled on the target device
+    // Otherwise, the inbox provider will continue to be the default
+    if (LightningProvider::IsLightningEnabled) {
+        // set Lightning as the default provider
+        LowLevelDevicesController::DefaultProvider = LightningProvider::GetAggregateProvider();
+    }
+
     gpioController = GpioController::GetDefault();
     gpioValueChangedEventHandler = 
         ref new TypedEventHandler<GpioPin ^, GpioPinValueChangedEventArgs ^>(
