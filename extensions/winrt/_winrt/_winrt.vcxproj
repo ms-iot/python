@@ -240,7 +240,7 @@
     <ClCompile Include="winrt_object.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\python3\cpython\PCbuild\uwp\pythoncore.vcxproj">
+    <ProjectReference Include="..\..\..\cpython\PCbuild\uwp\pythoncore.vcxproj">
       <Project>{91c36924-3e30-4482-be39-4a780305c187}</Project>
     </ProjectReference>
   </ItemGroup>
