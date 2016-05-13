@@ -81,6 +81,36 @@ wingpio_i2cdevice_read(PyI2cDeviceObject *self, PyObject *args, PyObject *kwargs
     return result;
 }
 
+PyDoc_STRVAR(read_partial_doc,
+    "read_partial(count) -> bytes\n"
+    "\n"
+    "Reads from the device the specified number of bytes\n"
+    "\n"
+    "count=Number of bytes to read\n"
+    );
+static PyObject *
+wingpio_i2cdevice_read_partial(PyI2cDeviceObject *self, PyObject *args, PyObject *kwargs)
+{
+    static char *kwlist[] = { "count", NULL };
+    int count = 1;
+    PyObject* result = NULL;
+
+    VALIDATE_I2C(self);
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", kwlist, &count))
+        return NULL;
+
+    result = PyBytes_FromStringAndSize(NULL, count);
+
+    count = read_i2cdevice(self->ob_device, PyBytes_AsString(result), count);
+    if (count == FAILURE || _PyBytes_Resize(&result, count) == -1) {
+        Py_DECREF(result);
+        result = NULL;
+    }
+
+    return result;
+}
+
 PyDoc_STRVAR(write_doc,
     "write(bytes)\n"
     "\n"
@@ -114,6 +144,39 @@ wingpio_i2cdevice_write(PyI2cDeviceObject *self, PyObject *args, PyObject *kwarg
     Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(write_partial_doc,
+    "write_partial(bytes) -> number of bytes written\n"
+    "\n"
+    "Writes the bytes to the device\n"
+    "\n"
+    "bytes=Byte array to be written to the device\n"
+    );
+static PyObject *
+wingpio_i2cdevice_write_partial(PyI2cDeviceObject *self, PyObject *args, PyObject *kwargs)
+{
+    static char *kwlist[] = { "data", NULL };
+    PyObject* data = NULL;
+    PyObject* bytes = NULL;
+    int writeresult = FAILURE;
+
+    VALIDATE_I2C(self);
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|", kwlist, &data))
+        return NULL;
+
+    bytes = PyBytes_FromObject(data);
+    if (bytes == NULL)
+        return NULL;
+
+    writeresult = writepartial_i2cdevice(self->ob_device, PyBytes_AsString(bytes), PyBytes_Size(bytes));
+
+    if (writeresult == FAILURE) {
+        return NULL;
+    }
+
+    return PyLong_FromLong(writeresult);
+}
+
 PyDoc_STRVAR(writeread_doc,
     "writeread(bytes, count) -> bytes\n"
     "\n"
@@ -144,6 +207,44 @@ wingpio_i2cdevice_writeread(PyI2cDeviceObject *self, PyObject *args, PyObject *k
     result = PyBytes_FromStringAndSize(NULL, count);
 
     if (FAILURE == writeread_i2cdevice(self->ob_device, PyBytes_AsString(byteArray), PyBytes_Size(byteArray), PyBytes_AsString(result), count)) {
+        Py_DECREF(result);
+        result = NULL;
+    }
+
+    return result;
+}
+
+PyDoc_STRVAR(writeread_partial_doc,
+    "writeread_partial(bytes, count) -> bytes\n"
+    "\n"
+    "Writes the bytes to the device and reads the expected number of bytes\n"
+    "\n"
+    "bytes=Byte array to be written to the device\n"
+    "\n"
+    "count=Number of bytes expected to be read\n"
+    );
+static PyObject *
+wingpio_i2cdevice_writeread_partial(PyI2cDeviceObject *self, PyObject *args, PyObject *kwargs)
+{
+    static char *kwlist[] = { "data", "count", NULL };
+    PyObject* data = NULL;
+    PyObject* byteArray = NULL;
+    int count = 1;
+    PyObject* result = NULL;
+
+    VALIDATE_I2C(self);
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|i", kwlist, &data, &count))
+        return NULL;
+
+    byteArray = PyBytes_FromObject(data);
+    if (byteArray == NULL)
+        return NULL;
+
+    result = PyBytes_FromStringAndSize(NULL, count);
+
+    count = writereadpartial_i2cdevice(self->ob_device, PyBytes_AsString(byteArray), PyBytes_Size(byteArray), PyBytes_AsString(result), count);
+    if (count == FAILURE || _PyBytes_Resize(&result, count) == -1) {
         Py_DECREF(result);
         result = NULL;
     }
@@ -232,8 +333,11 @@ wingpio_i2cdevice_sharingmode(PyI2cDeviceObject *self, PyObject *args)
 
 static PyMethodDef i2cdevice_methods[] = {
     { "read", (PyCFunction)wingpio_i2cdevice_read, METH_VARARGS | METH_KEYWORDS, read_doc },
+    { "read_partial", (PyCFunction)wingpio_i2cdevice_read_partial, METH_VARARGS | METH_KEYWORDS, read_partial_doc },
     { "write", (PyCFunction)wingpio_i2cdevice_write, METH_VARARGS | METH_KEYWORDS, write_doc },
+    { "write_partial", (PyCFunction)wingpio_i2cdevice_write_partial, METH_VARARGS | METH_KEYWORDS, write_partial_doc },
     { "writeread", (PyCFunction)wingpio_i2cdevice_writeread, METH_VARARGS | METH_KEYWORDS, writeread_doc },
+    { "writeread_partial", (PyCFunction)wingpio_i2cdevice_writeread_partial, METH_VARARGS | METH_KEYWORDS, writeread_partial_doc },
     { "deviceid", (PyCFunction)wingpio_i2cdevice_deviceid, METH_NOARGS, deviceid_doc },
     { "slaveaddress", (PyCFunction)wingpio_i2cdevice_slaveaddress, METH_NOARGS, slaveaddress_doc },
     { "busspeed", (PyCFunction)wingpio_i2cdevice_busspeed, METH_NOARGS, busspeed_doc },
@@ -250,7 +354,7 @@ static struct PyModuleDef wini2c_module = {
 
 static PyTypeObject i2cdevice_type = {
     PyVarObject_HEAD_INIT(0, 0)
-        "_wini2c.i2cdevice",
+    "_wini2c.i2cdevice",
     sizeof(PyI2cDeviceObject),
     0
 };

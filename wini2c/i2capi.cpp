@@ -185,6 +185,21 @@ extern "C" {
         return ret;
     }
 
+    int writepartial_i2cdevice(void *device, char* data, unsigned int count) {
+        int ret = FAILURE;
+
+        BEGIN_PYERR_EXCEPTION_WATCH
+
+        I2cDevice^ i2cDevice = I2CDEVICE_FROMPOINTER(device);
+        unsigned char* udata = reinterpret_cast<unsigned char*>(data);
+        auto result = i2cDevice->WritePartial(ArrayReference<unsigned char>(udata, count));
+        ret = result.BytesTransferred;
+
+        END_PYERR_EXCEPTION_WATCH
+
+        return ret;
+    }
+
     int read_i2cdevice(void *device, char* buffer, unsigned int length) {
         int ret = FAILURE;
 
@@ -195,6 +210,22 @@ extern "C" {
 
         i2cDevice->Read(ArrayReference<unsigned char>(ubuffer, length));
         ret = SUCCESS;
+
+        END_PYERR_EXCEPTION_WATCH
+
+        return ret;
+    }
+
+    int readpartial_i2cdevice(void *device, char* buffer, unsigned int length) {
+        int ret = FAILURE;
+
+        BEGIN_PYERR_EXCEPTION_WATCH
+
+        I2cDevice^ i2cDevice = I2CDEVICE_FROMPOINTER(device);
+        unsigned char* ubuffer = reinterpret_cast<unsigned char*>(buffer);
+
+        auto result = i2cDevice->ReadPartial(ArrayReference<unsigned char>(ubuffer, length));
+        ret = result.BytesTransferred;
 
         END_PYERR_EXCEPTION_WATCH
 
@@ -212,6 +243,23 @@ extern "C" {
 
         i2cDevice->WriteRead(ArrayReference<unsigned char>(udata, count), ArrayReference<unsigned char>(ubuffer, length));
         ret = SUCCESS;
+
+        END_PYERR_EXCEPTION_WATCH
+
+        return ret;
+    }
+
+    int writereadpartial_i2cdevice(void *device, char* data, unsigned int count, char* buffer, unsigned int length) {
+        int ret = FAILURE;
+
+        BEGIN_PYERR_EXCEPTION_WATCH
+
+        I2cDevice^ i2cDevice = I2CDEVICE_FROMPOINTER(device);
+        unsigned char* udata = reinterpret_cast<unsigned char*>(data);
+        unsigned char* ubuffer = reinterpret_cast<unsigned char*>(buffer);
+
+        auto result = i2cDevice->WriteReadPartial(ArrayReference<unsigned char>(udata, count), ArrayReference<unsigned char>(ubuffer, length));
+        ret = result.BytesTransferred;
 
         END_PYERR_EXCEPTION_WATCH
 
