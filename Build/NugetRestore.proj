@@ -4,6 +4,7 @@
   <Target Name="Clean" />
   <Target Name="Build">
     <Exec Command="$(PythonRoot)\build\nuget.exe restore $(PythonRoot)"/>
+    <Exec Command="$(PythonRoot)\build\nuget.exe restore -SolutionDirectory $(PythonRoot)\build"/>
   </Target>
 
 </Project>
