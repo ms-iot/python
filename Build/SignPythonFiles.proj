@@ -2,7 +2,7 @@
   <Import Project="Common.Build.settings" />
 
   <ItemGroup>
-    <FilesToSign Include="$(DropDirectory)**\win32\*.dll">
+    <FilesToSign Include="$(DropDirectory)**\win32\**\*.dll">
       <Authenticode>Microsoft</Authenticode>
     </FilesToSign>
     <FilesToSign Include="$(DropDirectory)**\win32\*.pyd">
@@ -11,7 +11,7 @@
     <FilesToSign Include="$(DropDirectory)**\win32\*.winmd">
       <Authenticode>Microsoft</Authenticode>
     </FilesToSign>
-    <FilesToSign Include="$(DropDirectory)**\amd64\*.dll">
+    <FilesToSign Include="$(DropDirectory)**\amd64\**\*.dll">
       <Authenticode>Microsoft</Authenticode>
     </FilesToSign>
     <FilesToSign Include="$(DropDirectory)**\amd64\*.pyd">
@@ -20,7 +20,7 @@
     <FilesToSign Include="$(DropDirectory)**\amd64\*.winmd">
       <Authenticode>Microsoft</Authenticode>
     </FilesToSign>
-    <FilesToSign Include="$(DropDirectory)**\arm\*.dll">
+    <FilesToSign Include="$(DropDirectory)**\arm\**\*.dll">
       <Authenticode>MicrosoftWin8WinBlue</Authenticode>
     </FilesToSign>
     <FilesToSign Include="$(DropDirectory)**\arm\*.pyd">
