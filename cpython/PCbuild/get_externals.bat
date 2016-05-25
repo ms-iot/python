@@ -6,7 +6,7 @@ if not exist "%~dp0..\externals" mkdir "%~dp0..\externals"
 pushd "%~dp0..\externals"
 
 if "%SVNROOT%"=="" set SVNROOT=http://svn.python.org/projects/external/
-if "%MSSVNROOT%"=="" set MSSVNROOT=https://github.com/alanch-ms/openssl/branches/OpenSSL_1_0_2_WinRT-stable_vars_fix/
+if "%MSSVNROOT%"=="" set MSSVNROOT=https://github.com/Microsoft/openssl/branches/OpenSSL_1_0_2_WinRT-stable/
 
 rem Optionally clean up first.  Be warned that this can be very destructive!
 if not "%1"=="" (

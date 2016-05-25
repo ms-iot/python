@@ -1,8 +1,10 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="Common.Build.settings" />
 
+  <Target Name="Clean" />
   <Target Name="Build">
     <Exec Command="$(PythonRoot)\build\nuget.exe restore $(PythonRoot)"/>
+    <Exec Command="$(PythonRoot)\build\nuget.exe restore -SolutionDirectory $(PythonRoot)\build"/>
   </Target>
 
 </Project>
