@@ -276,7 +276,7 @@
     <None Include="PythonScraper.py">
       <DeploymentContent>true</DeploymentContent>
     </None>
-    <None Include="lib.zip">
+    <None Include="$(OutDir)\lib.zip">
       <DeploymentContent>true</DeploymentContent>
       <Visible>false</Visible>
     </None>
@@ -312,13 +312,13 @@
   </PropertyGroup>
   <ItemGroup>
     <ExcludeLibFilters Include="$(PythonLibRootFolder)\**\__pycache__\**" />
-    <ExcludeLibFilters Include="$(PythonLibRootFolder)\distutils\**" />
     <ExcludeLibFilters Include="$(PythonLibRootFolder)\idlelib\**" />
     <ExcludeLibFilters Include="$(PythonLibRootFolder)\lzma\**" />
     <ExcludeLibFilters Include="$(PythonLibRootFolder)\mmap\**" />
     <ExcludeLibFilters Include="$(PythonLibRootFolder)\msilib\**" />
     <ExcludeLibFilters Include="$(PythonLibRootFolder)\multiprocessing\**" />
     <ExcludeLibFilters Include="$(PythonLibRootFolder)\sqlite\**" />
+    <ExcludeLibFilters Include="$(PythonLibRootFolder)\test\**" />
     <ExcludeLibFilters Include="$(PythonLibRootFolder)\tkinter\**" />
     <ExcludeLibFilters Include="$(PythonLibRootFolder)\venv\**" />
     <ExcludeLibFilters Include="$(PythonLibRootFolder)\webbrowser.py" />
@@ -444,28 +444,29 @@
       <PythonLibFiles Include="$(PythonLibRootFolder)\**" />
       <PythonLibFiles Remove="@(ExcludeLibFilters)" />
     </ItemGroup>
-    <MakeDir Directories="$(ProjectDir)\PythonHome" />
-    <Copy SourceFiles="@(PythonLibFiles)" DestinationFolder="$(ProjectDir)\PythonHome\Lib\%(RecursiveDir)" />
+    <MakeDir Directories="$(OutDir)\PythonHome" />
+    <Copy SourceFiles="@(PythonLibFiles)" DestinationFolder="$(OutDir)\PythonHome\Lib\%(RecursiveDir)" SkipUnchangedFiles="true"/>
 
-    <MakeDir Directories="$(ProjectDir)\PythonHome\Include" />
-    <Copy SourceFiles="..\..\..\PC\pyconfig.h" DestinationFolder="$(ProjectDir)\PythonHome\Include" />
+    <MakeDir Directories="$(OutDir)\PythonHome\Include" />
+    <Copy SourceFiles="..\..\..\PC\pyconfig.h" DestinationFolder="$(OutDir)\PythonHome\Include" SkipUnchangedFiles="true"/>
 
     <!-- WinRT extension -->
     <ItemGroup>
       <WinRTExtensionFiles Include="$(WinRTExtensionRootFolder)\**" />
     </ItemGroup>
 
-    <Copy SourceFiles="@(WinRTExtensionFiles)" DestinationFolder="$(ProjectDir)\PythonHome\WinRTExtension\%(RecursiveDir)" />
+    <Copy SourceFiles="@(WinRTExtensionFiles)" DestinationFolder="$(OutDir)\PythonHome\WinRTExtension\%(RecursiveDir)" SkipUnchangedFiles="true"/>
 
     <ItemGroup>
-        <None Include="PythonHome\**">
+        <None Include="$(OutDir)\PythonHome\**">
+          <RootFolder>$(OutDir)</RootFolder>
           <DeploymentContent>true</DeploymentContent>
           <Visible>false</Visible>
         </None>
     </ItemGroup>
   </Target>
   <Target Name="BuildLibs" DependsOnTargets="CopyLibs" BeforeTargets="ClCompile">
-    <Zip InputDirectory="$(ProjectDir)\PythonHome\Lib" OutputFileName="$(ProjectDir)\lib.zip" OverwriteExistingFile="true" />
-    <Zip InputDirectory="$(ProjectDir)\PythonHome\WinRTExtension" OutputFileName="$(ProjectDir)\WinRTExtension.zip" OverwriteExistingFile="true" />
+    <Zip InputDirectory="$(OutDir)\PythonHome\Lib" OutputFileName="$(OutDir)\lib.zip" OverwriteExistingFile="true" />
+    <Zip InputDirectory="$(OutDir)\PythonHome\WinRTExtension" OutputFileName="$(OutDir)\WinRTExtension.zip" OverwriteExistingFile="true" />
   </Target>
 </Project>

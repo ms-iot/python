@@ -23,6 +23,7 @@
     <CopyBuildOutputToOutputDirectory>false</CopyBuildOutputToOutputDirectory>
     <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
     <InputDir>$(SolutionDir)uwp\10.0</InputDir>
+    <InterpreterDir Condition="'$(InterpreterDir)' == ''">..\..\..\PCBuild\win32</InterpreterDir>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -383,12 +384,69 @@
       <Link>Redist\Debug\arm\pyuwpbackgroundservice.dll</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
+    <!-- Python Interpreter for Pip and intellisense -->
+    <Content Include="$(InputDir)\win32\pyuwpbackgroundservice\release\PythonHome\Lib\**\*.*">
+      <Link>PythonHome\lib\%(RecursiveDir)\%(Filename)%(Extension)</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InputDir)\win32\pyuwpbackgroundservice\release\PythonHome\WinRTExtension\**\*.*">
+      <Link>PythonHome\WinRTExtension.zip\%(RecursiveDir)\%(Filename)%(Extension)</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InterpreterDir)\python.exe">
+      <Link>PythonHome\python.exe</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InterpreterDir)\python3.dll">
+      <Link>PythonHome\python3.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InterpreterDir)\python35.dll">
+      <Link>PythonHome\python35.dll</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InterpreterDir)\pyexpat.pyd">
+      <Link>PythonHome\DLLs\pyexpat.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InterpreterDir)\select.pyd">
+      <Link>PythonHome\DLLs\select.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InterpreterDir)\unicodedata.pyd">
+      <Link>PythonHome\DLLs\unicodedata.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InterpreterDir)\_bz2.pyd">
+      <Link>PythonHome\DLLs\_bz2.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InterpreterDir)\_ctypes.pyd">
+      <Link>PythonHome\DLLs\_ctypes.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InterpreterDir)\_decimal.pyd">
+      <Link>PythonHome\DLLs\_decimal.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InterpreterDir)\_elementtree.pyd">
+      <Link>PythonHome\DLLs\_elementtree.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InterpreterDir)\_socket.pyd">
+      <Link>PythonHome\DLLs\_socket.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(InterpreterDir)\_ssl.pyd">
+      <Link>PythonHome\DLLs\_ssl.pyd</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <!-- Neutral -->
-    <Content Include="..\pyuwpbackgroundservice\lib.zip">
+    <Content Include="$(InputDir)\win32\pyuwpbackgroundservice\release\lib.zip">
       <Link>References\CommonConfiguration\Neutral\PythonHome\lib.zip</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="..\pyuwpbackgroundservice\WinRTExtension.zip">
+    <Content Include="$(InputDir)\win32\pyuwpbackgroundservice\release\WinRTExtension.zip">
       <Link>References\CommonConfiguration\Neutral\PythonHome\WinRTExtension.zip</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>

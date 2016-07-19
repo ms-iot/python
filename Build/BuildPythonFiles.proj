@@ -6,6 +6,12 @@
     <PythonProj Include="$(PythonRoot)\pywindevices.sln"/>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectFile Include="$(PythonRoot)\cpython\PCbuild\pcbuild.proj">
+      <Properties>%(PythonProj.Properties);Platform=win32;Configuration=Release;BuildPath=$(DropDirectory)\PythonInterpreter\;IncludeTests=false</Properties>
+    </ProjectFile>
+  </ItemGroup>
+
   <Target Name="_PreparePythonProjectFiles" BeforeTargets="_PrepareProjectFiles">
     <ItemGroup>
       <ProjectFile Include="@(PythonProj)">

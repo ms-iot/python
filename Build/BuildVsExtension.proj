@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <ProjectFile Include="$(PythonRoot)\cpython\Tools\pyuwp\pyuwpsdk\pyuwpsdk.csproj">
-      <Properties>%(ProjectFile.Properties);Platform=AnyCpu;Configuration=Release;BuildProjectReferences=false;TargetVsixContainer=$(DropDirectory)%(ProjectFile.FileName).vsix;DeployExtension=$(DeployExtension)</Properties>
+      <Properties>%(ProjectFile.Properties);Platform=AnyCpu;Configuration=Release;BuildProjectReferences=false;InterpreterDir=$(DropDirectory)\PythonInterpreter;TargetVsixContainer=$(DropDirectory)%(ProjectFile.FileName).vsix;DeployExtension=$(DeployExtension)</Properties>
     </ProjectFile>
   </ItemGroup>
 
