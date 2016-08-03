@@ -9,6 +9,11 @@ import test.support
 test.support.import_module('distutils')
 import distutils.tests
 
+# Skip tests if running under UWP
+import sys
+if sys.platform == 'uwp':
+    import unittest
+    raise unittest.SkipTest('Test not appropriate under UWP')
 
 def test_main():
     test.support.run_unittest(distutils.tests.test_suite())

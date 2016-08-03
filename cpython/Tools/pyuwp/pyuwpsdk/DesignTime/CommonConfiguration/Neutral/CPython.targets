@@ -26,6 +26,19 @@
   <PropertyGroup>
     <StartupInfoFile>$(TargetDir)startupinfo.json</StartupInfoFile>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <PythonUwpIoTInterpreterDirectory>$(MSBuildThisFileDirectory)..\..\..\PythonHome</PythonUwpIoTInterpreterDirectory>
+    <PythonUwpIoTInterpreterOutputDirectory>$(MSBuildProjectDirectory)\PythonHome</PythonUwpIoTInterpreterOutputDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PythonUwpIoTInterpreterFiles Include="$(PythonUwpIoTInterpreterDirectory)\**\*.*"/>
+  </ItemGroup>
+
+  <Target Name="CreatePythonUwpIoTPythonEnv">
+    <Copy SourceFiles="@(PythonUwpIoTInterpreterFiles)" DestinationFolder="$(PythonUwpIoTInterpreterOutputDirectory)\%(RecursiveDir)" SkipUnchangedFiles="true"/>
+  </Target>
   
   <Target Name="CoreCompile" />
   <Target Name="CreateManifestResourceNames"/>
