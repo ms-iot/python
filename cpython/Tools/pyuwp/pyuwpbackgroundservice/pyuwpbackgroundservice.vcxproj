@@ -41,8 +41,8 @@
     <AppxPackageSigningEnabled>true</AppxPackageSigningEnabled>
     <PackageCertificateKeyFile>pyuwpbackgroundservice_TemporaryKey.pfx</PackageCertificateKeyFile>
     <ContainsStartupTask>true</ContainsStartupTask>
-    <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
-    <WindowsTargetPlatformMinVersion>10.0.10240.0</WindowsTargetPlatformMinVersion>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformMinVersion>10.0.14393.0</WindowsTargetPlatformMinVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -445,24 +445,20 @@
       <PythonLibFiles Remove="@(ExcludeLibFilters)" />
     </ItemGroup>
     <MakeDir Directories="$(OutDir)\PythonHome" />
-    <Copy SourceFiles="@(PythonLibFiles)" DestinationFolder="$(OutDir)\PythonHome\Lib\%(RecursiveDir)" SkipUnchangedFiles="true"/>
-
+    <Copy SourceFiles="@(PythonLibFiles)" DestinationFolder="$(OutDir)\PythonHome\Lib\%(RecursiveDir)" SkipUnchangedFiles="true" />
     <MakeDir Directories="$(OutDir)\PythonHome\Include" />
-    <Copy SourceFiles="..\..\..\PC\pyconfig.h" DestinationFolder="$(OutDir)\PythonHome\Include" SkipUnchangedFiles="true"/>
-
+    <Copy SourceFiles="..\..\..\PC\pyconfig.h" DestinationFolder="$(OutDir)\PythonHome\Include" SkipUnchangedFiles="true" />
     <!-- WinRT extension -->
     <ItemGroup>
       <WinRTExtensionFiles Include="$(WinRTExtensionRootFolder)\**" />
     </ItemGroup>
-
-    <Copy SourceFiles="@(WinRTExtensionFiles)" DestinationFolder="$(OutDir)\PythonHome\WinRTExtension\%(RecursiveDir)" SkipUnchangedFiles="true"/>
-
+    <Copy SourceFiles="@(WinRTExtensionFiles)" DestinationFolder="$(OutDir)\PythonHome\WinRTExtension\%(RecursiveDir)" SkipUnchangedFiles="true" />
     <ItemGroup>
-        <None Include="$(OutDir)\PythonHome\**">
-          <RootFolder>$(OutDir)</RootFolder>
-          <DeploymentContent>true</DeploymentContent>
-          <Visible>false</Visible>
-        </None>
+      <None Include="$(OutDir)\PythonHome\**">
+        <RootFolder>$(OutDir)</RootFolder>
+        <DeploymentContent>true</DeploymentContent>
+        <Visible>false</Visible>
+      </None>
     </ItemGroup>
   </Target>
   <Target Name="BuildLibs" DependsOnTargets="CopyLibs" BeforeTargets="ClCompile">
