@@ -1,6 +1,7 @@
 setlocal
 set CONFIGURATION=%2
 set PLATFORM=%3
+if not "%4"=="" set _WKITS10VER=%4
 
 if not exist %1 (
     echo %1 does not exist!
