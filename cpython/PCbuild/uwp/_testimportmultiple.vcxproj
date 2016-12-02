@@ -31,7 +31,7 @@
     <RootNamespace>_testimportmultiple</RootNamespace>
     <AppContainerApplication>true</AppContainerApplication>
     <ApplicationType>Windows Store</ApplicationType>
-    <PlatformToolset Condition="'$(VCTargetsPath14)' != ''">v140</PlatformToolset>
+    <PlatformToolset Condition="'$(VCTargetsPath14)' != ''">v141</PlatformToolset>
     <AppxOSMinVersionReplaceManifestVersion>false</AppxOSMinVersionReplaceManifestVersion>
     <ApplicationTypeRevision>8.2</ApplicationTypeRevision>
     <DefaultLanguage>en-US</DefaultLanguage>

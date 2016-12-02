@@ -32,7 +32,7 @@
     <Keyword>Win32Proj</Keyword>
     <AppContainerApplication>true</AppContainerApplication>
     <ApplicationType>Windows Store</ApplicationType>
-    <PlatformToolset Condition="'$(VCTargetsPath14)' != ''">v140</PlatformToolset>
+    <PlatformToolset Condition="'$(VCTargetsPath14)' != ''">v141</PlatformToolset>
     <ApplicationTypeRevision>8.2</ApplicationTypeRevision>
     <GenerateManifest>false</GenerateManifest>
     <DefaultLanguage>en-US</DefaultLanguage>

@@ -13,4 +13,11 @@
   <Assets>
     <Asset Type="Microsoft.ExtensionSDK" d:Source="File" Path="SDKManifest.xml" />
   </Assets>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.ComponentGroup.UWP.VC" Version="[15.0.25904.2,16.0)" DisplayName="C++ UWP support" />
+    <Prerequisite Id="Microsoft.Component.VC.Runtime.OSSupport" Version="[15.0.25904.2,16.0)" DisplayName="Visual C++ runtime for UWP" />
+    <Prerequisite Id="Microsoft.VisualStudio.Component.Windows10SDK.14393" Version="[15.0.25904.2,16.0)" DisplayName="Windows 10 SDK (10.0.14393.0)" />
+    <Prerequisite Id="Microsoft.PythonTools.UWP" Version="[15.0.25904.2,16.0)" DisplayName="Python IoT support" />
+    <Prerequisite Id="Microsoft.PythonTools" Version="[15.0.25904.2,16.0)" DisplayName="Python language support" />
+  </Prerequisites>
 </PackageManifest>

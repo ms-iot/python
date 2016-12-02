@@ -37,6 +37,7 @@
     <BuildDirTop>Release</BuildDirTop>
     <BuildDirTop Condition="$(Configuration) == 'Debug'">Debug</BuildDirTop>
     <BuildDirTop Condition="$(TclMachine) != 'IX86'">$(BuildDirTop)_$(TclMachine)</BuildDirTop>
+    <BuildDirTop Condition="$(VisualStudioVersion) == '15.0'">$(BuildDirTop)_VC13</BuildDirTop>
     <BuildDirTop Condition="$(VisualStudioVersion) == '14.0'">$(BuildDirTop)_VC13</BuildDirTop>
     <BuildDirTop Condition="$(VisualStudioVersion) == '12.0'">$(BuildDirTop)_VC12</BuildDirTop>
     <BuildDirTop Condition="$(VisualStudioVersion) == '11.0'">$(BuildDirTop)_VC11</BuildDirTop>
