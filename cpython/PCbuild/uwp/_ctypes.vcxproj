@@ -32,12 +32,12 @@
     <Keyword>Win32Proj</Keyword>
     <AppContainerApplication>true</AppContainerApplication>
     <ApplicationType>Windows Store</ApplicationType>
-    <PlatformToolset Condition="'$(VCTargetsPath14)' != ''">v140</PlatformToolset>
+    <PlatformToolset Condition="'$(VCTargetsPath14)' != ''">v141</PlatformToolset>
     <ApplicationTypeRevision>8.2</ApplicationTypeRevision>
     <GenerateManifest>false</GenerateManifest>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
-    <WindowsTargetPlatformMinVersion>10.0.10240.0</WindowsTargetPlatformMinVersion>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformMinVersion>10.0.14393.0</WindowsTargetPlatformMinVersion>
   </PropertyGroup>
   <Import Project="..\python.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

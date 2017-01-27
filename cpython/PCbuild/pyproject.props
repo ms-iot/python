@@ -97,10 +97,10 @@
           Inputs="$(PySourcePath)Include\patchlevel.h"
           Outputs="$(PySourcePath)PC\pythonnt_rc$(PyDebugExt).h">
     <WriteLinesToFile File="$(PySourcePath)PC\pythonnt_rc$(PyDebugExt).h" Overwrite="true" Encoding="ascii"
-                      Lines='/* This file created by python.props /t:GeneratePythonNtRcH */
-#define FIELD3 $(Field3Value)
-#define MS_DLL_ID "$(SysWinVer)"
-#define PYTHON_DLL_NAME "$(PyDllName).dll"
+                      Lines='/* This file created by python.props /t:GeneratePythonNtRcH */ %0a
+#define FIELD3 $(Field3Value) %0a
+#define MS_DLL_ID "$(SysWinVer)" %0a
+#define PYTHON_DLL_NAME "$(PyDllName).dll" %0a
 ' />
     <ItemGroup>
         <FileWrites Include="$(PySourcePath)PC\pythonnt_rc$(PyDebugExt).h" />

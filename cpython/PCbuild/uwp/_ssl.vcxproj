@@ -32,13 +32,13 @@
     <Keyword>Win32Proj</Keyword>
     <AppContainerApplication>true</AppContainerApplication>
     <ApplicationType>Windows Store</ApplicationType>
-    <PlatformToolset Condition="'$(VCTargetsPath14)' != ''">v140</PlatformToolset>
+    <PlatformToolset Condition="'$(VCTargetsPath14)' != ''">v141</PlatformToolset>
     <AppxOSMinVersionReplaceManifestVersion>false</AppxOSMinVersionReplaceManifestVersion>
     <ApplicationTypeRevision>8.2</ApplicationTypeRevision>
     <DefaultLanguage>en-US</DefaultLanguage>
     <GenerateManifest>false</GenerateManifest>
-    <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
-    <WindowsTargetPlatformMinVersion>10.0.10240.0</WindowsTargetPlatformMinVersion>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformMinVersion>10.0.14393.0</WindowsTargetPlatformMinVersion>
   </PropertyGroup>
   <Import Project="..\python.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -72,22 +72,22 @@
       <AdditionalOptions Condition="'$(Configuration)'=='Release'">vccorlib.lib msvcrt.lib vcruntime.lib ucrt.lib /defaultlib:windowsapp.lib %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PreBuildEvent>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">call $(ProjectDir)openssl_uwp_build.cmd "$(openSslDir)" $(Configuration) $(Platform)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">call $(ProjectDir)openssl_uwp_build.cmd "$(openSslDir)" $(Configuration) $(Platform) $(TargetPlatformVersion)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">call $(ProjectDir)openssl_uwp_build.cmd "$(openSslDir)" $(Configuration) $(Platform)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">call $(ProjectDir)openssl_uwp_build.cmd "$(openSslDir)" $(Configuration) $(Platform) $(TargetPlatformVersion)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">call $(ProjectDir)openssl_uwp_build.cmd "$(openSslDir)" $(Configuration) $(Platform)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">call $(ProjectDir)openssl_uwp_build.cmd "$(openSslDir)" $(Configuration) $(Platform) $(TargetPlatformVersion)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">call $(ProjectDir)openssl_uwp_build.cmd "$(openSslDir)" $(Configuration) $(Platform)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">call $(ProjectDir)openssl_uwp_build.cmd "$(openSslDir)" $(Configuration) $(Platform) $(TargetPlatformVersion)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">call $(ProjectDir)openssl_uwp_build.cmd "$(openSslDir)" $(Configuration) $(Platform)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">call $(ProjectDir)openssl_uwp_build.cmd "$(openSslDir)" $(Configuration) $(Platform) $(TargetPlatformVersion)</Command>
     </PreBuildEvent>
     <PreBuildEvent>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">call $(ProjectDir)openssl_uwp_build.cmd "$(openSslDir)" $(Configuration) $(Platform)</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">call $(ProjectDir)openssl_uwp_build.cmd "$(openSslDir)" $(Configuration) $(Platform) $(TargetPlatformVersion)</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
