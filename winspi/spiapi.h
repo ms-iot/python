@@ -13,8 +13,6 @@ extern "C" {
         void *ob_businfo;
     } PySpiBusInfoObject;
 
-    int enable_lightning_if_available();
-
     void *new_spidevice(int id, int chipSelectLine, int clockFrequency, int dataBitLength, int mode, int sharingMode);
     void delete_spidevice(void *device);
 

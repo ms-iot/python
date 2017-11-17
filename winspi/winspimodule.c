@@ -529,7 +529,6 @@ PyMODINIT_FUNC
 PyInit__winspi(void)
 {
     PyObject *module = NULL;
-    int lightning_enabled;
 
     // Initialize the device type
     spidevice_type.tp_dealloc = (destructor)spidevice_dealloc;
@@ -566,17 +565,11 @@ PyInit__winspi(void)
     if ((module = PyModule_Create(&winspi_module)) == NULL)
         return NULL;
 
-    lightning_enabled = enable_lightning_if_available();
-
     Py_INCREF(&spidevice_type);
     PyModule_AddObject(module, "spidevice", (PyObject*)&spidevice_type);
     
-    if (lightning_enabled) {
-        // Lightning doesn't support spibusinfo
-    } else {
-        Py_INCREF(&spibusinfo_type);
-        PyModule_AddObject(module, "spibusinfo", (PyObject*)&spibusinfo_type);
-    }
+    Py_INCREF(&spibusinfo_type);
+    PyModule_AddObject(module, "spibusinfo", (PyObject*)&spibusinfo_type);
 
     define_constants(module);
 

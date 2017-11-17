@@ -420,7 +420,5 @@ PyInit__wini2c(void)
 
     define_constants(module);
 
-    enable_lightning_if_available();
-
     return module;
 }

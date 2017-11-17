@@ -8,7 +8,6 @@ using namespace Windows::Devices::Enumeration;
 using namespace Windows::Foundation;
 using namespace Platform;
 using namespace Platform::Collections;
-using namespace Microsoft::IoT::Lightning::Providers;
 using namespace Microsoft::WRL;
 
 #define SPIDEVICE_TOPOINTER(d) (reinterpret_cast<IInspectable*>((Object^)d))
@@ -26,7 +25,7 @@ PyErr_SetString(PyExc_TypeError, errmsg); \
 return FAILURE; \
 }
 
-static SpiDevice^ GetDeviceInboxDriver(int index, SpiConnectionSettings^ settings) {
+static SpiDevice^ GetDevice(int index, SpiConnectionSettings^ settings) {
     if (index < 0) {
         PyErr_Format(PyExc_RuntimeError, "Could not find Spi  id: '%d'", index);
         return nullptr;
@@ -67,46 +66,6 @@ static SpiDevice^ GetDeviceInboxDriver(int index, SpiConnectionSettings^ setting
     }
 
     return i2cdevice;
-}
-
-static SpiDevice^ GetDeviceLightning(int id, SpiConnectionSettings^ settings) {
-    auto asyncop = SpiController::GetControllersAsync(LightningSpiProvider::GetSpiProvider());
-    while (asyncop->Status != AsyncStatus::Completed) {
-        if (asyncop->Status == AsyncStatus::Error) {
-            PyErr_Format(PyExc_RuntimeError, "Could not find Spi controller: %d", asyncop->ErrorCode);
-            return nullptr;
-        }
-        Sleep(50);
-    }
-
-    auto controllers = asyncop->GetResults();
-    if (controllers == nullptr) {
-        PyErr_Format(PyExc_RuntimeError, "Could not find Spi controller");
-        return nullptr;
-    }
-
-    if (id < 0 || static_cast<unsigned int>(id) >= controllers->Size) {
-        PyErr_Format(PyExc_RuntimeError, "Could not find Spi controller id: '%d'", id);
-        return nullptr;
-    }
-
-    auto controller = controllers->GetAt(id);
-    auto i2cdevice = controller->GetDevice(settings);
-    if (i2cdevice == nullptr) {
-        PyErr_SetString(PyExc_RuntimeError, "Could not find Spi device specified");
-        return nullptr;
-    }
-
-    return i2cdevice;
-}
-
-static SpiDevice^ GetDevice(int id, SpiConnectionSettings^ settings) {
-    if (LightningProvider::IsLightningEnabled) {
-        return GetDeviceLightning(id, settings);
-    }
-    else {
-        return GetDeviceInboxDriver(id, settings);
-    }
 }
 
 static SpiConnectionSettings^ GetSpiConnectionSettings(int chipSelectLine, int clockFrequency, int dataBitLength, int mode, int sharingMode) {
@@ -156,14 +115,6 @@ static SpiConnectionSettings^ GetSpiConnectionSettings(int chipSelectLine, int c
 }
 
 extern "C" {
-    int enable_lightning_if_available() {
-        if (LightningProvider::IsLightningEnabled) {
-            LowLevelDevicesController::DefaultProvider = LightningProvider::GetAggregateProvider();
-            return TRUE;
-        }
-        return FALSE;
-    }
-
     void *new_spidevice(int id, int chipSelectLine, int clockFrequency, int dataBitLength, int mode, int sharingMode) {
         ComPtr<IInspectable> spInspectable = nullptr;
         try {

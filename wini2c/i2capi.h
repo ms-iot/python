@@ -8,8 +8,6 @@ extern "C" {
         void *ob_device;
     } PyI2cDeviceObject;
 
-    void enable_lightning_if_available();
-
     void *new_i2cdevice(int id, int slaveAddress, int busSpeed, int sharingMode);
     void delete_i2cdevice(void *device);
     int write_i2cdevice(void *device, char* data, unsigned int count);

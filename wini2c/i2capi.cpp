@@ -8,7 +8,6 @@ using namespace Windows::Devices::Enumeration;
 using namespace Windows::Devices::I2c;
 using namespace Platform;
 using namespace Platform::Collections;
-using namespace Microsoft::IoT::Lightning::Providers;
 using namespace Microsoft::WRL;
 
 #define I2CDEVICE_TOPOINTER(d) (reinterpret_cast<IInspectable*>((Object^)d))
@@ -24,7 +23,7 @@ PyErr_SetString(PyExc_TypeError, errmsg); \
 return FAILURE; \
 }
 
-static I2cDevice^ GetDeviceInboxDriver(int index, I2cConnectionSettings^ settings) {
+static I2cDevice^ GetDevice(int index, I2cConnectionSettings^ settings) {
     if (index < 0) {
         PyErr_Format(PyExc_RuntimeError, "Could not find i2c  id: '%d'", index);
         return nullptr;
@@ -67,45 +66,6 @@ static I2cDevice^ GetDeviceInboxDriver(int index, I2cConnectionSettings^ setting
     return i2cdevice;
 }
 
-static I2cDevice^ GetDeviceLightning(int id, I2cConnectionSettings^ settings) {
-    auto asyncop = I2cController::GetControllersAsync(LightningI2cProvider::GetI2cProvider());
-    while (asyncop->Status != AsyncStatus::Completed) {
-        if (asyncop->Status == AsyncStatus::Error) {
-            PyErr_Format(PyExc_RuntimeError, "Could not find i2c controller: %d", asyncop->ErrorCode);
-            return nullptr;
-        }
-        Sleep(50);
-    }
-
-    auto controllers = asyncop->GetResults();
-    if (controllers == nullptr) {
-        PyErr_Format(PyExc_RuntimeError, "Could not find i2c controller");
-        return nullptr;
-    }
-
-    if (id < 0 || static_cast<unsigned int>(id) >= controllers->Size) {
-        PyErr_Format(PyExc_RuntimeError, "Could not find i2c controller id: '%d'", id);
-        return nullptr;
-    }
-
-    auto controller = controllers->GetAt(id);
-    auto i2cdevice = controller->GetDevice(settings);
-    if (i2cdevice == nullptr) {
-        PyErr_SetString(PyExc_RuntimeError, "Could not find I2C device specified");
-        return nullptr;
-    }
-
-    return i2cdevice;
-}
-
-static I2cDevice^ GetDevice(int id, I2cConnectionSettings^ settings) {
-    if (LightningProvider::IsLightningEnabled) {
-        return GetDeviceLightning(id, settings);
-    } else {
-        return GetDeviceInboxDriver(id, settings);
-    }
-}
-
 static I2cConnectionSettings^ GetI2cConnectionSettings(int slaveAddress, int busSpeed, int sharingMode) {
     I2cConnectionSettings^ settings = ref new I2cConnectionSettings(slaveAddress);
 
@@ -139,12 +99,6 @@ static I2cConnectionSettings^ GetI2cConnectionSettings(int slaveAddress, int bus
 }
 
 extern "C" {
-    void enable_lightning_if_available() {
-        if (LightningProvider::IsLightningEnabled) {
-            LowLevelDevicesController::DefaultProvider = LightningProvider::GetAggregateProvider();
-        }
-    }
-
     void *new_i2cdevice(int id, int slaveAddress, int busSpeed, int sharingMode) {
         ComPtr<IInspectable> spInspectable = nullptr;
         try {
